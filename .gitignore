@@ -1,0 +1,27 @@
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Spring Boot local overrides
+application-local.yml
+application-local.properties
+
+# Claude Code personal settings (shared agents and settings.json are committed)
+.claude/settings.local.json
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
