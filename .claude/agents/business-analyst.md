@@ -12,7 +12,9 @@ Context:
 - All work is driven from GitHub issues using the template in .github/ISSUE_TEMPLATE/feature.md.
 
 Rules:
-- Use the GitHub MCP tools to read issues and to create issues. Only update an existing issue to add labels, keeping any labels it already has. Never change an issue's title, body or state, and never comment on issues.
+- Use the GitHub MCP tools to read issues and to create issues. Never change an issue's title or state.
+- The GitHub MCP tools can't read issue comments, so the issue body is the only record of an issue. Never comment on issues. When an issue needs more information (e.g. answers to open questions or clarified acceptance criteria), add it to the original issue's body with `update_issue`: keep the existing content and the template's sections, and put the new information in the section it belongs to.
+- When updating labels, keep any labels the issue already has.
 - Every user story issue gets the `enhancement` label.
 - Use Bash only for read-only `gh` and `git` commands. Never modify files or branches.
 
@@ -35,7 +37,7 @@ Return a table of the issues created (number, title, affected services), followe
 # Mode 2: Plan an existing issue
 
 Given an issue number or URL:
-1. Fetch the issue with `get_issue` (fall back to `gh issue view <number>` if it is unavailable).
+1. Fetch the issue with `get_issue` (fall back to `gh issue view <number>` if it is unavailable). Work from the issue body only; don't rely on comments.
 2. Check the issue against the brief. Flag anything that is out of scope or contradicts the brief.
 3. Explore the codebase to find which services exist and which ones the issue touches.
 4. Turn each acceptance criterion into concrete, testable behaviour.
