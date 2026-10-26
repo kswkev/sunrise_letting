@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layout 2: Brand-led agency (mockup) - Sunrise Letting</title>
+<style>
+  :root {
+    --text: #1d1d1b; --muted: #505a5f; --bg: #ffffff; --panel: #f3f2f1;
+    --border: #b1b4b6; --primary: #8a3a00; --link: #1a4f8b; --focus: #ffdd00;
+    --dark: #1d1d1b; --space: 1rem;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.1875rem; line-height: 1.45; color: var(--text); background: var(--bg); }
+  h1, h2, h3, .btn, label, nav, .brand, .price { font-family: Arial, Helvetica, sans-serif; }
+  a { color: var(--link); }
+  a:focus, button:focus, summary:focus { outline: 3px solid transparent; background: var(--focus); color: var(--text); box-shadow: 0 -2px var(--focus), 0 4px var(--text); text-decoration: none; }
+  input:focus, select:focus { outline: 3px solid var(--focus); box-shadow: inset 0 0 0 2px var(--text); }
+  .notice { background: #fff4c2; border: 4px solid var(--text); padding: var(--space); margin: var(--space); font-weight: bold; font-family: Arial, sans-serif; }
+  .design-note { border: 2px dashed var(--muted); padding: .5rem .75rem; margin: .75rem 0; font-size: 1rem; color: var(--muted); background: #fff; font-family: Arial, sans-serif; }
+  .design-note strong { color: var(--text); }
+  .page-label { background: var(--text); color: #fff; padding: .5rem var(--space); margin: 2rem 0 0; font-size: 1rem; }
+  .frame { border: 2px solid var(--text); margin: 0 var(--space) 2rem; }
+  .skip { position: absolute; left: -999px; }
+  .skip:focus { position: static; display: inline-block; padding: .5rem; }
+  header.site { background: var(--dark); color: #fff; padding: 1rem var(--space); display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; align-items: center; justify-content: space-between; }
+  header.site a { color: #fff; }
+  header.site a:focus { color: var(--text); }
+  .brand { font-weight: bold; font-size: 1.5rem; text-decoration: none; letter-spacing: .02em; }
+  .brand span { color: #ffb37a; }
+  nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+  .main { padding: var(--space); max-width: 72rem; margin: 0 auto; }
+  footer.site { background: var(--dark); color: #fff; padding: 1.5rem var(--space); font-size: 1rem; font-family: Arial, sans-serif; }
+  footer.site a { color: #fff; }
+  footer.site a:focus { color: var(--text); }
+  footer.site ul { list-style: none; padding: 0; margin: 0 0 .5rem; display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+  h1 { font-size: 2rem; margin: .5rem 0 1rem; line-height: 1.15; }
+  h2 { font-size: 1.5rem; margin: 1.5rem 0 .75rem; }
+  h3 { font-size: 1.2rem; margin: 0 0 .25rem; }
+  label { display: block; font-weight: bold; margin-bottom: .25rem; }
+  fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
+  legend { font-weight: bold; font-family: Arial, sans-serif; margin-bottom: .25rem; }
+  .hint { color: var(--muted); margin: 0 0 .25rem; font-size: 1rem; font-family: Arial, sans-serif; }
+  input[type=text], select { font: inherit; font-family: Arial, sans-serif; padding: .4rem; border: 2px solid var(--text); width: 100%; min-height: 2.5rem; background: #fff; }
+  .btn { font-size: 1.1rem; font-weight: bold; display: inline-block; border: 0; padding: .65rem 1.1rem; min-height: 2.75rem; background: var(--primary); color: #fff; text-decoration: none; box-shadow: 0 2px 0 #3d1a00; cursor: pointer; }
+  .btn-secondary { background: #fff; color: var(--primary); box-shadow: inset 0 0 0 2px var(--primary); }
+  .field { margin-bottom: 1rem; }
+  .photo { background: repeating-linear-gradient(45deg, #dedede, #dedede 10px, #e9e9e9 10px, #e9e9e9 20px); color: var(--muted); display: flex; align-items: center; justify-content: center; aspect-ratio: 3 / 2; font-size: .95rem; border: 1px solid var(--border); font-family: Arial, sans-serif; }
+  .source { font-size: .85rem; color: var(--muted); margin: .5rem 0 0; font-family: Arial, sans-serif; }
+  .source a { color: var(--muted); word-break: break-all; }
+  /* Home hero */
+  .hero { background: linear-gradient(135deg, #c96a2b, #f0b37e 55%, #6b4a7a); padding: 2rem var(--space); }
+  .hero-panel { background: var(--dark); color: #fff; padding: 1.25rem; max-width: 36rem; }
+  .hero-panel h1 { margin-top: 0; }
+  .hero-panel .hint { color: #e0e0e0; }
+  .hero-panel label { color: #fff; }
+  .hero-panel a { color: #fff; }
+  .hero-row { display: grid; gap: .5rem; }
+  .blocks { display: grid; gap: 1rem; margin-top: 1.5rem; }
+  .block { border-top: 6px solid var(--primary); background: var(--panel); padding: 1rem; }
+  .block p { margin: .25rem 0 .5rem; }
+  /* Results */
+  .results-layout { display: grid; gap: 1.5rem; }
+  .filter-panel { background: var(--panel); padding: 1rem; }
+  .filter-panel summary { font-family: Arial, sans-serif; font-weight: bold; cursor: pointer; }
+  .radios label { display: inline-block; font-weight: normal; margin-right: 1rem; min-height: 1.5rem; }
+  .results-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: 1rem; font-family: Arial, sans-serif; }
+  .results-bar .count { font-weight: bold; margin: 0; }
+  .results-bar select { width: auto; }
+  .card { border: 1px solid var(--border); margin-bottom: 1.25rem; display: grid; }
+  .card .body { padding: 1rem; }
+  .card .body p { margin: .2rem 0; }
+  .card ul { margin: .5rem 0; padding-left: 1.2rem; }
+  .price { font-weight: bold; font-size: 1.4rem; color: var(--primary); margin: 0 0 .25rem; }
+  .pagination { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; margin: 1.5rem 0; font-family: Arial, sans-serif; }
+  .pagination a, .pagination span { display: inline-block; min-width: 2.75rem; min-height: 2.75rem; padding: .6rem .75rem; text-align: center; }
+  .pagination [aria-current] { background: var(--dark); color: #fff; font-weight: bold; }
+  /* Detail */
+  .gallery { display: grid; gap: .5rem; }
+  .gallery .thumbs { display: none; }
+  .title-row { display: grid; gap: .5rem 2rem; margin: 1rem 0; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+  .title-row h1 { margin: 0; }
+  .ctas { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .5rem; }
+  .two-col { display: grid; gap: 1rem 2.5rem; }
+  dl.summary { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1.5rem; margin: 0; font-family: Arial, sans-serif; }
+  dl.summary dt { font-weight: bold; }
+  dl.summary dd { margin: 0; }
+  .interested { background: var(--panel); border-left: 8px solid var(--primary); padding: 1rem; margin-top: 2rem; }
+  .interested h2 { margin-top: 0; }
+  .nav-menu-btn { display: inline-block; }
+  .nav-full { display: none; }
+  @media (min-width: 40em) {
+    .hero { padding: 4rem 2rem; }
+    .hero-row { grid-template-columns: 1fr auto; align-items: end; }
+    .hero-row .field { margin: 0; }
+    .blocks { grid-template-columns: repeat(3, 1fr); }
+    .card { grid-template-columns: 18rem 1fr; }
+    .card .photo { aspect-ratio: auto; min-height: 12rem; }
+    .gallery { grid-template-columns: 2fr 1fr; }
+    .gallery .thumbs { display: grid; gap: .5rem; }
+    .gallery .thumbs .photo { aspect-ratio: auto; }
+  }
+  @media (min-width: 48em) {
+    .nav-menu-btn { display: none; }
+    .nav-full { display: block; }
+  }
+  @media (min-width: 64em) {
+    .results-layout { grid-template-columns: 18rem 1fr; align-items: start; }
+    .title-row { grid-template-columns: 1fr auto; align-items: start; }
+    .two-col { grid-template-columns: 1fr 2fr; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main-content">Skip to main content</a>
+
+<p class="notice" role="note">Reference mockup for internal design discussion only. Images and text belong to the credited sites and must be replaced with Sunrise Letting's own content before any use.<br>
+<span style="font-weight:normal">This mockup contains no images or text from other sites: photos are placeholders, the hero is a CSS gradient and listings are fictional. Only layout patterns were taken from the credited pages. Static file: links and buttons do nothing. Resize the window to see the mobile layout. Three pages are shown in one file, so page regions are plain <code>div</code>s; on the real site each page has one <code>header</code>, <code>main</code> and <code>footer</code> landmark.</span></p>
+
+<p style="margin: 0 1rem; font-family: Arial, sans-serif">Layout 2 of 3: <strong>Brand-led agency</strong>. Layout patterns seen on Foxtons (home, results, detail) and Savills (results). See <code>docs/design/layout-suggestions.md</code>.</p>
+
+<!-- ============================ HOME ============================ -->
+<h2 class="page-label">Page 1: Home ( / )</h2>
+<div class="frame">
+  <header class="site">
+    <a class="brand" href="#">Sunrise <span>Letting</span></a>
+    <a class="nav-menu-btn" href="#">Menu</a>
+    <nav class="nav-full" aria-label="Main"><ul><li><a href="#">Properties to let</a></li><li><a href="#">Sign in</a></li><li><a href="#">Create account</a></li></ul></nav>
+  </header>
+  <div class="hero">
+    <div class="hero-panel" id="main-content">
+      <h1>Find your next home</h1>
+      <form role="search" action="#" method="get">
+        <div class="hero-row">
+          <div class="field">
+            <label for="h-loc">Location</label>
+            <p class="hint" id="h-loc-hint">Town, area or postcode</p>
+            <input type="text" id="h-loc" name="location" aria-describedby="h-loc-hint">
+          </div>
+          <button class="btn" type="submit">Search</button>
+        </div>
+      </form>
+      <p><a href="#">See all properties to let</a></p>
+    </div>
+  </div>
+  <div class="main">
+    <div class="blocks">
+      <section class="block" aria-labelledby="b1"><h2 id="b1">Book a viewing</h2><p>Find a property you like and choose a time to see it.</p><a href="#">How viewings work</a></section>
+      <section class="block" aria-labelledby="b2"><h2 id="b2">Apply online</h2><p>Apply for a property from your account after you've viewed it.</p><a href="#">What you'll need</a></section>
+      <section class="block" aria-labelledby="b3"><h2 id="b3">Property Managers</h2><p>Manage your listings in the Property Manager area.</p><a href="#">Sign in to manage listings</a></section>
+    </div>
+    <p class="design-note"><strong>Design note:</strong> brand hero with a search box on a solid panel, followed by service blocks, as on the <a href="https://www.foxtons.co.uk/">Foxtons home page</a>. The hero background is decorative. Text is on a solid dark panel so contrast never depends on the photo. The service blocks link to content pages that are <strong>not in the brief</strong>; they would need their own issues or be dropped.</p>
+  </div>
+  <footer class="site"><ul><li><a href="#">Accessibility</a></li><li><a href="#">Privacy</a></li><li><a href="#">Cookies</a></li><li><a href="#">Contact</a></li></ul><p>&copy; Sunrise Letting</p></footer>
+</div>
+
+<!-- ============================ RESULTS ============================ -->
+<h2 class="page-label">Page 2: Search results ( /properties?location=Leeds )</h2>
+<div class="frame">
+  <header class="site">
+    <a class="brand" href="#">Sunrise <span>Letting</span></a>
+    <a class="nav-menu-btn" href="#">Menu</a>
+    <nav class="nav-full" aria-label="Main"><ul><li><a href="#" aria-current="page">Properties to let</a></li><li><a href="#">Sign in</a></li><li><a href="#">Create account</a></li></ul></nav>
+  </header>
+  <div class="main">
+    <h1>Properties to let in Leeds</h1>
+    <div class="results-layout">
+      <div class="filter-panel">
+        <details open>
+          <summary>Filter properties (2 selected)</summary>
+          <form role="search" aria-label="Filter properties" action="#" method="get">
+            <h2 style="margin-top:.5rem">Filter properties</h2>
+            <div class="field"><label for="f-loc">Location</label><input type="text" id="f-loc" name="location" value="Leeds"></div>
+            <div class="field"><label for="f-min">Min rent</label><select id="f-min"><option>No min</option><option selected>£750</option></select></div>
+            <div class="field"><label for="f-max">Max rent</label><select id="f-max"><option>No max</option><option selected>£1,500</option></select></div>
+            <fieldset class="radios">
+              <legend>Bedrooms</legend>
+              <label><input type="radio" name="beds" checked> Any</label>
+              <label><input type="radio" name="beds"> 1+</label>
+              <label><input type="radio" name="beds"> 2+</label>
+              <label><input type="radio" name="beds"> 3+</label>
+            </fieldset>
+            <button class="btn" type="submit">Apply filters</button>
+            <p><a href="#">Clear filters</a></p>
+          </form>
+        </details>
+        <p class="design-note"><strong>HTMX:</strong> form swaps <code>#search-results</code> (full page without JS). The "(2 selected)" count in the summary is refreshed with an out-of-band swap. Grouped filter panel and "Clear filters" seen on <a href="https://search.savills.com/list/property-to-rent/england">Savills results</a>.</p>
+      </div>
+      <div>
+        <div class="results-bar">
+          <p class="count" role="status">2 properties found</p>
+          <form action="#" method="get"><label for="s2" style="display:inline">Sort by </label><select id="s2"><option>Newest</option><option>Lowest rent</option></select> <button class="btn btn-secondary" type="submit">Sort</button></form>
+        </div>
+        <div id="search-results">
+          <article class="card">
+            <div class="photo" aria-hidden="true">Photo</div>
+            <div class="body">
+              <p class="price">£1,200 per month</p>
+              <h3><a href="#">2 bedroom flat, Example Road, Leeds LS1</a></h3>
+              <ul><li>Private balcony</li><li>Close to the station</li><li>Available from 1 December 2026</li></ul>
+              <a class="btn btn-secondary" href="#">Request a viewing<span style="position:absolute;left:-999px"> for 2 bedroom flat, Example Road</span></a>
+              <p class="source">Example content (fictional). Layout pattern seen on: Savills – <a href="https://search.savills.com/list/property-to-rent/england">https://search.savills.com/list/property-to-rent/england</a></p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="photo" aria-hidden="true">Photo</div>
+            <div class="body">
+              <p class="price">£950 per month</p>
+              <h3><a href="#">1 bedroom flat, Sample Street, Leeds LS6</a></h3>
+              <ul><li>Shared garden</li><li>Furnished</li><li>Available now</li></ul>
+              <a class="btn btn-secondary" href="#">Request a viewing<span style="position:absolute;left:-999px"> for 1 bedroom flat, Sample Street</span></a>
+              <p class="source">Example content (fictional). Layout pattern seen on: Foxtons – <a href="https://www.foxtons.co.uk/properties-to-rent/london">https://www.foxtons.co.uk/properties-to-rent/london</a></p>
+            </div>
+          </article>
+          <nav aria-label="Pagination"><ul class="pagination"><li><span>Previous</span></li><li><a href="#" aria-current="page">1</a></li><li><a href="#">Next</a></li></ul></nav>
+        </div>
+        <p class="design-note"><strong>Accessibility:</strong> card buttons carry visually hidden text so each has a unique name. Reading order matches visual order. The price is shown first visually and in source order, so screen-reader users hear it first too; the heading still names the property.</p>
+      </div>
+    </div>
+  </div>
+  <footer class="site"><ul><li><a href="#">Accessibility</a></li><li><a href="#">Privacy</a></li><li><a href="#">Cookies</a></li><li><a href="#">Contact</a></li></ul><p>&copy; Sunrise Letting</p></footer>
+</div>
+
+<!-- ============================ DETAIL ============================ -->
+<h2 class="page-label">Page 3: Property detail ( /properties/123 )</h2>
+<div class="frame">
+  <header class="site">
+    <a class="brand" href="#">Sunrise <span>Letting</span></a>
+    <a class="nav-menu-btn" href="#">Menu</a>
+    <nav class="nav-full" aria-label="Main"><ul><li><a href="#">Properties to let</a></li><li><a href="#">Sign in</a></li><li><a href="#">Create account</a></li></ul></nav>
+  </header>
+  <div class="main">
+    <div class="gallery">
+      <div class="photo" role="img" aria-label="Photo placeholder: living room with bay window">Photo 1 of 6</div>
+      <div class="thumbs"><div class="photo" aria-hidden="true">Photo</div><div class="photo" aria-hidden="true">Photo</div></div>
+    </div>
+    <p style="font-family: Arial, sans-serif"><a href="#">See all 6 photos</a></p>
+    <div class="title-row">
+      <div>
+        <h1>2 bedroom flat, Example Road, Leeds LS1</h1>
+        <p>A bright second-floor flat with a private balcony, five minutes' walk from the station.</p>
+      </div>
+      <div>
+        <p class="price">£1,200 per month</p>
+        <div class="ctas"><a class="btn" href="#">Request a viewing</a><a class="btn btn-secondary" href="#">Apply for this property</a></div>
+        <p class="hint">You'll need to sign in or create an account first.</p>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <h2>Key features</h2>
+        <ul><li>Private balcony</li><li>Separate kitchen</li><li>Unfurnished</li></ul>
+        <h2>Further details</h2>
+        <dl class="summary"><dt>Deposit</dt><dd>£1,380</dd><dt>Available from</dt><dd>1 December 2026</dd><dt>Bedrooms</dt><dd>2</dd><dt>Bathrooms</dt><dd>1</dd></dl>
+      </div>
+      <div>
+        <h2>Description</h2>
+        <p>The flat has an open living area, a double bedroom overlooking the park and a second single bedroom. Bills are not included.</p>
+        <p class="source">Example content (fictional). Layout pattern seen on: Foxtons – <a href="https://www.foxtons.co.uk/properties-to-rent/w1s/chpk5689146">https://www.foxtons.co.uk/properties-to-rent/w1s/chpk5689146</a></p>
+      </div>
+    </div>
+    <section class="interested" aria-labelledby="int">
+      <h2 id="int">Interested in this property?</h2>
+      <div class="ctas"><a class="btn" href="#">Request a viewing</a><a class="btn btn-secondary" href="#">Apply for this property</a></div>
+    </section>
+    <p class="design-note"><strong>Design note:</strong> wide gallery, then title with the price and calls to action beside it, and the calls to action repeated at the end, as on the <a href="https://www.foxtons.co.uk/properties-to-rent/w1s/chpk5689146">Foxtons detail page</a>. "See all 6 photos" goes to a separate page listing every image with its alt text: no carousel, no JS. Repeated buttons use identical text (WCAG 3.2.4). Full page load, no HTMX.</p>
+  </div>
+  <footer class="site"><ul><li><a href="#">Accessibility</a></li><li><a href="#">Privacy</a></li><li><a href="#">Cookies</a></li><li><a href="#">Contact</a></li></ul><p>&copy; Sunrise Letting</p></footer>
+</div>
+</body>
+</html>

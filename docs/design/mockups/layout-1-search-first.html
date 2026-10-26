@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layout 1: Search-first portal (mockup) - Sunrise Letting</title>
+<style>
+  :root {
+    --text: #1d1d1b; --muted: #505a5f; --bg: #ffffff; --panel: #f3f2f1;
+    --border: #b1b4b6; --primary: #8a3a00; --link: #1a4f8b; --focus: #ffdd00;
+    --space: 1rem;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 1.1875rem; line-height: 1.4; color: var(--text); background: var(--bg); }
+  a { color: var(--link); }
+  a:focus, button:focus, input:focus, select:focus, summary:focus { outline: 3px solid transparent; background: var(--focus); color: var(--text); box-shadow: 0 -2px var(--focus), 0 4px var(--text); text-decoration: none; }
+  input:focus, select:focus { box-shadow: inset 0 0 0 2px var(--text); outline: 3px solid var(--focus); background: #fff; }
+  .notice { background: #fff4c2; border: 4px solid var(--text); padding: var(--space); margin: var(--space); font-weight: bold; }
+  .design-note { border: 2px dashed var(--muted); padding: .5rem .75rem; margin: .75rem 0; font-size: 1rem; color: var(--muted); background: #fff; }
+  .design-note strong { color: var(--text); }
+  .page-label { background: var(--text); color: #fff; padding: .5rem var(--space); margin: 2rem 0 0; font-size: 1rem; }
+  .frame { border: 2px solid var(--text); margin: 0 var(--space) 2rem; }
+  .skip { position: absolute; left: -999px; }
+  .skip:focus { position: static; display: inline-block; padding: .5rem; }
+  header.site { border-bottom: 8px solid var(--primary); padding: .75rem var(--space); display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; align-items: center; justify-content: space-between; }
+  .brand { font-weight: bold; font-size: 1.3rem; color: var(--text); text-decoration: none; }
+  nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+  .main { padding: var(--space); max-width: 70rem; margin: 0 auto; }
+  footer.site { border-top: 1px solid var(--border); background: var(--panel); padding: var(--space); font-size: 1rem; }
+  footer.site ul { list-style: none; padding: 0; margin: 0 0 .5rem; display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+  h1 { font-size: 2rem; margin: .5rem 0 1rem; line-height: 1.15; }
+  h2 { font-size: 1.5rem; margin: 1.5rem 0 .75rem; }
+  h3 { font-size: 1.2rem; margin: 0 0 .25rem; }
+  label { display: block; font-weight: bold; margin-bottom: .25rem; }
+  .hint { color: var(--muted); margin: 0 0 .25rem; font-size: 1rem; }
+  input[type=text], select { font: inherit; padding: .4rem; border: 2px solid var(--text); width: 100%; min-height: 2.5rem; background: #fff; }
+  .btn { font: inherit; font-weight: bold; display: inline-block; border: 0; padding: .6rem 1rem; min-height: 2.75rem; background: var(--primary); color: #fff; text-decoration: none; box-shadow: 0 2px 0 #3d1a00; cursor: pointer; }
+  .btn-secondary { background: var(--panel); color: var(--text); box-shadow: 0 2px 0 #929191; }
+  .field { margin-bottom: 1rem; }
+  .photo { background: repeating-linear-gradient(45deg, #dedede, #dedede 10px, #e9e9e9 10px, #e9e9e9 20px); color: var(--muted); display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; font-size: .95rem; border: 1px solid var(--border); }
+  .source { font-size: .85rem; color: var(--muted); margin: .5rem 0 0; }
+  .source a { color: var(--muted); word-break: break-all; }
+  /* Home */
+  .search-hero { background: var(--panel); padding: var(--space); }
+  .how ol { padding-left: 1.5rem; }
+  /* Results */
+  .filters { display: grid; gap: 0 1rem; }
+  .filters details summary { cursor: pointer; color: var(--link); text-decoration: underline; margin-bottom: .75rem; }
+  .results-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: .5rem; border-top: 2px solid var(--text); padding-top: .75rem; margin-top: 1rem; }
+  .results-bar .count { font-weight: bold; margin: 0; }
+  .results-bar .sort { display: flex; gap: .5rem; align-items: center; }
+  .results-bar .sort label { margin: 0; }
+  .results-bar .sort select { width: auto; }
+  .result { border-bottom: 1px solid var(--border); padding: 1rem 0; display: grid; gap: .75rem; }
+  .result p { margin: .15rem 0; }
+  .price { font-weight: bold; font-size: 1.3rem; }
+  .facts { color: var(--muted); }
+  .pagination { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; margin: 1.5rem 0; }
+  .pagination a, .pagination span { display: inline-block; min-width: 2.75rem; min-height: 2.75rem; padding: .6rem .75rem; text-align: center; }
+  .pagination [aria-current] { background: var(--link); color: #fff; font-weight: bold; }
+  /* Detail */
+  .detail { display: grid; gap: 1.5rem; }
+  .panel { border: 1px solid var(--border); border-top: 6px solid var(--primary); padding: var(--space); background: #fff; }
+  .panel .btn { display: block; width: 100%; text-align: center; margin-bottom: .75rem; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: .5rem; }
+  .thumbs .photo { aspect-ratio: 4 / 3; }
+  dl.summary { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1.5rem; margin: 0; }
+  dl.summary dt { font-weight: bold; }
+  dl.summary dd { margin: 0; }
+  .nav-menu-btn { display: inline-block; }
+  .nav-full { display: none; }
+  @media (min-width: 40em) {
+    .filters { grid-template-columns: 1fr 3fr auto; align-items: end; }
+    .filters details[open] > .filter-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 1rem; }
+    .result { grid-template-columns: 14rem 1fr; }
+    .search-row { display: flex; gap: .5rem; align-items: end; }
+    .search-row .field { flex: 1; margin: 0; }
+  }
+  @media (min-width: 48em) {
+    .nav-menu-btn { display: none; }
+    .nav-full { display: block; }
+  }
+  @media (min-width: 64em) {
+    .detail { grid-template-columns: 2fr 1fr; align-items: start; grid-template-areas: "gallery panel" "info panel"; }
+    .detail > .gallery { grid-area: gallery; }
+    .detail > .panel { grid-area: panel; }
+    .detail > .info { grid-area: info; }
+    .search-hero { padding: 2.5rem 4rem; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main-content">Skip to main content</a>
+
+<p class="notice" role="note">Reference mockup for internal design discussion only. Images and text belong to the credited sites and must be replaced with Sunrise Letting's own content before any use.<br>
+<span style="font-weight:normal">This mockup contains no images or text from other sites: photos are placeholders and listings are fictional. Only layout patterns were taken from the credited pages. Static file: links and buttons do nothing. Resize the window to see the mobile layout. Three pages are shown in one file, so the page regions are plain <code>div</code>s here; on the real site each page has one <code>header</code>, <code>main</code> and <code>footer</code> landmark.</span></p>
+
+<p style="margin: 0 1rem">Layout 1 of 3: <strong>Search-first portal</strong>. Layout patterns seen on Rightmove, OpenRent and SpareRoom results and detail pages. See <code>docs/design/layout-suggestions.md</code>.</p>
+
+<!-- ============================ HOME ============================ -->
+<h2 class="page-label">Page 1: Home ( / )</h2>
+<div class="frame">
+  <header class="site">
+    <a class="brand" href="#">Sunrise Letting</a>
+    <a class="nav-menu-btn" href="#">Menu</a>
+    <nav class="nav-full" aria-label="Main">
+      <ul><li><a href="#">Properties to let</a></li><li><a href="#">Sign in</a></li><li><a href="#">Create account</a></li></ul>
+    </nav>
+  </header>
+  <div class="main" id="main-content">
+    <div class="search-hero">
+      <h1>Find a home to rent</h1>
+      <form role="search" action="#" method="get">
+        <div class="search-row">
+          <div class="field">
+            <label for="home-location">Location</label>
+            <p class="hint" id="home-location-hint">Town, area or postcode</p>
+            <input type="text" id="home-location" name="location" aria-describedby="home-location-hint">
+          </div>
+          <button class="btn" type="submit">Search</button>
+        </div>
+      </form>
+      <p><a href="#">See all properties to let</a></p>
+    </div>
+    <section class="how" aria-labelledby="how-heading">
+      <h2 id="how-heading">How it works</h2>
+      <ol><li>Find a property</li><li>Request a viewing</li><li>Apply online</li></ol>
+      <p>You need an account to request a viewing or apply.</p>
+    </section>
+    <p class="design-note"><strong>Design note:</strong> single location box plus Search, with full filters on the results page. Pattern seen on <a href="https://www.rightmove.co.uk/property-to-rent.html">Rightmove rent landing page</a> and <a href="https://www.openrent.co.uk/">OpenRent home</a>. Plain GET form: no JS needed.</p>
+  </div><!-- /main -->
+  <footer class="site">
+    <ul><li><a href="#">Accessibility</a></li><li><a href="#">Privacy</a></li><li><a href="#">Cookies</a></li></ul>
+    <p>&copy; Sunrise Letting</p>
+  </footer>
+</div>
+
+<!-- ============================ RESULTS ============================ -->
+<h2 class="page-label">Page 2: Search results ( /properties?location=Leeds )</h2>
+<div class="frame">
+  <header class="site">
+    <a class="brand" href="#">Sunrise Letting</a>
+    <a class="nav-menu-btn" href="#">Menu</a>
+    <nav class="nav-full" aria-label="Main"><ul><li><a href="#" aria-current="page">Properties to let</a></li><li><a href="#">Sign in</a></li><li><a href="#">Create account</a></li></ul></nav>
+  </header>
+  <div class="main">
+    <h1>Properties to let in Leeds</h1>
+    <form role="search" aria-label="Filter properties" action="#" method="get" class="filters">
+      <div class="field">
+        <label for="r-location">Location</label>
+        <input type="text" id="r-location" name="location" value="Leeds">
+      </div>
+      <details open>
+        <summary>Filter by rent and bedrooms</summary>
+        <div class="filter-row">
+        <div class="field"><label for="r-min">Min rent</label>
+          <select id="r-min" name="minRent"><option>No min</option><option>£500</option><option>£750</option><option>£1,000</option></select></div>
+        <div class="field"><label for="r-max">Max rent</label>
+          <select id="r-max" name="maxRent"><option>No max</option><option>£1,000</option><option>£1,500</option><option>£2,000</option></select></div>
+        <div class="field"><label for="r-beds">Bedrooms</label>
+          <select id="r-beds" name="bedrooms"><option>Any</option><option>1+</option><option>2+</option><option>3+</option></select></div>
+        </div>
+      </details>
+      <div class="field"><button class="btn" type="submit">Search</button></div>
+    </form>
+    <p class="design-note"><strong>HTMX:</strong> form gets <code>hx-get="/properties" hx-target="#search-results" hx-push-url="true"</code>. With <code>HX-Request</code> the server returns only the <code>#search-results</code> fragment, otherwise the full page. The rent and bedroom filters sit in a native <code>&lt;details&gt;</code> (works without JS). The server renders it <code>open</code> when any filter is set, as here; otherwise it is closed so mobile users reach the results quickly. Filter row above the list seen on <a href="https://www.rightmove.co.uk/property-to-rent/London.html">Rightmove results</a> and <a href="https://www.openrent.co.uk/properties-to-rent/leeds">OpenRent results</a>.</p>
+
+    <div class="results-bar">
+      <p class="count" role="status">3 properties found</p>
+      <form class="sort" action="#" method="get">
+        <label for="sort">Sort by</label>
+        <select id="sort" name="sort"><option>Newest</option><option>Lowest rent</option><option>Highest rent</option></select>
+        <button class="btn btn-secondary" type="submit">Sort</button>
+      </form>
+    </div>
+
+    <div id="search-results">
+      <article class="result">
+        <div class="photo" aria-hidden="true">Photo</div>
+        <div>
+          <h3><a href="#">2 bedroom flat, Example Road, Leeds LS1</a></h3>
+          <p class="price">£1,200 per month</p>
+          <p class="facts">2 bedrooms · 1 bathroom · Unfurnished</p>
+          <p>Available from 1 December 2026</p>
+          <p>Second-floor flat close to the station, with a separate kitchen.</p>
+          <p class="source">Example content (fictional). Layout pattern seen on: Rightmove – <a href="https://www.rightmove.co.uk/property-to-rent/London.html">https://www.rightmove.co.uk/property-to-rent/London.html</a></p>
+        </div>
+      </article>
+      <article class="result">
+        <div class="photo" aria-hidden="true">Photo</div>
+        <div>
+          <h3><a href="#">1 bedroom flat, Sample Street, Leeds LS6</a></h3>
+          <p class="price">£950 per month</p>
+          <p class="facts">1 bedroom · 1 bathroom · Furnished</p>
+          <p>Available now</p>
+          <p>Ground-floor flat with a small shared garden.</p>
+          <p class="source">Example content (fictional). Layout pattern seen on: OpenRent – <a href="https://www.openrent.co.uk/properties-to-rent/leeds">https://www.openrent.co.uk/properties-to-rent/leeds</a></p>
+        </div>
+      </article>
+      <article class="result">
+        <div class="photo" aria-hidden="true">Photo</div>
+        <div>
+          <h3><a href="#">3 bedroom house, Test Lane, Leeds LS8</a></h3>
+          <p class="price">£1,500 per month</p>
+          <p class="facts">3 bedrooms · 2 bathrooms · Unfurnished</p>
+          <p>Available from 15 January 2027</p>
+          <p>Terraced house with off-street parking.</p>
+          <p class="source">Example content (fictional). Layout pattern seen on: SpareRoom – <a href="https://www.spareroom.co.uk/flatshare/leeds">https://www.spareroom.co.uk/flatshare/leeds</a></p>
+        </div>
+      </article>
+      <nav aria-label="Pagination">
+        <ul class="pagination">
+          <li><span>Previous</span></li>
+          <li><a href="#" aria-current="page">1</a></li>
+          <li><a href="#">2</a></li>
+          <li><a href="#">3</a></li>
+          <li><a href="#">Next</a></li>
+        </ul>
+      </nav>
+    </div>
+    <p class="design-note"><strong>Accessibility:</strong> the count is a <code>role="status"</code> region outside the swapped list, so after an HTMX swap only "N properties found" is announced. Each result is an <code>&lt;article&gt;</code>; the heading is the only link. List photos are decorative because the heading names the property.</p>
+  </div><!-- /main -->
+  <footer class="site"><ul><li><a href="#">Accessibility</a></li><li><a href="#">Privacy</a></li><li><a href="#">Cookies</a></li></ul><p>&copy; Sunrise Letting</p></footer>
+</div>
+
+<!-- ============================ DETAIL ============================ -->
+<h2 class="page-label">Page 3: Property detail ( /properties/123 )</h2>
+<div class="frame">
+  <header class="site">
+    <a class="brand" href="#">Sunrise Letting</a>
+    <a class="nav-menu-btn" href="#">Menu</a>
+    <nav class="nav-full" aria-label="Main"><ul><li><a href="#">Properties to let</a></li><li><a href="#">Sign in</a></li><li><a href="#">Create account</a></li></ul></nav>
+  </header>
+  <div class="main">
+    <p><a href="#">Back to search results</a></p>
+    <h1>2 bedroom flat, Example Road, Leeds LS1</h1>
+    <div class="detail">
+      <div class="gallery">
+        <div class="photo" role="img" aria-label="Photo placeholder: living room">Photo</div>
+        <div class="thumbs"><div class="photo" aria-hidden="true">Photo</div><div class="photo" aria-hidden="true">Photo</div><div class="photo" aria-hidden="true">Photo</div></div>
+        <p><a href="#">See all 6 photos</a></p>
+      </div>
+      <aside class="panel" aria-labelledby="next-steps">
+        <h2 id="next-steps" style="margin-top:0">£1,200 per month</h2>
+        <dl class="summary">
+          <dt>Deposit</dt><dd>£1,380</dd>
+          <dt>Available from</dt><dd>1 December 2026</dd>
+        </dl>
+        <p></p>
+        <a class="btn" href="#">Request a viewing</a>
+        <a class="btn btn-secondary" href="#">Apply for this property</a>
+        <p class="hint">You'll need to sign in or create an account first.</p>
+      </aside>
+      <div class="info">
+        <h2>Key facts</h2>
+        <dl class="summary">
+          <dt>Bedrooms</dt><dd>2</dd>
+          <dt>Bathrooms</dt><dd>1</dd>
+          <dt>Property type</dt><dd>Flat</dd>
+          <dt>Furnishing</dt><dd>Unfurnished</dd>
+        </dl>
+        <h2>Description</h2>
+        <p>Second-floor flat close to the station, with a separate kitchen and a double bedroom overlooking the park.</p>
+        <p class="source">Example content (fictional). Layout pattern seen on: OpenRent – <a href="https://www.openrent.co.uk/property-to-rent/leeds/1-bed-flat-st-george-building-ls1/3076221">https://www.openrent.co.uk/property-to-rent/leeds/1-bed-flat-st-george-building-ls1/3076221</a></p>
+      </div>
+    </div>
+    <p class="design-note"><strong>Design note:</strong> side panel with rent and the two calls to action, as on <a href="https://www.openrent.co.uk/property-to-rent/leeds/1-bed-flat-st-george-building-ls1/3076221">OpenRent's detail page</a>. In source order the panel comes straight after the photos, so on mobile it sits under the photo; on wide screens CSS grid places it in the right column. Reading order and visual order stay the same. Not sticky, so it never hides focused content (WCAG 2.4.11). Full page load, no HTMX.</p>
+  </div><!-- /main -->
+  <footer class="site"><ul><li><a href="#">Accessibility</a></li><li><a href="#">Privacy</a></li><li><a href="#">Cookies</a></li></ul><p>&copy; Sunrise Letting</p></footer>
+</div>
+</body>
+</html>
