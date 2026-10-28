@@ -6,6 +6,8 @@
 
 Status: **decided** (26 October 2026). The user chose **Suggestion 2, Brand-led agency**, and kept placeholders for photos and listing content. The site-wide decisions are now in `docs/design/design-system.md`, which takes precedence over this document and the mockups. The home page "service" blocks are kept only as placeholders, because the brief has no pages for them (see design-system.md section 4.3 and its open question 1).
 
+Update (28 October 2026): the product owner decided in issues #2 and #3 that there is **one shared sign-in page** for Visitors and Property Managers, with no separate Property Manager sign-in page. Where this document or its mockups show a Property Manager sign-in link (for example the "Already a manager? Sign in" block in Suggestion 2), read it as a link to the shared sign-in page. The signed-in headers, sign out and the Property Manager area (Variant A under `/manage`) are in `design-system.md` sections 3.1, 3.5 and 3.6. Site scripts of our own (password show/hide and the session time-out warning) are allowed alongside HTMX; see `design-system.md` 5.7.
+
 This is not an issue spec and not the design system. It builds on `docs/design/9-layout-options.md`, which was written from general knowledge. This document adds a **live review** of six sites (26 October 2026) and one new option (the map and list split).
 
 Mockups (open in a browser, no JavaScript, inline CSS only):
@@ -206,7 +208,7 @@ Wide:
 ### Where HTMX fits
 - **Search and filters:** submit-driven by default (`hx-trigger="submit"`), swapping `#search-results` (count, sort, list, pagination). Optional: `hx-trigger="change"` on the selects with a short delay. Without JS the same form does a full page `GET`.
 - **Sort and pagination:** links/forms with `hx-get` to the same URL, same target; plain links without JS.
-- **Inline validation:** on the viewing and apply forms (#6, #7) and sign up (#1), e.g. `hx-post="/validate/email"` on `blur`, swapping only that field's error message element. The server still validates the full submit.
+- **Inline validation:** on the viewing and apply forms (#6, #7) and sign up (#1), e.g. `hx-post="/validate/email"` on `blur`, swapping only that field's error message element. The server still validates the full submit. (For sign up this is now decided differently in #1: the **whole field group** is swapped (except Password and Confirm password, which swap only their error message), and only fields that have a value are checked. See `design-system.md` 5.4.)
 - **Not HTMX:** detail page, sign in, viewing/apply pages are full page loads.
 
 ### Accessibility notes

@@ -1,6 +1,11 @@
 # Issue #9: site layout options (exploration)
 
-Status: **for discussion**. This is not the design spec for #9 and not the design system. It sets out options so the user can choose the site-wide layout (the brief's open question "Layout for website"). Once an option is chosen, `docs/design/design-system.md` and `docs/design/9-web-service-skeleton.md` (or similar) will be written from it.
+Status: **partly decided**. This is not the design spec for #9 and not the design system. It sets out options so the user can choose the site-wide layout (the brief's open question "Layout for website"). The site-wide decisions are recorded in `docs/design/design-system.md`, which takes precedence over this document.
+
+Decisions so far:
+- **Visitor layout (question 1):** superseded by `layout-suggestions.md`, where the user chose Suggestion 2, Brand-led agency (26 October 2026).
+- **Property Manager area (question 2):** Variant A, under the URL prefix `/manage`. Decided by the product owner in issue #3 (28 October 2026).
+- **Header navigation (question 3) and sign-in pages (question 4):** decided by the product owner in issues #1, #2 and #3 (28 October 2026). See section 7.
 
 ## Basis for this comparison
 
@@ -45,7 +50,7 @@ Whichever option is chosen, the #9 layout template would contain the parts below
     <footer>   legal links + copyright
 ```
 
-There would also be a Property Manager layout for the `/manage/...` pages (see section 4). It reuses the same `<head>` fragment but has its own header and nav.
+~~There would also be a Property Manager layout for the `/manage/...` pages (see section 4). It reuses the same `<head>` fragment but has its own header and nav.~~ **Decided (#3):** the Property Manager pages under `/manage` use **the same skeleton** (Variant A in section 4), with a coloured "Property Manager area" band added. There is no separate Property Manager header or nav.
 
 ---
 
@@ -384,17 +389,22 @@ A small thumbnail can sit to the left of each row later, if photos are added.
 
 ## 4. Property Manager area (applies to any option)
 
-Two variants, independent of the Visitor option chosen. Both live under one URL prefix (suggested `/manage`), so the #3 sign-in redirect and access rules are simple.
+**Decided (28 October 2026, issue #3): Variant A, under the URL prefix `/manage`.** Variant B is not chosen. The `/manage` home page is `/manage` and the first-sign-in password change page is `/manage/change-password`. The decided layout is described in `design-system.md` section 3.6; the wireframes below are kept for the record.
 
-#### Variant A: same site shell, distinct area banner
+Two variants, independent of the Visitor option chosen. Both live under one URL prefix (`/manage`, now accepted), so the #3 sign-in redirect and access rules are simple.
+
+#### Variant A: same site shell, distinct area banner (chosen)
+
+The header links below have been updated to the decided Property Manager header (#3). The listings table is illustrative only: it belongs to #8. In #3 the `/manage` home page is a placeholder headed "Property Manager area".
 
 ```
 +----------------------------------------------------------------------+
-| SUNRISE LETTING                          Listings        Sign out    |
+| SUNRISE LETTING      Properties to let  Property Manager area  [Sign out]
 +----------------------------------------------------------------------+
 | Property Manager area                                   (coloured band)
 +----------------------------------------------------------------------+
-|   Property listings                                                  |
+|   Property listings                                    (#8, illustrative)
+|                                                                      |
 |                                                                      |
 |   | Property                       | Rent       | Status   |       | |
 |   |--------------------------------|------------|----------|-------| |
@@ -406,7 +416,7 @@ Two variants, independent of the Visitor option chosen. Both live under one URL 
 +----------------------------------------------------------------------+
 ```
 
-#### Variant B: separate admin shell with a side nav
+#### Variant B: separate admin shell with a side nav (not chosen)
 
 ```
 +----------------------------------------------------------------------+
@@ -453,12 +463,18 @@ Reasons:
 
 If the user wants a more familiar portal look, Option 1 is the next best choice. The skeleton for #9 is identical either way, so the choice between 1 and 3 doesn't need to be final until #4. Option 2 is not recommended until image hosting is decided and a featured-properties feature is actually wanted.
 
+**Outcome:** the Visitor layout was decided in `layout-suggestions.md` (Suggestion 2, Brand-led agency). The Property Manager area follows the recommended Variant A, as decided in issue #3.
+
 ## 7. Questions to answer before writing the design system and the #9 spec
 
-1. **Which option** (1, 2, 3, or a stated mix) should the Visitor pages follow?
-2. **Property Manager area:** Variant A (same shell with a banner) or Variant B (separate admin shell)? Is `/manage` acceptable as the URL prefix?
-3. **Header navigation for Visitors:** are "Properties to let", "Sign in" and "Create account" the right links? When signed in, what should show: "Sign out" only, or the user's name too? There is no account page in the brief.
-4. **Sign-in pages:** one shared sign-in page for Visitors and Property Managers, or a separate Property Manager sign-in under `/manage`? This affects the header link and the #2 and #3 designs.
+1. ~~**Which option** (1, 2, 3, or a stated mix) should the Visitor pages follow?~~ **Resolved (26 October 2026):** superseded by `layout-suggestions.md`; the user chose Suggestion 2, Brand-led agency.
+2. ~~**Property Manager area:** Variant A (same shell with a banner) or Variant B (separate admin shell)? Is `/manage` acceptable as the URL prefix?~~ **Resolved (28 October 2026, issue #3):** Variant A. `/manage` is accepted: the home page is `/manage` and the first-sign-in password change page is `/manage/change-password`. Every Property Manager page is under `/manage`.
+3. ~~**Header navigation for Visitors:** are "Properties to let", "Sign in" and "Create account" the right links? When signed in, what should show: "Sign out" only, or the user's name too? There is no account page in the brief.~~ **Resolved (28 October 2026, issues #2 and #3):**
+   - Signed out: "Properties to let", "Sign in", "Create account" (unchanged).
+   - Signed in as a Visitor: "Properties to let", "Sign out". No name is shown and there is no account page.
+   - Signed in as a Property Manager: "Properties to let", "Property Manager area" (links to `/manage`), "Sign out".
+   - "Sign out" is a form POST button protected against cross-site requests, not a link. After signing out the user lands on `/properties`.
+4. ~~**Sign-in pages:** one shared sign-in page for Visitors and Property Managers, or a separate Property Manager sign-in under `/manage`? This affects the header link and the #2 and #3 designs.~~ **Resolved (28 October 2026, issues #2 and #3):** one shared sign-in page. There is no separate Property Manager sign-in page. After sign-in, Visitors return to the page they came from (paths on this site only), falling back to `/properties`. Property Managers always go to `/manage`, or to `/manage/change-password` first if they still have a temporary password.
 5. **Footer links:** which pages will exist (accessibility statement, privacy notice, cookies, contact, terms)? Footer links must not point to missing pages. A privacy notice is likely needed because #1, #6 and #7 collect personal data. Should #9 show only the copyright line until those pages exist?
 6. **Branding:** is there a logo, brand colour or typeface for Sunrise Letting? If not, may the design system define a neutral palette that meets AA contrast? (#9 rules out styling, so should the #9 layout ship unstyled with only structural CSS?)
 7. **Photos:** will properties have photos (#5's open question)? This decides whether cards and detail pages reserve image space.
