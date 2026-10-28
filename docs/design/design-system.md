@@ -1,6 +1,6 @@
 # Sunrise Letting design system
 
-Status: **adopted** (26 October 2026). Based on **Suggestion 2, Brand-led agency** in `docs/design/layout-suggestions.md`, chosen by the user. **Updated 28 October 2026** with the product owner's decisions in issues #1, #2 and #3: the Property Manager area (Variant A under `/manage`), one shared sign-in page, the signed-in headers, sign out, and the account pages (sections 0, 3.1, 3.5, 3.6, 4.3, 4.10, 4.17 to 4.19, 5.4, 6.6, 6.7, 7). **Updated again 28 October 2026** with the product owner's answers to open questions 7 to 10 (now in issues #1, #2 and #3): the show/hide script, whole-group inline validation, no blur check on empty fields, and the session time-out warning (sections 0, 3.1, 3.5, 4.14, 4.17, 4.20, 5.4, 5.5, 6.6, 6.7, 7). **Updated a third time 28 October 2026** with the answers to open questions 11 to 13 (now in issues #1 and #2): message-only inline validation for password fields, and the time-out edge cases (sections 0, 3.5, 4.10, 4.17, 4.20, 5.4, 5.7, 6.7, 7). Then open question 14 was answered in #2: a timed-out tab whose session is still active goes straight back to its page (sections 0, 3.5, 4.20, 7).
+Status: **adopted** (26 October 2026). Based on **Suggestion 2, Brand-led agency** in `docs/design/layout-suggestions.md`, chosen by the user. **Updated 28 October 2026** with the product owner's decisions in issues #1, #2 and #3: the Property Manager area (Variant A under `/manage`), one shared sign-in page, the signed-in headers, sign out, and the account pages (sections 0, 3.1, 3.5, 3.6, 4.3, 4.10, 4.17 to 4.19, 5.4, 6.6, 6.7, 7). **Updated again 28 October 2026** with the product owner's answers to open questions 7 to 10 (now in issues #1, #2 and #3): the show/hide script, whole-group inline validation, no blur check on empty fields, and the session time-out warning (sections 0, 3.1, 3.5, 4.14, 4.17, 4.20, 5.4, 5.5, 6.6, 6.7, 7). **Updated a third time 28 October 2026** with the answers to open questions 11 to 13 (now in issues #1 and #2): message-only inline validation for password fields, and the time-out edge cases (sections 0, 3.5, 4.10, 4.17, 4.20, 5.4, 5.7, 6.7, 7). Then open question 14 was answered in #2: a timed-out tab whose session is still active goes straight back to its page (sections 0, 3.5, 4.20, 7). Then open question 15 was answered in #1 and #2: signed-in users opening the sign-in or sign-up page are redirected (sections 0, 3.5, 7).
 
 This file holds the site-wide decisions. Every issue spec (`docs/design/<issue-number>-<title>.md`) reuses what is defined here and only adds what is specific to that issue. When an issue needs a new reusable component, it is added here, not in the issue spec.
 
@@ -33,6 +33,7 @@ Decided since adoption (28 October 2026, product owner, issues #1 to #3), so no 
 - **Session time-outs:** warning dialog 2 minutes before an idle time-out, and a sign-in message after a time-out (3.5, 4.20).
 - **Inline validation of password fields:** only the error message is swapped; the input is never re-rendered (5.4, 4.17).
 - **Time-out edge cases:** each tab runs its own timer; no response or a failed keep-alive goes to the sign-in page with the inactivity message; if the session is still active, the sign-in page sends the tab straight back to its return address with no message (3.5, 4.20).
+- **Already signed in:** opening "Sign in" or "Create account" directly while signed in redirects to `/properties` (Visitors) or `/manage` / `/manage/change-password` (Property Managers), with no form (3.5).
 
 ---
 
@@ -339,6 +340,18 @@ All account pages are **full pages** in the shared skeleton (3.1), using the sin
 | Property Manager with a permanent password | `/manage`, whatever the return address |
 
 How the return address is carried to the sign-in and sign-up pages is set in the #1 and #2 specs.
+
+**Already signed in (decided in #1 and #2)**
+- If someone who is already signed in opens the "Sign in" or "Create account" page directly (for example from a bookmark, without the timed-out marker), the form isn't shown. The server redirects instead:
+
+  | Who | Destination |
+  |---|---|
+  | Visitor | `/properties` (any return address is ignored) |
+  | Property Manager with a temporary password | `/manage/change-password` |
+  | Property Manager with a permanent password | `/manage` |
+
+- A tab that arrives at the sign-in page with the timed-out marker while the session is still active is handled differently: it goes back to its return address (see the warning section below and 4.20).
+- Test hooks: a GET to either page with a signed-in session returns a redirect, not the form.
 
 **Sign out (#2)**
 - A form POST button in the header (4.18), protected against cross-site request forgery. Never a link.
@@ -749,4 +762,4 @@ Warns a signed-in user 2 minutes before an idle session ends (3.5). Meets WCAG 2
 12. ~~**Time-out warning with several tabs open:** acceptable, or share the timer between tabs?~~ **Resolved (28 October 2026, issue #2):** each tab runs its own timer, which is acceptable for now; "Stay signed in" covers a warning in a tab that isn't in use. Sharing the timer between tabs is out of scope. See 3.5 and 4.20.
 13. ~~**When time runs out with the warning still open, or "Stay signed in" fails:** stay on the page, or go to sign in?~~ **Resolved (28 October 2026, issue #2):** in both cases the page goes to the sign-in page with "You were signed out because you were inactive", so nothing personal is left on screen. Pressing Escape counts as "Stay signed in" (confirmed in #2). See 3.5 and 4.20.
 14. ~~**Idle tab times out while the session is still active in another tab.**~~ **Resolved (28 October 2026, issue #2):** option (b). The sign-in page notices the active session and sends the tab straight back to its return address, with no inactivity message; Property Managers go to `/manage`, as in #3. See 3.5 and 4.20. Original question, for the record: because each tab runs its own timer (question 12), a tab nobody is looking at will reach its time-out and go to the sign-in page with "You were signed out because you were inactive", even though the user is still signed in and working in another tab. That redirect is a plain GET and doesn't end the session. What should the sign-in page do when it is opened this way but the session is still active? Options: (a) show the sign-in page and the message anyway (misleading: the header would show "Sign out", and the message would be untrue); (b) recognise the active session and skip the message, for example by sending the tab to its return address or showing the page without the banner; (c) end the session from that tab, which would also sign the user out of the tab they are using (and would need a state-changing request, unlike the plain GET in 4.20).
-15. **Signed-in user opens the sign-in or sign-up page directly** (without the timed-out marker, for example from a bookmark or the browser history): #2 now sends a signed-in tab straight back only when it arrives through a time-out. Should the plain sign-in and "Create account" pages do the same for a signed-in user (redirect to the return address, `/properties` or `/manage`), or show the form as normal?
+15. ~~**Signed-in user opens the sign-in or sign-up page directly.**~~ **Resolved (28 October 2026, issues #1 and #2):** the form isn't shown. Visitors are sent to `/properties`; Property Managers to `/manage`, or `/manage/change-password` if they still have a temporary password. See 3.5. Original question, for the record: (without the timed-out marker, for example from a bookmark or the browser history): #2 now sends a signed-in tab straight back only when it arrives through a time-out. Should the plain sign-in and "Create account" pages do the same for a signed-in user (redirect to the return address, `/properties` or `/manage`), or show the form as normal?
