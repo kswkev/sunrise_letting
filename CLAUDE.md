@@ -79,6 +79,8 @@ The subagents in `.claude/agents/` form the pipeline:
 3. **developer**: implements the plan steps for one service only, with tests. In the `web` service it builds pages to the issue's design spec. Does not commit, push or open PRs unless told to.
 4. **tech-lead**: reviews the feature branch's diff against `develop` and the issue's acceptance criteria. Read-only.
 
+Alongside the pipeline, **devops** sets up and maintains GitHub Actions workflows (CI builds and tests on pull requests and pushes). It only writes under `.github/` and reports any change needed elsewhere. Does not commit, push or open PRs unless told to.
+
 ## GitHub MCP
 
 The GitHub MCP server is configured in `.mcp.json` and reads its token from the `GITHUB_TOKEN` environment variable. Subagents only get MCP tools listed by name in their `tools:` frontmatter, so when giving an agent new GitHub abilities, add the `mcp__github__*` tool there and, if it should run without prompting, to `permissions.allow` in `.claude/settings.local.json`. Changes to agent definitions only take effect after restarting Claude Code.
