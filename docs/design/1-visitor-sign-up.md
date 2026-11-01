@@ -34,14 +34,15 @@ Alternative and error paths:
 - **Email already registered** (compared trimmed and ignoring case): the page is shown again with the form-level error (see States). No field is marked as wrong, values are kept except the passwords, no account is created and nobody is signed in.
 - **Unsafe return address** (not a path on this site): ignored. The Visitor goes to `/properties` with the success banner, as if there were none.
 - **Identity service unavailable or failing on submit:** the page is shown again with status `503` and a form-level error. Values are kept except the passwords.
-- **Inline check can't be done** (identity unavailable): the endpoint returns `204 No Content` and nothing on the page changes. The submit still checks everything.
+- **Form expired** (the form's CSRF token is missing or no longer valid, for example because the form was left open until the signed-out session ended): the expired form pattern (design system 3.5). No 403. The page is shown again with status `200`, the form-level error "Your form has expired. Check your details and submit again.", every value kept except the passwords, and a new CSRF token. The fields aren't checked, no account is created and nobody is signed in. A valid `returnTo` is kept. Submitting again works as normal.
+- **Inline check can't be done** (identity unavailable, or the CSRF token is no longer valid): the endpoint returns `204 No Content` and nothing on the page changes. The submit still checks everything.
 - **No JavaScript:** no inline checks and no show/hide toggle. Everything else works the same way through the full-page submit.
 
 ### Return address (decided in this spec, used by #1 and #2)
 
 - It is carried in a query parameter `returnTo` on the GET (for example `/create-account?returnTo=%2Fproperties%2F123%2Fviewing`) and as a hidden field `returnTo` in the form, so it survives a failed submit.
 - It is followed only if it is a path on this site: it starts with a single `/`, doesn't start with `//` or `/\`, contains no backslash, no scheme and no control characters. Anything else is treated as if there were no return address.
-- The header "Create account" and "Sign in" links don't carry a return address. Open question 1 asks whether they should.
+- The header "Create account" and "Sign in" links don't carry a return address (confirmed by the product owner), so signing up from the header always ends on `/properties` with "Your account has been created".
 - The "Already have an account? Sign in" link on this page and the "sign in" link in the duplicate-email message both go to `/sign-in`, carrying the same `returnTo` if there is a valid one.
 
 ---
@@ -92,7 +93,10 @@ Mobile (base):
 | Email address                |
 | [                        ]   |
 | Phone number                 |
-| A UK mobile or landline...   |
+| Use numbers and spaces only, |
+| and a + at the start if you  |
+| need it, for example         |
+| 07700 900982                 |
 | [                        ]   |
 | Password                     |
 | Must be 8 to 128 chars...    |
@@ -127,7 +131,8 @@ Wide (40em and up; nothing more changes at 64em):
 |  Email address                                                       |
 |  [                                    ]                              |
 |  Phone number                                                        |
-|  A UK mobile or landline number, for example 07700 900123            |
+|  Use numbers and spaces only, and a + at the start if you need it,   |
+|  for example 07700 900982                                            |
 |  [                    ]                                              |
 |  Password                                                            |
 |  Must be 8 to 128 characters and include ...                         |
@@ -155,7 +160,7 @@ All fields use the form field component (4.10), or the password field component 
 | 3 | First name | none | `first-name` / `firstName` | text input | `autocomplete="given-name"` `spellcheck="false"` | `#field-first-name` |
 | 4 | Surname | none | `surname` / `surname` | text input | `autocomplete="family-name"` `spellcheck="false"` | `#field-surname` |
 | 5 | Email address | none | `email` / `email` | `type="email"` | `autocomplete="email"` `spellcheck="false"` `autocapitalize="none"` | `#field-email` |
-| 6 | Phone number | A UK mobile or landline number, for example 07700 900123 or 0113 496 0000 | `phone` / `phone` | `type="tel"` | `autocomplete="tel"` | `#field-phone` |
+| 6 | Phone number | Use numbers and spaces only, and a + at the start if you need it, for example 07700 900982 | `phone` / `phone` | `type="tel"` | `autocomplete="tel"` `aria-describedby="phone-hint"` (plus `phone-error` when there is an error) | `#field-phone` |
 | 7 | Password | Must be 8 to 128 characters and include an upper-case letter, a lower-case letter, a number and a symbol | `password` / `password` | password field (4.17) | `autocomplete="new-password"` | `#field-password` (never swapped); error slot `#password-error-slot` |
 | 8 | Confirm password | none | `confirm-password` / `confirmPassword` | password field (4.17) | `autocomplete="new-password"` | `#field-confirm-password` (never swapped); error slot `#confirm-password-error-slot` |
 
@@ -163,6 +168,7 @@ Notes:
 - **"Other" title** is always shown as its own field after Title, because revealing it only when "Other" is chosen would need JavaScript. Its label and hint make clear it is only needed for "Other". If Title isn't "Other", whatever is typed in Other title is ignored and not stored, and no error is shown for it.
 - Title starts on "Select a title" (empty), so no title is chosen for the user.
 - After a failed submit, Title, Other title, First name, Surname, Email address and Phone number are rendered exactly as typed (not trimmed or normalised), so the user recognises them. Both password inputs are always rendered with an empty value.
+- **Phone hint:** rendered as `<p class="hint" id="phone-hint">` between the label and the input, as in the form field component (4.10). The input's `aria-describedby` is `phone-hint`, or `phone-hint phone-error` when the field shows an error, in the field group returned by the inline check as well as on the full page. The hint's wording matches the "only numbers, spaces and a + at the start" error, and its example uses a number from Ofcom's range reserved for drama (07700 900000 to 900999), as do the error message examples.
 - Toggle buttons: "Show" with visually hidden " password", and "Show" with visually hidden " confirm password" (4.17).
 - Submit: `<button type="submit" class="button">Create account</button>`.
 
@@ -181,10 +187,11 @@ What the fragment checks:
 - Other title: only the length (20 characters or fewer). Whether it is needed (Title is "Other") is checked on submit only.
 - First name, Surname: length.
 - Email address: format and length only. It never checks or reveals whether an account exists.
-- Phone number: that it is a valid UK mobile or landline number, with or without +44.
+- Phone number: first, that it contains only digits and spaces, with an optional `+` as the first character (after trimming). Hyphens, brackets, dots, letters and a `+` anywhere else are rejected. Then, with the spaces removed, that it is a valid UK mobile or landline number, with or without +44.
 - Invalid: the group with `form-group--error`, the error message (with the visually hidden "Error:" prefix) and `aria-invalid="true"` on the control; `aria-describedby` includes `<id>-error`.
 - Valid: the group in its neutral state.
 - The check can't be done (identity unavailable): `204 No Content`. HTMX doesn't swap on 204, so nothing changes.
+- CSRF token missing or no longer valid: also `204 No Content`, never a 403 (which 5.6 would swap into the field). The expired form message appears on submit.
 - Request without the `HX-Request` header: `303` redirect to `/create-account`. These endpoints serve HTMX only.
 
 ### Fragment: inline validation of Password and Confirm password
@@ -206,7 +213,22 @@ What the fragment checks:
 
 - `/properties` is the search page from #4. After sign-up with no valid return address, it shows the success notification banner (4.14) at the top of `<main>`, above the `<h1>`: `notification-banner--success`, `role="status"`, `tabindex="-1"`, `autofocus`.
 - The banner is shown once, on the first `GET /properties` after the redirect (for example a flash attribute), and not on later visits or reloads.
-- If #4 isn't built yet, `/properties` needs at least a page in the shared skeleton with the `<h1>` "Properties to let" so the banner can be shown (open question 4).
+- **Before #4 is built** (decided by the product owner): the web service adds a minimal `/properties` page in the shared skeleton. `<title>` "Properties to let - Sunrise Letting"; `<main>` contains only the success banner (when there is one) and the `<h1>` "Properties to let". Nothing else. #4 replaces it with the search page and keeps the banner.
+
+Minimal `/properties` (mobile; at 40em the header is on one row as elsewhere):
+```
++------------------------------+
+| header (signed in)           |
++------------------------------+
+| +--------------------------+ |
+| | Your account has been    | |  success banner, once only
+| | created                  | |
+| +--------------------------+ |
+| Properties to let      (h1)  |
++------------------------------+
+| © Sunrise Letting            |
++------------------------------+
+```
 
 No HTMX is used for the submit (5.5).
 
@@ -224,7 +246,9 @@ No HTMX is used for the submit (5.5).
 | Validation errors on submit | Page title "Error: Create an account - Sunrise Letting". Error summary "There is a problem" with one link per wrong field, in field order, each going to the field's input id (`#title`, `#title-other`, `#first-name`, `#surname`, `#email`, `#phone`, `#password`, `#confirm-password`) and using the field's message text. Each wrong field is in its error state. Values kept, passwords empty. Status `200`. |
 | Email already registered | Page title "Error: Create an account - Sunrise Letting". Form-level error summary (4.13): heading "There is a problem", paragraph "We couldn't create an account with these details. If you already have an account, sign in." where "sign in" links to `/sign-in` (with `returnTo` if valid). No field marked as wrong. Values kept, passwords empty. Status `200`. If other fields are also wrong, only the field errors are shown, because the duplicate check runs only when every field is valid. |
 | Server error on submit | Page title "Error: Create an account - Sunrise Letting". Form-level error summary: "There is a problem", paragraph "Sorry, we couldn't create your account. Try again later." Values kept, passwords empty. Status `503`. |
+| Form expired on submit | Page title "Error: Create an account - Sunrise Letting". Form-level error summary (4.13): "There is a problem", paragraph "Your form has expired. Check your details and submit again." No field marked as wrong. Values kept as typed, passwords empty, valid `returnTo` kept, new CSRF token. Status `200`. |
 | Server error inline | No change (`204`). |
+| Form expired inline | No change (`204`). |
 | Not found | Not applicable. |
 | Already signed in | No page; `302` redirect (see User flow). |
 | Success with return address | `303` to the return address. No banner. |
@@ -261,7 +285,8 @@ Error messages (same text in the field and in the error summary):
 | Email address | over 254 characters | Email address must be 254 characters or fewer |
 | Email address | wrong format | Enter an email address in the correct format, like name@example.com |
 | Phone number | empty | Enter your phone number |
-| Phone number | not a valid UK number | Enter a UK phone number, like 07700 900123 or +44 7700 900123 |
+| Phone number | contains anything other than digits, spaces and a leading + (for example hyphens or brackets) | Phone number can only include numbers, spaces and a + at the start |
+| Phone number | not a valid UK number | Enter a UK phone number, like 07700 900982 or +44 7700 900982 |
 | Password | empty | Enter a password |
 | Password | under 8 characters | Password must be at least 8 characters |
 | Password | over 128 characters | Password must be 128 characters or fewer |
@@ -274,8 +299,11 @@ Where a field breaks more than one rule, only the first message in the table's o
 Form-level messages:
 - Duplicate email: "We couldn't create an account with these details. If you already have an account, sign in."
 - Server error: "Sorry, we couldn't create your account. Try again later."
+- Form expired: "Your form has expired. Check your details and submit again."
 
 Success banner on `/properties`: heading "Your account has been created".
+
+Minimal `/properties` (before #4): `<h1>` "Properties to let".
 
 ---
 
@@ -300,7 +328,7 @@ Beyond the design-system defaults (4.10, 4.13, 4.17, 5.4, 6.6, 6.7):
 | Acceptance criterion | Where the design meets it |
 |---|---|
 | Valid details: account created, signed in, returned to the page I came from | User flow steps 4 to 6; "Return address". Test: POST with valid fields and `returnTo=/properties/123` gives `303` to `/properties/123`, with a signed-in session. |
-| Opened directly: taken to `/properties` with "Your account has been created" | User flow step 6; "Page used after success"; States "Success without return address". |
+| Opened directly: taken to `/properties` with "Your account has been created" | User flow step 6; "Page used after success" (including the minimal `/properties` page before #4); States "Success without return address". |
 | Return address not a path on this site: `/properties` instead | "Return address" rules. Test cases: `https://evil.example`, `//evil.example`, `/\evil.example`, `javascript:...`. Each gives `303` to `/properties`. |
 | Already signed in as a Visitor: sent to `/properties`, no form | User flow "Already signed in"; States. Test: GET with a Visitor session gives `302` to `/properties`, and the body has no `#create-account-form`. |
 | Duplicate email (ignoring case and spaces): no account, not signed in, generic message | States "Email already registered"; Content form-level message. Test: email `" Jo@Example.com "` against an existing `jo@example.com`. |
@@ -318,7 +346,9 @@ Beyond the design-system defaults (4.10, 4.13, 4.17, 5.4, 6.6, 6.7):
 
 ## Open questions
 
-1. **Header links and the return address.** This spec has the header "Create account" and "Sign in" links carry **no** return address, so signing up from the header always ends on `/properties` with "Your account has been created". If they carried the current page instead, users would come back to where they were, but would usually not see the success message (it only shows on `/properties`). Which do you want?
-2. **Phone number formatting.** The hint shows numbers with spaces. Should spaces, hyphens and brackets (for example "(0113) 496-0000") be accepted and ignored, or only spaces?
-3. **Form token expiry for signed-out users.** If a signed-out Visitor leaves the form open long enough for their anonymous session (and its CSRF token) to expire, the submit would be rejected with a 403. Should the server instead show the form again with the values kept (except passwords) and a message such as "Your form has expired. Check your details and try again."? This is not in #1's acceptance criteria.
-4. **`/properties` before #4 exists.** If #1 ships before #4, may the web service add a minimal `/properties` page (heading "Properties to let" only) to show the success banner?
+None. The earlier questions were answered by the product owner on 1 November 2026:
+1. Header links carry no return address (confirmed). See "Return address".
+2. Phone number: only digits, spaces and a leading + are accepted; hyphens and brackets give an error. See "What the fragment checks" and the error messages table.
+3. Expired form token: the form is shown again with status `200`, values kept except the passwords, and a form-level error. See the expired form pattern (design system 3.5) and States "Form expired on submit".
+4. A minimal `/properties` page (heading and banner only) may be added before #4. See "Page used after success".
+5. Phone number has a hint saying what is accepted, with a fictional example number. See the Fields table and "Phone hint".
