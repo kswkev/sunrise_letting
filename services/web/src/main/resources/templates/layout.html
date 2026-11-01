@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!--/* Shared page skeleton (design-system.md 3.1). A page uses it with:
+       <html th:replace="~{layout :: layout(~{::title}, ~{::main/content()})}">
+     passing its own <title> and the children of its <main>. */-->
+<html lang="en-GB" th:fragment="layout(title, content)" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:replace="${title}">Sunrise Letting</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="/webjars/htmx.org/dist/htmx.min.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="site-header">
+    <a th:href="@{/}">Sunrise Letting</a>
+</header>
+<main id="main-content" tabindex="-1" th:insert="${content}"></main>
+<footer class="site-footer">
+    <p>© Sunrise Letting</p>
+</footer>
+</body>
+</html>
