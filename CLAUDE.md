@@ -69,6 +69,10 @@ Branching:
 - Each issue is worked on in its own feature branch, created from `develop` and named after the issue: `feature/<issue-number>-<short-kebab-title>` (e.g. `feature/4-search-properties-for-let`).
 - Every commit on a feature branch starts with the issue number: `#<issue-number> <message>` (e.g. `#4 Add property search endpoint`).
 - When the feature is complete, it is merged back into `develop` via a PR. Feature branches never target `main` directly.
+- Code is promoted `develop` → `release` → `main`:
+  - `develop` is for local development.
+  - When `develop` is ready for further testing, it is merged into `release`, which is built and deployed to a cloud-based platform for testing.
+  - When testing is complete, `release` is merged into `main` for production deployment.
 
 Issues use `.github/ISSUE_TEMPLATE/feature.md` (user story, Given/When/Then acceptance criteria, affected services, out of scope, open questions). Every user story issue gets the `enhancement` label.
 
