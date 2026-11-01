@@ -38,6 +38,15 @@ Development is test-driven. For each acceptance criterion:
 
 Production code without a test that drove it should not be added.
 
+### Unit test rules
+
+- Unit tests use JUnit 5 and Mockito (both managed by Spring Boot, so no versions in POMs).
+- Only when a test truly requires it, mock static methods, constructors or final classes with Mockito's `mockStatic` / `mockConstruction` (in try-with-resources). Don't use PowerMock: it has no JUnit 5 support and doesn't run on Java 17.
+- Verify interactions with mocks. Every stubbing (`when(...)`) must have a matching `verify(...)` in the same test, checking that the call happened with the expected arguments.
+- Every assertion and verification gives a message explaining what failed: the last argument of JUnit's `assertX(...)` (e.g. `assertEquals(expected, actual, "search should return only properties to let")`), and Mockito's `description(...)` for verifications (e.g. `verify(client, description("identity should be asked to create the account")).createAccount(request)`, or `times(2).description(...)`). Page and fragment tests use `MockMvcTester` rather than `perform(...).andExpect(...)`, which can't take a message, and give each AssertJ check an `.as(...)` (e.g. `assertThat(result).as("sign-in page should load").hasStatusOk()`).
+- Name each test class after the class it tests: `<Class under test>Test.java` (e.g. `PropertySearchService` is tested by `PropertySearchServiceTest.java`).
+- This applies to unit tests only. Integration tests that need a running app or browser (e.g. Selenium tests) are named `*IT` and run by Failsafe in `./mvnw verify`, not `./mvnw test`.
+
 ## Architecture constraints
 
 - Runs on Kubernetes with **one service per domain area** (e.g. `identity`, `properties`, `viewings`, `applications`).
@@ -50,7 +59,7 @@ Production code without a test that drove it should not be added.
 - Domain services expose APIs only and never render HTML.
 - HTMX endpoints return Thymeleaf fragments, not JSON.
 - HTMX is delivered as a WebJar (`org.webjars.npm:htmx.org`), with its version in the root `<dependencyManagement>`. Add `org.webjars:webjars-locator-lite` (version managed by Spring Boot) so templates can reference it without a version, e.g. `/webjars/htmx.org/dist/htmx.min.js`. Don't copy front-end libraries into `static/` or load them from a CDN.
-- Pages are test-driven like everything else: use MockMvc to assert on status, model and rendered HTML (including fragments returned to HTMX requests), with the domain service clients mocked.
+- Pages are test-driven like everything else: use `MockMvcTester` (AssertJ-based MockMvc) to assert on status, model and rendered HTML (including fragments returned to HTMX requests), with the domain service clients mocked.
 
 ## Workflow
 
