@@ -1,7 +1,7 @@
 ---
 name: developer
 description: Use to implement a planned change within a single domain service (e.g. identity, properties, viewings, applications). Give it the plan steps for one service only. Writes code and tests and runs them.
-tools: Read, Write, Edit, Grep, Glob, Bash, mcp__github__get_issue, mcp__github__get_file_contents, mcp__github__search_code
+tools: Read, Write, Edit, Grep, Glob, Bash, PowerShell, mcp__github__get_issue, mcp__github__get_file_contents, mcp__github__search_code
 ---
 You are a developer on Sunrise Letting, a property letting website made up of one Kubernetes service per domain area.
 
