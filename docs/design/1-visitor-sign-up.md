@@ -93,7 +93,10 @@ Mobile (base):
 | Email address                |
 | [                        ]   |
 | Phone number                 |
-| A UK mobile or landline...   |
+| Use numbers and spaces only, |
+| and a + at the start if you  |
+| need it, for example         |
+| 07700 900982                 |
 | [                        ]   |
 | Password                     |
 | Must be 8 to 128 chars...    |
@@ -128,7 +131,8 @@ Wide (40em and up; nothing more changes at 64em):
 |  Email address                                                       |
 |  [                                    ]                              |
 |  Phone number                                                        |
-|  A UK mobile or landline number, for example 07700 900123            |
+|  Use numbers and spaces only, and a + at the start if you need it,   |
+|  for example 07700 900982                                            |
 |  [                    ]                                              |
 |  Password                                                            |
 |  Must be 8 to 128 characters and include ...                         |
@@ -156,7 +160,7 @@ All fields use the form field component (4.10), or the password field component 
 | 3 | First name | none | `first-name` / `firstName` | text input | `autocomplete="given-name"` `spellcheck="false"` | `#field-first-name` |
 | 4 | Surname | none | `surname` / `surname` | text input | `autocomplete="family-name"` `spellcheck="false"` | `#field-surname` |
 | 5 | Email address | none | `email` / `email` | `type="email"` | `autocomplete="email"` `spellcheck="false"` `autocapitalize="none"` | `#field-email` |
-| 6 | Phone number | A UK mobile or landline number, for example 07700 900123 or 0113 496 0000 | `phone` / `phone` | `type="tel"` | `autocomplete="tel"` | `#field-phone` |
+| 6 | Phone number | Use numbers and spaces only, and a + at the start if you need it, for example 07700 900982 | `phone` / `phone` | `type="tel"` | `autocomplete="tel"` `aria-describedby="phone-hint"` (plus `phone-error` when there is an error) | `#field-phone` |
 | 7 | Password | Must be 8 to 128 characters and include an upper-case letter, a lower-case letter, a number and a symbol | `password` / `password` | password field (4.17) | `autocomplete="new-password"` | `#field-password` (never swapped); error slot `#password-error-slot` |
 | 8 | Confirm password | none | `confirm-password` / `confirmPassword` | password field (4.17) | `autocomplete="new-password"` | `#field-confirm-password` (never swapped); error slot `#confirm-password-error-slot` |
 
@@ -164,6 +168,7 @@ Notes:
 - **"Other" title** is always shown as its own field after Title, because revealing it only when "Other" is chosen would need JavaScript. Its label and hint make clear it is only needed for "Other". If Title isn't "Other", whatever is typed in Other title is ignored and not stored, and no error is shown for it.
 - Title starts on "Select a title" (empty), so no title is chosen for the user.
 - After a failed submit, Title, Other title, First name, Surname, Email address and Phone number are rendered exactly as typed (not trimmed or normalised), so the user recognises them. Both password inputs are always rendered with an empty value.
+- **Phone hint:** rendered as `<p class="hint" id="phone-hint">` between the label and the input, as in the form field component (4.10). The input's `aria-describedby` is `phone-hint`, or `phone-hint phone-error` when the field shows an error, in the field group returned by the inline check as well as on the full page. The hint's wording matches the "only numbers, spaces and a + at the start" error, and its example uses a number from Ofcom's range reserved for drama (07700 900000 to 900999), as do the error message examples.
 - Toggle buttons: "Show" with visually hidden " password", and "Show" with visually hidden " confirm password" (4.17).
 - Submit: `<button type="submit" class="button">Create account</button>`.
 
@@ -281,7 +286,7 @@ Error messages (same text in the field and in the error summary):
 | Email address | wrong format | Enter an email address in the correct format, like name@example.com |
 | Phone number | empty | Enter your phone number |
 | Phone number | contains anything other than digits, spaces and a leading + (for example hyphens or brackets) | Phone number can only include numbers, spaces and a + at the start |
-| Phone number | not a valid UK number | Enter a UK phone number, like 07700 900123 or +44 7700 900123 |
+| Phone number | not a valid UK number | Enter a UK phone number, like 07700 900982 or +44 7700 900982 |
 | Password | empty | Enter a password |
 | Password | under 8 characters | Password must be at least 8 characters |
 | Password | over 128 characters | Password must be 128 characters or fewer |
@@ -346,3 +351,4 @@ None. The earlier questions were answered by the product owner on 1 November 202
 2. Phone number: only digits, spaces and a leading + are accepted; hyphens and brackets give an error. See "What the fragment checks" and the error messages table.
 3. Expired form token: the form is shown again with status `200`, values kept except the passwords, and a form-level error. See the expired form pattern (design system 3.5) and States "Form expired on submit".
 4. A minimal `/properties` page (heading and banner only) may be added before #4. See "Page used after success".
+5. Phone number has a hint saying what is accepted, with a fictional example number. See the Fields table and "Phone hint".

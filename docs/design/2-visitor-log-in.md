@@ -35,7 +35,7 @@ Alternative and error paths:
 - **Empty email or password:** the page is shown again with field errors and an error summary. The email is kept, the password is cleared, "Remember me" keeps its state, and the user isn't signed in.
 - **Unknown email or wrong password:** the page is shown again with one form-level error that doesn't say which part was wrong. The email is kept, the password is cleared and the user isn't signed in.
 - **Identity unavailable:** the page is shown again with status `503` and a form-level error. The email is kept and the password is cleared.
-- **Form expired** (the CSRF token is missing or no longer valid, for example because the sign-in page was left open until the signed-out session ended): the expired form pattern (design system 3.5), as in #1. No 403. The page is shown again with status `200`, the form-level error "Your form has expired. Check your details and submit again.", the email kept, the password cleared, "Remember me" keeping its state, the valid `returnTo` and any `timedOut` kept, and a new CSRF token. The details aren't checked and nobody is signed in. This applies whether or not the timed-out marker cookie is present.
+- **Form expired** (the CSRF token is missing or no longer valid, for example because the sign-in page was left open until the signed-out session ended): the expired form pattern (design system 3.5), as in #1. No 403. The page is shown again with status `200`, the form-level error "Your form has expired. Check your details and submit again.", the email kept, the password cleared, "Remember me" keeping its state, the valid `returnTo` kept, and a new CSRF token. The details aren't checked and nobody is signed in. This applies whether or not the timed-out marker cookie is present. If the submit carried `timedOut=true`, only the "Your form has expired" error summary is shown, not the inactivity banner, and the re-rendered form has **no** hidden `timedOut` field, so the banner doesn't come back on a later failed submit.
 - **Unsafe return address:** ignored; the Visitor goes to `/properties`.
 - **No account yet:** the "Create an account" link goes to `/create-account`, passing on the valid `returnTo`.
 
@@ -64,7 +64,8 @@ Sessions without "Remember me" end after 30 minutes of inactivity. Any request t
 - **Expired CSRF token:** with an expired session, the CSRF token in a POST is also no longer valid, and that check would normally run first and give a `403`. The server must treat a missing or invalid CSRF token on a request whose session has expired the same way as an expired session: redirect to the timed-out sign-in address (or, for `/sign-out`, to `/properties`). It must not show a 403 page. This doesn't apply to the signed-out forms, `POST /sign-in` and `POST /create-account`, which use the expired form pattern instead (see "Form expired" above and design system 3.5).
 - **HTMX request:** `HX-Redirect` to the timed-out address instead of a fragment (5.6). The return address is taken from the `HX-Current-URL` request header (its path and query), not from the HTMX endpoint's URL.
 - **Keep-alive:** `401` with no body and no redirect (4.20).
-- **Users who were never signed in** (no session, or a session that was never authenticated): `/sign-in?returnTo=<path>` without `timedOut`, so no inactivity message. The server tells them apart from a signed-in session that has run out by the timed-out marker cookie, which is set at sign-in and cleared at sign-out and identifies no one: no active signed-in session and no marker means never signed in (or signed out).
+- **Users who were never signed in** (no session, or a session that was never authenticated): `/sign-in?returnTo=<path>` without `timedOut`, so no inactivity message. The server tells them apart from a signed-in session that has run out by the timed-out marker cookie, which identifies no one: no active signed-in session and no marker means never signed in (or signed out, or already told about the time-out).
+- **Marker cookie lifecycle:** set at sign-in. Cleared at sign-out. Also cleared on the response that sends the user to `/sign-in?timedOut=true...` (the `302` or the `HX-Redirect` above), so the inactivity message is shown once. When the script itself navigates to the timed-out address (dialog steps 3 and 5), the marker is cleared on the `GET /sign-in?timedOut=true` response instead. After that, later visits in the same browser are treated as a normal signed-out visit: pages that need sign-in redirect to `/sign-in?returnTo=<path>` without `timedOut`.
 - **"Remember me":** an expired session with a valid remember-me login is signed back in silently. No redirect and no message.
 
 `GET /sign-in?timedOut=true` with **no** active session shows the sign-in page with the information banner "You were signed out because you were inactive".
@@ -88,7 +89,7 @@ Sessions without "Remember me" end after 30 minutes of inactivity. Any request t
 | Layout | Shared skeleton (3.1), signed-out header, no band, account page pattern (3.5) |
 | Scripts | HTMX (site default); password field script (4.17). No time-out script, because the page is only shown to signed-out users. |
 
-Form: `<form id="sign-in-form" method="post" action="/sign-in" novalidate>` with `_csrf`, the hidden `returnTo` (when valid) and the hidden `timedOut` (when present), so a failed submit keeps them.
+Form: `<form id="sign-in-form" method="post" action="/sign-in" novalidate>` with `_csrf`, the hidden `returnTo` (when valid) and the hidden `timedOut` (when present), so a failed submit keeps them. Exception: after an expired form, `timedOut` is dropped (see User flow, "Form expired").
 
 Source order in `<main>`: information banner (only with `timedOut=true`), error summary (only after a failed submit), `<h1>`, form, "No account yet?" paragraph.
 
@@ -242,8 +243,8 @@ Mobile                              Wide
 | Empty fields on submit | Title "Error: Sign in - Sunrise Letting". Error summary with links to `#email` and/or `#password`. Field errors "Enter your email address" and/or "Enter your password". Status `200`. |
 | Wrong email or password | Title "Error: Sign in - Sunrise Letting". Form-level error summary (4.13): "There is a problem", paragraph "The email address or password is incorrect." No field marked as wrong. Email kept, password empty, "Remember me" kept. Status `200`. |
 | Server error on submit | Title "Error: Sign in - Sunrise Letting". Form-level error summary: "There is a problem", paragraph "Sorry, you can't sign in at the moment. Try again later." Status `503`. |
-| Form expired on submit | Title "Error: Sign in - Sunrise Letting". Form-level error summary (4.13): "There is a problem", paragraph "Your form has expired. Check your details and submit again." No field marked as wrong. Email kept, password empty, "Remember me" kept, hidden `returnTo` and `timedOut` kept, new CSRF token. Status `200`. |
-| Timed out and then a failed submit | The banner stays (because `timedOut` is carried in a hidden field) but loses `autofocus`, which goes to the error summary (4.14). |
+| Form expired on submit | Title "Error: Sign in - Sunrise Letting". Form-level error summary (4.13): "There is a problem", paragraph "Your form has expired. Check your details and submit again." No field marked as wrong. Email kept, password empty, "Remember me" kept, hidden `returnTo` kept, new CSRF token. No inactivity banner and no hidden `timedOut`, even if the submit carried `timedOut=true`. Status `200`. |
+| Timed out and then a failed submit | For empty fields, a wrong email or password, or a server error: the banner stays (because `timedOut` is carried in a hidden field) but loses `autofocus`, which goes to the error summary (4.14). For an expired form: see "Form expired on submit" (banner not shown, `timedOut` dropped). |
 | Success | `303` to the return address or `/properties`. No message. |
 | Signed out | `303` to `/properties`, signed-out header. No message (confirmed). |
 | Dialog open | Modal dialog, focus on "Stay signed in", the page behind it inert. |
@@ -335,3 +336,5 @@ Beyond the design-system defaults (4.13, 4.14, 4.17, 4.18, 4.20, 6.6, 6.7):
 None. The earlier questions were answered by the product owner on 1 November 2026:
 1. The "Remember me" hint stays as designed and doesn't mention Property Managers.
 2. No message after signing out (confirmed).
+3. An expired form submitted with `timedOut=true` shows only the "Your form has expired" error summary, and `timedOut` is dropped. See User flow, "Form expired", and States.
+4. The timed-out marker cookie is cleared when the user is sent to the timed-out sign-in address, so the inactivity message shows once. See "Marker cookie lifecycle".
