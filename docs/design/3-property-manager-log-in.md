@@ -16,7 +16,7 @@ Research: no new research for this spec. It reuses the patterns from the #1 and 
 3. The server starts a session with a 2-hour idle time-out and sends a `303` to `/manage/change-password`, whatever `returnTo` says.
 4. They see "Change your password" inside the Property Manager area (header items and band). They enter a new password twice. They can use "Show" and "Hide".
 5. They submit (full-page POST, no HTMX). Identity checks the rules and that the new password isn't the temporary one, then changes it. The session is updated so it no longer counts as temporary.
-6. `303` to `/manage`, the Property Manager area home.
+6. `303` to `/manage`, the Property Manager area home, which shows the success banner "Your password has been changed" (4.14) once.
 
 ### Later sign-ins (permanent password)
 1 to 2 as above. Then `303` to `/manage`, whatever `returnTo` says.
@@ -53,7 +53,9 @@ Items in order (3.1): "Properties to let" (`/properties`), "Property Manager are
 | URL | `GET /manage` |
 | Purpose | Landing page of the Property Manager area. A placeholder in #3; #8 adds the property list. |
 | Who | Property Managers with a permanent password. Temporary password: redirected to change password. Visitor: `403`. Signed out: redirected to sign-in. |
-| Content | Only the `<h1>` "Property Manager area". Nothing else in `<main>`. |
+| Content | The `<h1>` "Property Manager area". Straight after a password change, the success banner above it (below). Nothing else in `<main>`. |
+
+**Success banner after the password change** (decided by the product owner): on the first `GET /manage` after the change-password redirect only, the success notification banner (4.14) sits at the top of `<main>`, above the `<h1>`: `notification-banner--success`, `role="status"`, `tabindex="-1"`, `autofocus`, heading "Your password has been changed". It is shown once (for example a flash attribute), and not on later visits, reloads or later sign-ins. This is the same pattern as "Your account has been created" in #1.
 
 Mobile:
 ```
@@ -65,6 +67,10 @@ Mobile:
 |##############################|
 | Property Manager area        |  band (.area-band)
 |##############################|
+| +--------------------------+ |
+| | Your password has been   | |  success banner, once only
+| | changed                  | |  after the password change
+| +--------------------------+ |
 | Property Manager area  (h1)  |
 |                              |
 +------------------------------+
@@ -79,6 +85,9 @@ Wide:
 |######################################################################|
 | Property Manager area                                         (band) |
 |######################################################################|
+|  +------------------------------------------------+                  |
+|  | Your password has been changed                 |  (once only)     |
+|  +------------------------------------------------+                  |
 |  Property Manager area   (h1)                                        |
 |                                                                      |
 +----------------------------------------------------------------------+
@@ -175,7 +184,7 @@ None. Every request in #3 is a full page or a redirect (5.5).
 | Change password, empty | Form with both fields empty, no summary |
 | Change password, validation errors | Title "Error: Change your password - Sunrise Letting". Error summary with links to `#new-password` and/or `#confirm-new-password`. Field errors. Both fields empty. Status `200`. |
 | Change password, server error | Title "Error: Change your password - Sunrise Letting". Form-level error summary (4.13): "There is a problem", paragraph "Sorry, we couldn't change your password. Try again later." Status `503`. |
-| Change password, success | `303` to `/manage`. No banner (open question 1). |
+| Change password, success | `303` to `/manage`, which shows the success banner "Your password has been changed" above the `<h1>`, once only. A reload or later visit to `/manage` shows no banner. |
 | Loading | No indicator (full-page submit). |
 | `/manage` home | Band and `<h1>` "Property Manager area". |
 | Empty (`/manage` home) | The placeholder home has no content beyond the heading, so it has no empty state in #3. |
@@ -190,6 +199,7 @@ None. Every request in #3 is a full page or a redirect (5.5).
 - `<title>`: "Property Manager area - Sunrise Letting"
 - Band: "Property Manager area"
 - `<h1>`: "Property Manager area"
+- Success banner heading (once, after the password change): "Your password has been changed"
 
 Change your password:
 - `<title>`: "Change your password - Sunrise Letting" ("Error: " in front when errors are shown)
@@ -226,6 +236,7 @@ Beyond the design-system defaults and #2:
 - **Redirect to change password:** because it is a full page with its own `<h1>` and intro explaining why, users who expected `/manage` understand what happened.
 - **Error summary** focus and field links as in 4.13; both password fields are cleared after a failed submit, and the summary says which to correct.
 - **Toggle names** are unique: "Show new password", "Show confirm new password".
+- **Success banner focus:** on `/manage` after the change, the banner has `autofocus` and `role="status"`, so the confirmation is announced and is the first thing a keyboard user reaches (4.14).
 - **Time-out:** 2 hours with the 2-minute warning (WCAG 2.2.1).
 
 ---
@@ -237,7 +248,7 @@ Beyond the design-system defaults and #2:
 | Seeded accounts exist with the Property Manager role only, hashed, no duplicates | No UI; identity service. |
 | Temporary password: signing in goes to "Change your password" | First sign-in step 3; States. |
 | Temporary password: other `/manage` pages redirect to change password | Alternative paths. Test: GET `/manage` gives `302` to `/manage/change-password`. |
-| Valid new password: changed, taken to `/manage` | First sign-in steps 5 and 6. |
+| Valid new password: changed, taken to `/manage` | First sign-in steps 5 and 6. Test: `303` to `/manage`; the following GET shows `.notification-banner--success` with "Your password has been changed", and a second GET doesn't. |
 | Rules broken, same as temporary, or no match: not changed, see which field | States "validation errors"; Error messages table. |
 | Permanent password: `/manage` even with a different return address | "Later sign-ins". Test: POST `/sign-in` with `returnTo=/properties/1` gives `303` to `/manage`. |
 | Incorrect details: same generic error as Visitors | #2's form-level message. |
@@ -254,4 +265,4 @@ Beyond the design-system defaults and #2:
 
 ## Open questions
 
-1. **Confirmation after changing the password.** The issue says the Property Manager is taken to `/manage`, and doesn't mention a message. This design shows none. Should `/manage` show a success banner such as "Your password has been changed" the first time after the change?
+None. The earlier question was answered by the product owner on 1 November 2026: after the first password change, `/manage` shows the success banner "Your password has been changed" (4.14) once only. See "Property Manager area home".
