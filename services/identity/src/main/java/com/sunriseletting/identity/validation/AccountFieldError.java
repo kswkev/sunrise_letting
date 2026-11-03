@@ -1,0 +1,26 @@
+package com.sunriseletting.identity.validation;
+
+/**
+ * Stable error codes for the account fields. The web service maps these to the page copy.
+ */
+public enum AccountFieldError {
+    TITLE_REQUIRED,
+    TITLE_INVALID,
+    TITLE_OTHER_REQUIRED,
+    TITLE_OTHER_TOO_LONG,
+    FIRST_NAME_REQUIRED,
+    FIRST_NAME_TOO_LONG,
+    SURNAME_REQUIRED,
+    SURNAME_TOO_LONG,
+    EMAIL_REQUIRED,
+    EMAIL_TOO_LONG,
+    EMAIL_INVALID,
+    PHONE_REQUIRED,
+    PHONE_INVALID,
+    PASSWORD_REQUIRED,
+    PASSWORD_TOO_SHORT,
+    PASSWORD_TOO_LONG,
+    PASSWORD_MISSING_CHARACTER_TYPES,
+    CONFIRM_PASSWORD_REQUIRED,
+    PASSWORDS_DO_NOT_MATCH
+}

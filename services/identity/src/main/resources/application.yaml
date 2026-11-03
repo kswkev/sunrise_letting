@@ -12,8 +12,10 @@ server:
 
 # Request bodies carry passwords. These loggers can print them at debug level, so they stay
 # at INFO even if a wider package such as org.springframework.web is turned up for debugging.
+# The resolver logs at WARN the parse error for a malformed body, which can quote part of the body.
 logging:
   level:
     org.springframework.web.filter.CommonsRequestLoggingFilter: INFO
     org.springframework.web.servlet.mvc.method.annotation: INFO
     org.springframework.http.converter: INFO
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: ERROR
