@@ -1,8 +1,11 @@
 package com.sunriseletting.web.identity;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.sunriseletting.web.security.AccountRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,8 @@ import org.springframework.web.client.RestClientException;
 class HttpIdentityClient implements IdentityClient {
 
     private static final Logger log = LoggerFactory.getLogger(HttpIdentityClient.class);
+
+    private static final Set<String> SIGN_IN_FIELD_CODES = Set.of("EMAIL_REQUIRED", "PASSWORD_REQUIRED");
 
     private final RestClient restClient;
 
@@ -88,6 +93,48 @@ class HttpIdentityClient implements IdentityClient {
         }
     }
 
+    @Override
+    public AuthenticationResult authenticate(String email, String password) {
+        try {
+            return restClient.post()
+                    .uri("/api/authentications")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new AuthenticationBody(email, password))
+                    .exchange((request, response) -> {
+                        int status = response.getStatusCode().value();
+                        if (status == HttpStatus.OK.value()) {
+                            return signedIn(response.bodyTo(CreatedAnswer.class));
+                        }
+                        if (status == HttpStatus.BAD_REQUEST.value()) {
+                            ValidationFailedAnswer answer = response.bodyTo(ValidationFailedAnswer.class);
+                            if (answer == null || answer.errors() == null || answer.errors().isEmpty()
+                                    || !SIGN_IN_FIELD_CODES.containsAll(answer.errors().values())) {
+                                return unexpectedStatus(status, AuthenticationResult.unavailable());
+                            }
+                            return new AuthenticationResult.FieldErrors(answer.errors());
+                        }
+                        if (status == HttpStatus.UNAUTHORIZED.value()) {
+                            return AuthenticationResult.invalidCredentials();
+                        }
+                        return unexpectedStatus(status, AuthenticationResult.unavailable());
+                    });
+        } catch (RestClientException | HttpMessageConversionException e) {
+            log.warn("Identity authentication failed: {}", e.getClass().getSimpleName());
+            return AuthenticationResult.unavailable();
+        }
+    }
+
+    private static AuthenticationResult signedIn(CreatedAnswer answer) {
+        if (answer == null || answer.accountId() == null || !isKnownRole(answer.role())) {
+            return AuthenticationResult.unavailable();
+        }
+        return new AuthenticationResult.SignedIn(answer.accountId(), AccountRole.valueOf(answer.role()));
+    }
+
+    private static boolean isKnownRole(String role) {
+        return Arrays.stream(AccountRole.values()).anyMatch(known -> known.name().equals(role));
+    }
+
     private static <T> T unexpectedStatus(int status, T result) {
         log.warn("Identity answered with an unexpected status: {}", status);
         return result;
@@ -99,6 +146,14 @@ class HttpIdentityClient implements IdentityClient {
         @Override
         public String toString() {
             return "ValidationBody[redacted]";
+        }
+    }
+
+    private record AuthenticationBody(String email, String password) {
+
+        @Override
+        public String toString() {
+            return "AuthenticationBody[redacted]";
         }
     }
 

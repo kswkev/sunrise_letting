@@ -14,6 +14,7 @@ import java.util.Map;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.sunriseletting.web.security.AccountRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -210,6 +211,105 @@ class HttpIdentityClientTest {
                 .andRespond(withException(new IOException("Connection refused")));
 
         assertEquals(CreateVisitorResult.unavailable(), client.createVisitor(REQUEST), "a connection error is the server-error state");
+    }
+
+    @Test
+    void authenticateSendsTheDetailsAsTypedAndReturnsTheAccount() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("{\"email\":\" Jo@Example.com \",\"password\":\"%s\"}".formatted(SECRET), JsonCompareMode.STRICT))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\"}", MediaType.APPLICATION_JSON));
+
+        AuthenticationResult result = client.authenticate(" Jo@Example.com ", SECRET);
+
+        assertEquals(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR), result, "a 200 should give the account's id and role");
+        server.verify();
+    }
+
+    @Test
+    void authenticateAcceptsAPropertyManager() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER), client.authenticate("pm@example.com", SECRET),
+                "identity can answer with a Property Manager on this shared page");
+    }
+
+    @Test
+    void authenticateIsUnavailableForARoleOutsideTheContract() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"ADMIN\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "an unknown role is outside the contract");
+    }
+
+    @Test
+    void authenticateIsUnavailableWhenTheAccountIsMissingFromA200() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"role\":\"VISITOR\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "a 200 with no account is outside the contract");
+    }
+
+    @Test
+    void authenticateReturnsTheFieldCodesOn400() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"errors\":{\"email\":\"EMAIL_REQUIRED\",\"password\":\"PASSWORD_REQUIRED\"}}"));
+
+        assertEquals(new AuthenticationResult.FieldErrors(Map.of("email", "EMAIL_REQUIRED", "password", "PASSWORD_REQUIRED")),
+                client.authenticate("", ""), "a 400 should give the field codes");
+    }
+
+    @Test
+    void authenticateIsUnavailableOnA400WithoutFieldCodes() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body("{\"status\":400}"));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET),
+                "a 400 that names no field is Spring's default error");
+    }
+
+    @Test
+    void authenticateIsUnavailableForAFieldCodeOutsideTheContract() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"errors\":{\"email\":\"EMAIL_INVALID\"}}"));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "the sign-in page has no copy for any other code");
+    }
+
+    @Test
+    void authenticateReturnsInvalidCredentialsOn401() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"INVALID_CREDENTIALS\"}"));
+
+        assertEquals(AuthenticationResult.invalidCredentials(), client.authenticate("a@example.com", SECRET), "a 401 means wrong details");
+    }
+
+    @Test
+    void authenticateIsUnavailableOn500() {
+        server.expect(requestTo(BASE_URL + "/api/authentications")).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "a 500 is the server-error state");
+    }
+
+    @Test
+    void authenticateIsUnavailableOnAConnectionError() {
+        server.expect(requestTo(BASE_URL + "/api/authentications")).andRespond(withException(new IOException("Connection refused")));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "a connection error is the server-error state");
+    }
+
+    @Test
+    void passwordIsNotLoggedWhenAuthenticating(CapturedOutput output) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body(SECRET));
+
+        client.authenticate("a@example.com", SECRET);
+
+        assertFalse(output.getAll().contains(SECRET), "the password should never be logged");
     }
 
     @Test

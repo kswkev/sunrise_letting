@@ -249,11 +249,52 @@ class FormComponentsTest {
     }
 
     @Test
+    void infoBannerHasTheComponentHooksAndCanTakeFocus() {
+        Element banner = page.selectFirst("#info-focused .notification-banner.notification-banner--info");
+
+        assertThat(banner.attr("role")).as("the banner should be announced").isEqualTo("status");
+        assertThat(banner.attr("tabindex")).as("the banner can take focus").isEqualTo("-1");
+        assertThat(banner.hasAttr("autofocus")).as("the banner should take focus").isTrue();
+        assertThat(banner.select("h2").text()).as("the banner should have a heading").isEqualTo("Just so you know");
+    }
+
+    @Test
+    void infoBannerGivesUpFocusWhenAnErrorSummaryHasIt() {
+        Element banner = page.selectFirst("#info-unfocused .notification-banner--info");
+
+        assertThat(banner.attr("role")).as("the banner is still announced").isEqualTo("status");
+        assertThat(banner.hasAttr("autofocus")).as("the banner shouldn't take focus").isFalse();
+    }
+
+    @Test
+    void checkboxWithoutAHintIsUntickedAndDescribedByNothing() {
+        Element input = page.selectFirst(".form-group.checkbox input#plain-box.checkbox__input[type=checkbox]");
+
+        assertThat(input.attr("name")).as("the name should be passed in").isEqualTo("plainBox");
+        assertThat(input.attr("value")).as("a ticked box posts on").isEqualTo("on");
+        assertThat(input.hasAttr("checked")).as("it should be unticked").isFalse();
+        assertThat(input.hasAttr("aria-describedby")).as("no hint means nothing to describe it").isFalse();
+        assertThat(page.select("label.checkbox__label[for=plain-box]").text()).as("the label should be clickable").isEqualTo("Plain box");
+        assertThat(page.select("#plain-box-hint")).as("no hint unless given").isEmpty();
+    }
+
+    @Test
+    void checkboxWithAHintHasItAfterTheLabelAndDescribingTheInput() {
+        Element input = page.selectFirst("input#hinted-box");
+
+        assertThat(input.hasAttr("checked")).as("it should be ticked").isTrue();
+        assertThat(input.attr("aria-describedby")).as("the hint describes it").isEqualTo("hinted-box-hint");
+        Element label = page.selectFirst("label[for=hinted-box]");
+        assertThat(label.nextElementSibling().is("p.hint.checkbox__hint#hinted-box-hint")).as("the hint follows the label").isTrue();
+        assertThat(label.nextElementSibling().text()).as("the hint's text").isEqualTo("A box hint");
+    }
+
+    @Test
     void stylesheetStylesTheComponents() {
         MvcTestResult result = mvc.get().uri("/css/site.css").exchange();
 
         assertThat(result).bodyText().as("the stylesheet should style the form components")
                 .contains(".form-group--error").contains(".error-summary").contains(".password-field__wrapper")
-                .contains(".notification-banner--success");
+                .contains(".notification-banner--success").contains(".notification-banner--info").contains(".checkbox__input");
     }
 }

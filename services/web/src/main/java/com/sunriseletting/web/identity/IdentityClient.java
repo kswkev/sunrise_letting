@@ -11,4 +11,7 @@ public interface IdentityClient {
 
     /** Asks identity to create a Visitor account. */
     CreateVisitorResult createVisitor(CreateVisitorRequest request);
+
+    /** Checks an email and password. Both go to identity exactly as typed. */
+    AuthenticationResult authenticate(String email, String password);
 }

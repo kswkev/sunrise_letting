@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main/content()}, ~{::script}, 'sign-in')}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${hasErrors} ? 'Error: Sign in - Sunrise Letting' : 'Sign in - Sunrise Letting'">Sign in - Sunrise Letting</title>
+    <script src="/js/password-toggle.js" defer></script>
+</head>
+<body>
+<main>
+    <div class="form-column">
+        <th:block th:if="${timedOut}"><div th:replace="~{fragments/notification-banner :: info(heading=#{sign-in.timed-out}, focus=${!hasErrors})}"></div></th:block>
+        <th:block th:if="${!summaryErrors.isEmpty()}"><div th:replace="~{fragments/form :: errorSummaryList(${summaryErrors})}"></div></th:block>
+        <th:block th:if="${formError == 'invalid'}"><div th:replace="~{fragments/form :: errorSummaryForm(message=#{sign-in.error.invalid})}"></div></th:block>
+        <th:block th:if="${formError == 'unavailable'}"><div th:replace="~{fragments/form :: errorSummaryForm(message=#{sign-in.error.unavailable})}"></div></th:block>
+        <th:block th:if="${formError == 'expired'}"><div th:replace="~{fragments/form :: errorSummaryForm(message=#{sign-in.error.expired})}"></div></th:block>
+        <h1>Sign in</h1>
+        <form id="sign-in-form" method="post" th:action="@{/sign-in}" novalidate>
+            <input th:if="${returnTo != null}" type="hidden" name="returnTo" th:value="${returnTo}">
+            <input th:if="${timedOut}" type="hidden" name="timedOut" value="true">
+            <div th:replace="~{fragments/form :: field(id='email', name='email', label='Email address', type='email', value=${email}, error=${fieldErrors['email']}, autocomplete='username', spellcheck='false', autocapitalize='none')}"></div>
+            <div th:replace="~{fragments/form :: password(id='password', name='password', label='Password', suffix='password', error=${fieldErrors['password']}, autocomplete='current-password')}"></div>
+            <div th:replace="~{fragments/form :: checkbox(id='remember-me', name='remember-me', label='Remember me', hint=#{sign-in.remember-me.hint}, checked=${rememberMe})}"></div>
+            <button type="submit" class="button">Sign in</button>
+        </form>
+        <p>No account yet? <a th:href="${returnTo != null} ? @{/create-account(returnTo=${returnTo})} : @{/create-account}">Create an account</a></p>
+    </div>
+</main>
+</body>
+</html>

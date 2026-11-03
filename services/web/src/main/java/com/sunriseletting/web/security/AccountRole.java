@@ -3,7 +3,7 @@ package com.sunriseletting.web.security;
 /** Who a signed-in account is. The names are the ones identity uses. */
 public enum AccountRole {
 
-    VISITOR;
+    VISITOR, PROPERTY_MANAGER;
 
     /** The Spring Security authority for this role. */
     String authority() {
