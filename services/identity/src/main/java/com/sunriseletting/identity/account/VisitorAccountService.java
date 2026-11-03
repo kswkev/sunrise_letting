@@ -1,6 +1,5 @@
 package com.sunriseletting.identity.account;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -11,6 +10,7 @@ import com.sunriseletting.identity.validation.AccountDetails;
 import com.sunriseletting.identity.validation.AccountField;
 import com.sunriseletting.identity.validation.AccountFieldError;
 import com.sunriseletting.identity.validation.AccountFieldValidator;
+import com.sunriseletting.identity.validation.EmailAddress;
 import com.sunriseletting.identity.validation.UkPhoneNumber;
 
 @Service
@@ -39,7 +39,7 @@ public class VisitorAccountService {
 
         NewAccount account = new NewAccount(
                 UUID.randomUUID(),
-                details.email().strip().toLowerCase(Locale.ROOT),
+                EmailAddress.normalise(details.email()),
                 details.title().strip(),
                 AccountFieldValidator.isOtherTitle(details.title()) ? details.titleOther().strip() : null,
                 details.firstName().strip(),

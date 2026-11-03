@@ -1,5 +1,6 @@
 package com.sunriseletting.identity.account;
 
 public enum Role {
-    VISITOR
+    VISITOR,
+    PROPERTY_MANAGER
 }

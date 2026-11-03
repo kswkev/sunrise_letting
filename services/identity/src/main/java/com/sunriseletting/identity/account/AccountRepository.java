@@ -1,5 +1,8 @@
 package com.sunriseletting.identity.account;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -35,5 +38,22 @@ public class AccountRepository {
                 .param("role", account.role().name())
                 .update();
         return inserted == 1;
+    }
+
+    /**
+     * @param email the normalised email
+     */
+    public Optional<AccountCredentials> findCredentialsByEmail(String email) {
+        // PostgreSQL text can't hold NUL and the driver throws if it is sent one, so no account can have this email.
+        if (email.indexOf('\0') >= 0) {
+            return Optional.empty();
+        }
+        return jdbc.sql("SELECT id, password_hash, role FROM accounts WHERE email = :email")
+                .param("email", email)
+                .query((row, rowNumber) -> new AccountCredentials(
+                        row.getObject("id", UUID.class),
+                        row.getString("password_hash"),
+                        Role.valueOf(row.getString("role"))))
+                .optional();
     }
 }
