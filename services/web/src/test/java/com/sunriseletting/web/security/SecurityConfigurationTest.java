@@ -7,12 +7,18 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import java.util.List;
 
 import com.sunriseletting.web.home.HomeController;
+import com.sunriseletting.web.testsupport.Html;
 import jakarta.servlet.http.Cookie;
+import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -105,6 +111,47 @@ class SecurityConfigurationTest {
 
         assertThat(result).as("the browser should be redirected").hasStatus(HttpStatus.FOUND);
         assertThat(result).as("no timedOut for someone never signed in").hasRedirectedUrl("/sign-in?returnTo=%2Fmanage");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/manage", "/manage/", "/manage/anything", "/manage/change-password/x" })
+    void aVisitorGetsTheAccessDeniedPageAndKeepsTheirSession(String path) {
+        MockHttpSession session = new MockHttpSession();
+
+        MvcTestResult result = mvc.get().uri(path).session(session).with(authentication(visitor())).exchange();
+
+        assertThat(result).as("a Visitor is denied, even where no page exists yet").hasStatus(HttpStatus.FORBIDDEN);
+        assertThat(result).as("the page is HTML").hasContentTypeCompatibleWith(MediaType.TEXT_HTML);
+        Document page = Html.page(result);
+        assertThat(page.title()).as("the agreed title").isEqualTo("You do not have permission to view this page - Sunrise Letting");
+        assertThat(page.select("main h1").text()).as("the agreed heading").isEqualTo("You do not have permission to view this page");
+        assertThat(page.select("main p").first().text()).as("the agreed text").isEqualTo("This part of the site is for Sunrise Letting Property Managers only.");
+        assertThat(page.select("main a[href=/properties]").text()).as("the way out").isEqualTo("Find properties to let");
+        assertThat(page.select(".area-band")).as("the band is for Property Managers only").isEmpty();
+        assertThat(page.select("header nav li").eachText()).as("the Visitor's signed-in header").containsExactly("Properties to let", "Sign out");
+        assertThat(page.select("header form.sign-out input[name=_csrf]").attr("value")).as("sign out still works from here").isNotBlank();
+        assertThat(session.isInvalid()).as("the session is unchanged").isFalse();
+    }
+
+    @Test
+    void aVisitorPostingToTheManagerAreaWithABadTokenGetsTheSamePage() {
+        MvcTestResult result = mvc.post().uri("/manage/anything").with(authentication(visitor())).exchange();
+
+        assertThat(result).as("a Visitor is denied").hasStatus(HttpStatus.FORBIDDEN);
+        Document page = Html.page(result);
+        assertThat(page.select("main h1").text()).as("the full page, not an empty 403").isEqualTo("You do not have permission to view this page");
+        assertThat(page.select("header form.sign-out")).as("the signed-in header").hasSize(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/manage", "/manage/anything" })
+    void aPropertyManagerIsLetThrough(String path) {
+        Authentication manager = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER), null,
+                List.of(new SimpleGrantedAuthority("ROLE_PROPERTY_MANAGER")));
+
+        MvcTestResult result = mvc.get().uri(path).with(authentication(manager)).exchange();
+
+        assertThat(result).as("the rule lets them through, to a 404 until #3 adds the pages").hasStatus(HttpStatus.NOT_FOUND);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.sunriseletting.web.security;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,11 +14,12 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.web.servlet.ViewResolver;
 
 /**
- * CSRF protection on every POST, with the token kept in the session; the Property Manager area behind
- * sign-in, and every other current page public; and no default login page, logout endpoint or HTTP Basic,
- * because web has its own account pages.
+ * CSRF protection on every POST, with the token kept in the session; the Property Manager area for
+ * Property Managers only, and every other current page public; and no default login page, logout endpoint
+ * or HTTP Basic, because web has its own account pages.
  */
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
@@ -28,18 +30,18 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
             ObjectProvider<ExpiredFormResponder> expiredFormResponders, ObjectProvider<RememberMeLogin> rememberMeLogin,
-            SignedInMarker signedInMarker) {
+            SignedInMarker signedInMarker, @Qualifier("thymeleafViewResolver") ViewResolver viewResolver) {
         rememberMeLogin.ifAvailable(login -> http.addFilterBefore(new RememberMeFilter(login), AnonymousAuthenticationFilter.class));
         SignInEntryPoint signInEntryPoint = new SignInEntryPoint(signedInMarker);
         return http
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(MANAGE).authenticated()
+                        .requestMatchers(MANAGE).hasAuthority(AccountRole.PROPERTY_MANAGER.authority())
                         .anyRequest().permitAll())
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(signInEntryPoint)
                         .accessDeniedHandler(new ExpiredFormAccessDeniedHandler(expiredFormResponders.orderedStream().toList(),
-                                signInEntryPoint, signedInMarker, PathPatternRequestMatcher.withDefaults().matcher(MANAGE))))
+                                signInEntryPoint, signedInMarker, PathPatternRequestMatcher.withDefaults().matcher(MANAGE), viewResolver)))
                 .addFilterBefore(new SignedInUserFilter(), AnonymousAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

@@ -174,6 +174,21 @@ class ExpiredSessionIT {
     }
 
     @Test
+    void aVisitorIsDeniedTheManagerAreaAndStaysSignedIn() throws Exception {
+        signIn();
+
+        HttpResponse<String> denied = browser.get("/manage");
+
+        assertEquals(403, denied.statusCode(), "a Visitor is denied");
+        assertEquals("You do not have permission to view this page", Jsoup.parse(denied.body()).select("main h1").text(), "the full page");
+        HttpResponse<String> next = browser.get("/properties");
+        assertEquals(1, Jsoup.parse(next.body()).select("form.sign-out").size(), "the session is unchanged");
+        HttpResponse<String> signedOut = browser.post("/sign-out", Map.of("_csrf", CookieJarClient.csrfToken(denied)));
+        assertNull(browser.cookie("SESSION"), "the sign-out button on the access-denied page works");
+        assertEquals(303, signedOut.statusCode(), "the token rendered on the access-denied page is good");
+    }
+
+    @Test
     void noSessionAndNoMarkerIsNeverSignedIn() throws Exception {
         assertEquals("/sign-in?returnTo=%2Fmanage", location(browser.get("/manage")), "no inactivity message");
     }
