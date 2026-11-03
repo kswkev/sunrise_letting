@@ -22,6 +22,7 @@
     <!-- One module per domain service, e.g. <module>services/properties</module>. -->
     <modules>
         <module>services/web</module>
+        <module>services/identity</module>
     </modules>
 
     <properties>

@@ -1,0 +1,1 @@
+-- Baseline: the starting point for the identity schema. Tables come in later migrations.
