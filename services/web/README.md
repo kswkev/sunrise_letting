@@ -35,7 +35,7 @@ You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
 
 Pages that call identity, such as Create account and Sign in, need the identity service running on its local address, <http://localhost:8081> (see its README). Pages that don't call it work without it. To point at a different address, set `identity.base-url`, or the environment variable `IDENTITY_BASEURL`.
 
-The session cookie is `Secure`. Browsers accept that on `http://localhost`, but not on other plain HTTP addresses.
+The session, remember-me and signed-in marker cookies are `Secure`. Browsers accept that on `http://localhost`, but not on other plain HTTP addresses.
 
 ## Deploy to a cluster
 

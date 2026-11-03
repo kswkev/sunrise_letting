@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en-GB" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Session time-out fixture</title>
+    <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"[45]..","swap":true,"error":true}]}'>
+    <script src="/webjars/htmx.org/dist/htmx.min.js" defer></script>
+    <script src="/js/session-timeout.js" defer></script>
+</head>
+<body>
+<main id="main-content" tabindex="-1">
+    <h1>Fixture page</h1>
+    <label for="typed">Typed</label>
+    <input id="typed" type="text">
+    <button id="htmx-button" type="button" hx-get="/fixtures/session-timeout/fragment" hx-target="#fragment-result">Load</button>
+    <div id="fragment-result"></div>
+</main>
+<dialog class="timeout-dialog" id="timeout-dialog" role="alertdialog" aria-labelledby="timeout-dialog-title" aria-describedby="timeout-dialog-text"
+        th:attr="data-timeout-seconds=${timeout},data-warning-seconds=${warning},data-keep-alive-url=${keepAliveUrl}"
+        data-timed-out-url="/sign-in?timedOut=true">
+    <h2 id="timeout-dialog-title">You're about to be signed out</h2>
+    <p id="timeout-dialog-text">We will sign you out in 2 minutes unless you choose to stay signed in.</p>
+    <div class="timeout-dialog__actions">
+        <button type="button" class="button timeout-dialog__stay" autofocus>Stay signed in</button>
+        <form class="sign-out" method="post" th:action="@{/fixtures/session-timeout/signed-out}"><button type="submit" class="button button--secondary">Sign out</button></form>
+    </div>
+</dialog>
+</body>
+</html>
