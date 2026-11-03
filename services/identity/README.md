@@ -18,6 +18,19 @@ All requests and responses are JSON. Field names are `title`, `titleOther`, `fir
 
 The email is trimmed and matched without regard to case, as when an account is created. The password is never trimmed, so a password of spaces isn't empty; it is just wrong. An unknown email is checked against a dummy hash, so it takes as long to answer as a wrong password.
 
+Remember-me logins live here because identity owns credentials and `web` has no data store. `web` only holds the cookie.
+
+| Request | Body | Responses |
+|---|---|---|
+| `POST /api/remember-me-tokens` | `{ "accountId": "<uuid>" }` | `201 { "series": "...", "token": "...", "expiresAt": "<ISO-8601 instant>" }` for a Visitor account. `422 { "error": "REMEMBER_ME_NOT_ALLOWED" }` for any other account, an unknown account or a missing `accountId`. `400` if `accountId` isn't a UUID. |
+| `POST /api/remember-me-tokens/verify` | `{ "series": "...", "token": "..." }` | `200 { "accountId": "<uuid>", "role": "VISITOR", "token": "<new token>", "expiresAt": "<ISO-8601 instant>" }`. The token sent stops working. `401 { "error": "INVALID_REMEMBER_ME_TOKEN" }` in every other case. |
+| `DELETE /api/remember-me-tokens/{series}` | None | `204`, also when the series is already gone. |
+
+- A series and its token last 30 days from when they were issued. Using a token replaces it but doesn't extend the expiry.
+- A known, unexpired series with any other token, including one already replaced, is treated as possible theft: every token of that account is revoked. An unknown or expired series, or a request with no series or token, revokes nothing.
+- The series and token are URL-safe Base64 with no padding (22 and 43 characters).
+- Only the SHA-256 hash of a token is stored, and token values are never logged.
+
 Request bodies are never logged, because they carry passwords. Passwords are stored only as BCrypt hashes, pre-hashed with SHA-256 so that the whole of a long password counts (see `PreHashingBCryptPasswordEncoder`). Anything that checks a password must use that encoder.
 
 ## Build

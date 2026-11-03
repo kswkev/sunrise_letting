@@ -40,6 +40,13 @@ public class AccountRepository {
         return inserted == 1;
     }
 
+    public Optional<Role> findRoleById(UUID id) {
+        return jdbc.sql("SELECT role FROM accounts WHERE id = :id")
+                .param("id", id)
+                .query((row, rowNumber) -> Role.valueOf(row.getString("role")))
+                .optional();
+    }
+
     /**
      * @param email the normalised email
      */
