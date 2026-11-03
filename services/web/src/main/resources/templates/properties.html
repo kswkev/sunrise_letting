@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main/content()}, ~{}, 'properties')}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Properties to let - Sunrise Letting</title>
+</head>
+<body>
+<main>
+    <th:block th:if="${accountCreated}"><div th:replace="~{fragments/notification-banner :: success(heading='Your account has been created')}"></div></th:block>
+    <h1>Properties to let</h1>
+</main>
+</body>
+</html>
