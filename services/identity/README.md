@@ -15,7 +15,7 @@ All requests and responses are JSON. Field names are `title`, `titleOther`, `fir
 | `POST /api/account-validation/{field}` | `{ "value": "...", "password": "..." }` (`password` only for `confirmPassword`) | `200 { "error": "<CODE>" }`, or `{ "error": null }` if valid. `404` for an unknown field. Never checks whether an account exists. |
 | `POST /api/accounts/visitors` | All the fields above | `201 { "accountId": "<uuid>", "role": "VISITOR" }`. `400 { "errors": { "<field>": "<CODE>" } }` with one code per failing field. `409 { "error": "ACCOUNT_NOT_CREATED" }` if the email is in use. |
 
-Request bodies are never logged, because they carry passwords. Passwords are stored only as BCrypt hashes.
+Request bodies are never logged, because they carry passwords. Passwords are stored only as BCrypt hashes, pre-hashed with SHA-256 so that the whole of a long password counts (see `PreHashingBCryptPasswordEncoder`). Anything that checks a password must use that encoder.
 
 ## Build
 

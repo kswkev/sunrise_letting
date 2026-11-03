@@ -2,6 +2,7 @@ package com.sunriseletting.identity.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,6 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,10 +21,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,7 +38,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.sunriseletting.identity.TestcontainersConfiguration;
 
@@ -58,6 +64,9 @@ class VisitorAccountApiIT {
 
     @Autowired
     private JdbcClient jdbc;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void emptyTheAccountsTable() {
@@ -116,7 +125,7 @@ class VisitorAccountApiIT {
         assertEquals("VISITOR", row.get("role"), "the stored role should be Visitor");
         String hash = (String) row.get("password_hash");
         assertTrue(hash.startsWith("$2"), "the password should be stored as a BCrypt hash");
-        assertTrue(new BCryptPasswordEncoder().matches(PASSWORD, hash), "the hash should match the submitted password");
+        assertTrue(passwordEncoder.matches(PASSWORD, hash), "the hash should match the submitted password");
         assertNotNull(row.get("created_at"), "the time of creation should be stored");
     }
 
@@ -248,32 +257,30 @@ class VisitorAccountApiIT {
         assertEquals("{\"error\":null}", response.body(), "a registered email in a valid format should give no error");
     }
 
-    @Test
-    void passwordOfExactlyTheBcryptLimitIsStored() throws Exception {
-        String seventyTwoBytes = "Aa1!" + "a".repeat(68);
-
-        HttpResponse<String> response = createAccount(passwordRequest(seventyTwoBytes));
-
-        assertEquals(201, response.statusCode(), "a 72-byte password should create an account");
-        assertTrue(new BCryptPasswordEncoder().matches(seventyTwoBytes, (String) storedAccount().get("password_hash")),
-                "the hash should match the whole 72-byte password");
+    static Stream<Arguments> passwordsOverSeventyTwoBytes() {
+        return Stream.of(
+                Arguments.of("Aa1!" + "a".repeat(124), "Aa1!" + "a".repeat(123) + "x"),
+                Arguments.of("Aa1!" + "é".repeat(40), "Aa1!" + "é".repeat(39) + "x"));
     }
 
-    /**
-     * BCrypt can't take more than 72 bytes, but the password rules allow 128 characters. Until that is decided
-     * (see #1 and #12), such a password must fail safely: nothing stored, nothing leaked. This test records that
-     * behaviour and should change with the decision.
-     */
-    @Test
-    void passwordOverTheBcryptLimitFailsWithoutStoringOrLeakingAnything(CapturedOutput output) throws Exception {
-        String seventyThreeBytes = "Aa1!" + "a".repeat(69);
+    @ParameterizedTest
+    @MethodSource("passwordsOverSeventyTwoBytes")
+    void passwordOverSeventyTwoBytesCreatesAnAccount(String password, String differsAfterByte72, CapturedOutput output)
+            throws Exception {
+        assertTrue(password.getBytes(StandardCharsets.UTF_8).length > 72, "the test password should be over 72 bytes");
 
-        HttpResponse<String> response = createAccount(passwordRequest(seventyThreeBytes));
+        HttpResponse<String> response = createAccount(passwordRequest(password));
 
-        assertEquals(500, response.statusCode(), "the password can't be hashed, so the request should fail");
-        assertEquals(0, accountCount(), "no account should be created");
-        assertThat(response.body()).as("the response should not contain the password").doesNotContain(seventyThreeBytes);
-        assertThat(output.getAll()).as("the password should not be logged").doesNotContain(seventyThreeBytes);
+        assertEquals(201, response.statusCode(), "a valid long password should create an account");
+        String hash = (String) storedAccount().get("password_hash");
+        assertTrue(hash.startsWith("$2"), "the password should be stored as a BCrypt hash");
+        assertTrue(passwordEncoder.matches(password, hash), "the encoder should accept the original password");
+        assertFalse(passwordEncoder.matches(differsAfterByte72, hash),
+                "the encoder should reject a password differing only after byte 72");
+        assertThat(response.body()).as("the response should not contain the password").doesNotContain(password);
+        assertThat(output.getOut()).as("Spring's debug logging should be on, or this test proves nothing")
+                .contains("POST \"/api/accounts/visitors\"");
+        assertThat(output.getAll()).as("the password should not be logged").doesNotContain(password);
     }
 
     private static Map<String, String> passwordRequest(String password) {
