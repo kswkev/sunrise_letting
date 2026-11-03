@@ -34,7 +34,7 @@ class SignOutControllerTest {
     @Autowired
     private MockMvcTester mvc;
 
-    @MockitoBean
+    @MockitoBean(name = "recordingSignOutListener")
     private SignOutListener listener;
 
     @Test

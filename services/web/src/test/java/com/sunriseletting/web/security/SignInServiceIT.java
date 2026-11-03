@@ -162,7 +162,7 @@ class SignInServiceIT {
     }
 
     private String cookie(HttpResponse<String> response) {
-        String setCookie = response.headers().firstValue("Set-Cookie").orElse(null);
+        String setCookie = response.headers().allValues("Set-Cookie").stream().filter(header -> header.startsWith("SESSION=")).findFirst().orElse(null);
         assertNotNull(setCookie, "the response should set the session cookie");
         return setCookie.substring("SESSION=".length(), setCookie.indexOf(';'));
     }

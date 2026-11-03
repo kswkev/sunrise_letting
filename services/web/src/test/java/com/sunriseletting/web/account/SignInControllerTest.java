@@ -20,6 +20,7 @@ import com.sunriseletting.web.security.SecurityConfiguration;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.testsupport.Html;
 import com.sunriseletting.web.testsupport.RecordingExchangeGate;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -192,6 +193,53 @@ class SignInControllerTest {
 
         assertThat(result).as("the tab should be redirected").hasStatus(HttpStatus.FOUND);
         assertThat(result).as("an unsafe address is ignored").hasRedirectedUrl("/properties");
+    }
+
+    // The signed-in marker (#26)
+
+    @Test
+    void timedOutWithTheMarkerAndNoLiveSessionClearsTheMarker() {
+        MvcTestResult result = mvc.get().uri("/sign-in?timedOut=true").cookie(new Cookie("signed-in", "1")).exchange();
+
+        assertThat(result).as("the page should load").hasStatusOk();
+        assertThat(result.getResponse().getHeader("Set-Cookie")).as("the message shows once, so the marker goes now")
+                .startsWith("signed-in=;").contains("Max-Age=0");
+    }
+
+    @Test
+    void timedOutWithTheMarkerAndALiveSessionLeavesTheMarker() {
+        MvcTestResult result = mvc.get().uri("/sign-in?timedOut=true&returnTo=/properties/123").cookie(new Cookie("signed-in", "1"))
+                .with(authentication(visitor())).exchange();
+
+        assertThat(result).as("the tab goes straight back").hasRedirectedUrl("/properties/123");
+        assertThat(result.getResponse().getHeader("Set-Cookie")).as("a real time-out later must still show the message").isNull();
+    }
+
+    @Test
+    void anOrdinaryVisitToSignInLeavesTheMarker() {
+        MvcTestResult result = mvc.get().uri("/sign-in").cookie(new Cookie("signed-in", "1")).exchange();
+
+        assertThat(result).as("the page should load").hasStatusOk();
+        assertThat(result.getResponse().getHeader("Set-Cookie")).as("only the timed-out address clears the marker").isNull();
+    }
+
+    @Test
+    void signingInSetsTheMarker() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(SIGNED_IN);
+
+        MvcTestResult result = submit("jo@example.com", SECRET).with(csrf()).exchange();
+
+        assertThat(result.getResponse().getHeaders("Set-Cookie")).as("the marker should be set").anyMatch(header -> header.startsWith("signed-in=1;"));
+        verify(identityClient, description("identity should be asked")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void expiredFormWithTheMarkerIsNotRedirectedAndLeavesTheMarker() {
+        MvcTestResult result = submit(" Jo@Example.com ", SECRET).param("remember-me", "on").param("returnTo", "/properties/123")
+                .cookie(new Cookie("signed-in", "1")).exchange();
+
+        assertFormExpired(result);
+        assertThat(result.getResponse().getHeaders("Set-Cookie")).as("the marker isn't touched").noneMatch(header -> header.startsWith("signed-in="));
     }
 
     // POST: success

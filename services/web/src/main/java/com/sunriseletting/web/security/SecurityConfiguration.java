@@ -12,23 +12,34 @@ import org.springframework.security.web.context.DelegatingSecurityContextReposit
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 /**
- * CSRF protection on every POST, with the token kept in the session; all current pages public; and no
- * default login page, logout endpoint or HTTP Basic, because web has its own account pages.
+ * CSRF protection on every POST, with the token kept in the session; the Property Manager area behind
+ * sign-in, and every other current page public; and no default login page, logout endpoint or HTTP Basic,
+ * because web has its own account pages.
  */
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
 
+    /** The Property Manager area. This also matches {@code /manage} itself. */
+    private static final String MANAGE = "/manage/**";
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
-            ObjectProvider<ExpiredFormResponder> expiredFormResponders, ObjectProvider<RememberMeLogin> rememberMeLogin) {
+            ObjectProvider<ExpiredFormResponder> expiredFormResponders, ObjectProvider<RememberMeLogin> rememberMeLogin,
+            SignedInMarker signedInMarker) {
         rememberMeLogin.ifAvailable(login -> http.addFilterBefore(new RememberMeFilter(login), AnonymousAuthenticationFilter.class));
+        SignInEntryPoint signInEntryPoint = new SignInEntryPoint(signedInMarker);
         return http
-                .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(MANAGE).authenticated()
+                        .anyRequest().permitAll())
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
-                .exceptionHandling(exceptions -> exceptions.accessDeniedHandler(
-                        new ExpiredFormAccessDeniedHandler(expiredFormResponders.orderedStream().toList())))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(signInEntryPoint)
+                        .accessDeniedHandler(new ExpiredFormAccessDeniedHandler(expiredFormResponders.orderedStream().toList(),
+                                signInEntryPoint, signedInMarker, PathPatternRequestMatcher.withDefaults().matcher(MANAGE))))
                 .addFilterBefore(new SignedInUserFilter(), AnonymousAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -40,6 +51,11 @@ public class SecurityConfiguration {
     @Bean
     SiteCookies siteCookies(@Value("${server.servlet.session.cookie.secure:true}") boolean secure) {
         return new SiteCookies(secure);
+    }
+
+    @Bean
+    SignedInMarker signedInMarker(SiteCookies cookies) {
+        return new SignedInMarker(cookies);
     }
 
     @Bean

@@ -10,6 +10,7 @@ import com.sunriseletting.web.security.RememberMeLogin;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.security.SignInDestinations;
 import com.sunriseletting.web.security.SignInService;
+import com.sunriseletting.web.security.SignedInMarker;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.MessageSource;
@@ -37,22 +38,29 @@ public class SignInController {
 
     private final RememberMeLogin rememberMeLogin;
 
+    private final SignedInMarker signedInMarker;
+
     private final MessageSource messages;
 
-    SignInController(IdentityClient identityClient, SignInService signInService, RememberMeLogin rememberMeLogin, MessageSource messages) {
+    SignInController(IdentityClient identityClient, SignInService signInService, RememberMeLogin rememberMeLogin, SignedInMarker signedInMarker,
+            MessageSource messages) {
         this.identityClient = identityClient;
         this.signInService = signInService;
         this.rememberMeLogin = rememberMeLogin;
+        this.signedInMarker = signedInMarker;
         this.messages = messages;
     }
 
     @GetMapping
     public ModelAndView show(@RequestParam(required = false) String returnTo, @RequestParam(required = false) String timedOut,
-            @AuthenticationPrincipal SessionPrincipal principal) {
+            @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
         SignInPage.Values values = new SignInPage.Values("", false, returnTo, timedOut);
         if (principal != null) {
             String destination = values.isTimedOut() ? SignInDestinations.forVisitor(returnTo) : SignInDestinations.whenAlreadySignedIn(principal);
             return new ModelAndView(redirect(destination, HttpStatus.FOUND));
+        }
+        if (values.isTimedOut()) {
+            signedInMarker.clear(request, response);
         }
         return new ModelAndView(SignInPage.VIEW, SignInPage.firstLoad(values));
     }
