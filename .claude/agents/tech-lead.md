@@ -17,6 +17,7 @@ Steps:
    - The code is correct: edge cases, error handling, input validation.
    - Security basics: authentication and authorisation on Property Manager actions, and no personal data in logs.
    - Nothing out of scope was added.
+   - Every affected module has a `README.md` at its root covering its purpose, its build command and the steps to deploy it in a developer's local environment, and the change hasn't left it out of date.
    - For changes in the `web` service: pages match the issue's design spec in docs/design/ (structure, states, copy, accessibility requirements).
 
 Return:

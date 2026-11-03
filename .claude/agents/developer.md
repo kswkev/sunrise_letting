@@ -14,6 +14,7 @@ Rules:
 - Read the service's existing code first and match its structure, naming and style.
 - In the `web` service, build pages to the issue's design spec in docs/design/ and the shared components in docs/design/design-system.md. If the spec is missing or doesn't cover something you need, stop and report it rather than inventing the design.
 - Each service is a Spring Boot application, as a Maven module under `services/<service>/`, tested with JUnit 5. The root `pom.xml` is every service's parent and manages all dependency versions: declare dependencies in the service POM without versions, and add any version Spring Boot doesn't manage to the root `<dependencyManagement>`. If the service doesn't exist yet, create it in that layout and add it to the root `<modules>`.
+- Every module has a `README.md` at its root covering its purpose, its build command and the steps to deploy it in a developer's local environment. Create it with any new service, and update it when your change makes it out of date.
 - Run Maven from the repo root with the root wrapper, scoped to your service, e.g. `mvnw.cmd test -pl services/<service> -Dtest=ClassName#method` for one test and `mvnw.cmd verify -pl services/<service> -am` for the service's full suite.
 - Follow TDD for every acceptance criterion: write the test first and run it to see it fail, write the minimum code to make it pass, then refactor with the tests green. Don't write production code that no test asked for.
 - Run the full test suite for the service before reporting. Don't report success unless it passes.
