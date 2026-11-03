@@ -1,5 +1,8 @@
 package com.sunriseletting.web.account;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 import com.sunriseletting.web.identity.AccountField;
 
 /** The sign-up form's fields, in form order: each one's input id, and the field identity knows it as. */
@@ -21,6 +24,15 @@ enum CreateAccountField {
     CreateAccountField(String inputId, AccountField accountField) {
         this.inputId = inputId;
         this.accountField = accountField;
+    }
+
+    static Optional<CreateAccountField> withInputId(String inputId) {
+        return Arrays.stream(values()).filter(field -> field.inputId.equals(inputId)).findFirst();
+    }
+
+    /** The password fields swap only their message, and are never rendered back. */
+    boolean isPassword() {
+        return this == PASSWORD || this == CONFIRM_PASSWORD;
     }
 
     String inputId() {

@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<!--/* The sign-up form's fields (docs/design/1-visitor-sign-up.md, "Fields"), each one its own fragment.
-       They read the model's form (values) and fieldErrors (messages, by field name). */-->
+<!--/* The sign-up form's fields (docs/design/1-visitor-sign-up.md, "Fields"), each one its own fragment, so
+       the page and the inline validation responses render them the same way. They read the model's form
+       (values) and fieldErrors (messages, by field name). */-->
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<th:block th:fragment="field-title"><div th:replace="~{fragments/form :: select(id='title', name='title', label='Title', value=${form.title}, error=${fieldErrors['title']}, placeholder='Select a title', options=${ {'Mr','Mrs','Miss','Ms','Mx','Dr','Other'} }, autocomplete='honorific-prefix')}"></div></th:block>
+<th:block th:fragment="field-title"><div th:replace="~{fragments/form :: select(id='title', name='title', label='Title', value=${form.title}, error=${fieldErrors['title']}, placeholder='Select a title', options=${ {'Mr','Mrs','Miss','Ms','Mx','Dr','Other'} }, autocomplete='honorific-prefix', hxPost='/create-account/validate/title', hxParams='title,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-title-other"><div th:replace="~{fragments/form :: field(id='title-other', name='titleOther', label='Other title', type='text', value=${form.titleOther}, hint='Only if you chose Other', error=${fieldErrors['titleOther']}, autocomplete='off', spellcheck='false')}"></div></th:block>
+<th:block th:fragment="field-title-other"><div th:replace="~{fragments/form :: field(id='title-other', name='titleOther', label='Other title', type='text', value=${form.titleOther}, hint='Only if you chose Other', error=${fieldErrors['titleOther']}, autocomplete='off', spellcheck='false', hxPost='/create-account/validate/title-other', hxParams='titleOther,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-first-name"><div th:replace="~{fragments/form :: field(id='first-name', name='firstName', label='First name', type='text', value=${form.firstName}, error=${fieldErrors['firstName']}, autocomplete='given-name', spellcheck='false')}"></div></th:block>
+<th:block th:fragment="field-first-name"><div th:replace="~{fragments/form :: field(id='first-name', name='firstName', label='First name', type='text', value=${form.firstName}, error=${fieldErrors['firstName']}, autocomplete='given-name', spellcheck='false', hxPost='/create-account/validate/first-name', hxParams='firstName,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-surname"><div th:replace="~{fragments/form :: field(id='surname', name='surname', label='Surname', type='text', value=${form.surname}, error=${fieldErrors['surname']}, autocomplete='family-name', spellcheck='false')}"></div></th:block>
+<th:block th:fragment="field-surname"><div th:replace="~{fragments/form :: field(id='surname', name='surname', label='Surname', type='text', value=${form.surname}, error=${fieldErrors['surname']}, autocomplete='family-name', spellcheck='false', hxPost='/create-account/validate/surname', hxParams='surname,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-email"><div th:replace="~{fragments/form :: field(id='email', name='email', label='Email address', type='email', value=${form.email}, error=${fieldErrors['email']}, autocomplete='email', spellcheck='false', autocapitalize='none')}"></div></th:block>
+<th:block th:fragment="field-email"><div th:replace="~{fragments/form :: field(id='email', name='email', label='Email address', type='email', value=${form.email}, error=${fieldErrors['email']}, autocomplete='email', spellcheck='false', autocapitalize='none', hxPost='/create-account/validate/email', hxParams='email,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-phone"><div th:replace="~{fragments/form :: field(id='phone', name='phone', label='Phone number', type='tel', value=${form.phone}, hint='Use numbers and spaces only, and a + at the start if you need it, for example 07700 900982', error=${fieldErrors['phone']}, autocomplete='tel')}"></div></th:block>
+<th:block th:fragment="field-phone"><div th:replace="~{fragments/form :: field(id='phone', name='phone', label='Phone number', type='tel', value=${form.phone}, hint='Use numbers and spaces only, and a + at the start if you need it, for example 07700 900982', error=${fieldErrors['phone']}, autocomplete='tel', hxPost='/create-account/validate/phone', hxParams='phone,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-password"><div th:replace="~{fragments/form :: password(id='password', name='password', label='Password', suffix='password', hint='Must be 8 to 128 characters and include an upper-case letter, a lower-case letter, a number and a symbol', error=${fieldErrors['password']}, autocomplete='new-password')}"></div></th:block>
+<th:block th:fragment="field-password"><div th:replace="~{fragments/form :: password(id='password', name='password', label='Password', suffix='password', hint='Must be 8 to 128 characters and include an upper-case letter, a lower-case letter, a number and a symbol', error=${fieldErrors['password']}, autocomplete='new-password', hxPost='/create-account/validate/password', hxParams='password,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-confirm-password"><div th:replace="~{fragments/form :: password(id='confirm-password', name='confirmPassword', label='Confirm password', suffix='confirm password', error=${fieldErrors['confirmPassword']}, autocomplete='new-password')}"></div></th:block>
+<th:block th:fragment="field-confirm-password"><div th:replace="~{fragments/form :: password(id='confirm-password', name='confirmPassword', label='Confirm password', suffix='confirm password', error=${fieldErrors['confirmPassword']}, autocomplete='new-password', hxPost='/create-account/validate/confirm-password', hxParams='password,confirmPassword,_csrf')}"></div></th:block>
 
 </body>
 </html>

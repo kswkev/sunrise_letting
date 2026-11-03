@@ -30,7 +30,7 @@ You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
 
    This starts Redis from `compose.yaml` automatically and connects to it, with no manual setup.
 
-2. Open <http://localhost:8080/> to see the home page.
+2. Open <http://localhost:8080/> to see the home page, or <http://localhost:8080/create-account> to sign up.
 3. Press `Ctrl+C` in the terminal to stop the service. Redis stops with it.
 
 Pages that call identity, such as Create account, need the identity service running on its local address, <http://localhost:8081> (see its README). Pages that don't call it work without it. To point at a different address, set `identity.base-url`, or the environment variable `IDENTITY_BASEURL`.
