@@ -2,6 +2,8 @@ package com.sunriseletting.web.session;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.sunriseletting.web.security.AccountRole;
+import com.sunriseletting.web.security.SessionPrincipal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
@@ -24,7 +26,9 @@ class SessionConfiguration {
         // The Security modules only read types they trust. Anything else web keeps in the session must be listed here.
         BasicPolymorphicTypeValidator.Builder allowedTypes = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType(CopyOnWriteArrayList.class)
-                .allowIfSubType(FlashMap.class);
+                .allowIfSubType(FlashMap.class)
+                .allowIfSubType(SessionPrincipal.class)
+                .allowIfSubType(AccountRole.class);
         JsonMapper mapper = JsonMapper.builder()
                 .addModules(SecurityJacksonModules.getModules(getClass().getClassLoader(), allowedTypes))
                 .build();

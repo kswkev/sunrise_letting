@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.sunriseletting.web.security.SecurityConfiguration;
 import com.sunriseletting.web.testsupport.Html;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 /** Renders the shared fragments in fragments/form and fragments/notification-banner through a test-only page. */
 @WebMvcTest(FormComponentsTest.FixtureController.class)
-@Import(FormComponentsTest.FixtureController.class)
+@Import({ SecurityConfiguration.class, FormComponentsTest.FixtureController.class })
 class FormComponentsTest {
 
     @Controller

@@ -1,6 +1,9 @@
 spring:
   application:
     name: web
+  # Accounts live in identity, so Spring Security shouldn't generate a user and log its password.
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   # Redis comes from compose.yaml on local runs. In the cluster, set the environment variables
   # SPRING_DATA_REDIS_HOST, SPRING_DATA_REDIS_PORT and SPRING_DATA_REDIS_PASSWORD.
   session:
