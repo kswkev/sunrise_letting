@@ -18,3 +18,20 @@ server:
         secure: true
         same-site: lax
         path: /
+
+# identity's port on a developer's machine. In the cluster, set the environment variable IDENTITY_BASEURL.
+identity:
+  base-url: http://localhost:8081
+  connect-timeout: 2s
+  read-timeout: 5s
+
+# Request bodies carry passwords. These loggers can print them at debug level, so they stay
+# at INFO even if a wider package such as org.springframework.web is turned up for debugging.
+# The resolver logs at WARN the parse error for a malformed body, which can quote part of the body.
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: INFO
+    org.springframework.web.servlet.mvc.method.annotation: INFO
+    org.springframework.http.converter: INFO
+    org.springframework.web.client: INFO
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: ERROR

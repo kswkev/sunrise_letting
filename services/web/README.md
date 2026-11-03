@@ -33,8 +33,10 @@ You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
 2. Open <http://localhost:8080/> to see the home page.
 3. Press `Ctrl+C` in the terminal to stop the service. Redis stops with it.
 
+Pages that call identity, such as Create account, need the identity service running on its local address, <http://localhost:8081> (see its README). Pages that don't call it work without it. To point at a different address, set `identity.base-url`, or the environment variable `IDENTITY_BASEURL`.
+
 The session cookie is `Secure`. Browsers accept that on `http://localhost`, but not on other plain HTTP addresses.
 
 ## Deploy to a cluster
 
-There are no Kubernetes manifests yet. Whoever adds them needs to know that `web` needs a Redis reachable inside the cluster (a Deployment or StatefulSet plus a Service, or a managed Redis), with the connection passed as the environment variables `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT` and `SPRING_DATA_REDIS_PASSWORD` (the password from a Secret). `web` can then run with more than one replica and no session affinity.
+There are no Kubernetes manifests yet. Whoever adds them needs to know that `web` needs a Redis reachable inside the cluster (a Deployment or StatefulSet plus a Service, or a managed Redis), with the connection passed as the environment variables `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT` and `SPRING_DATA_REDIS_PASSWORD` (the password from a Secret). It also needs `IDENTITY_BASEURL` set to the identity Service's address. `web` can then run with more than one replica and no session affinity.
