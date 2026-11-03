@@ -1,5 +1,7 @@
 package com.sunriseletting.identity.validation;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -13,7 +15,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountFieldValidator {
 
-    private static final Set<String> TITLES = Set.of("Mr", "Mrs", "Miss", "Ms", "Mx", "Dr", "Other");
+    private static final String OTHER_TITLE = "Other";
+    private static final Set<String> TITLES = Set.of("Mr", "Mrs", "Miss", "Ms", "Mx", "Dr", OTHER_TITLE);
     private static final int TITLE_OTHER_MAX_LENGTH = 20;
     private static final int NAME_MAX_LENGTH = 100;
     private static final int EMAIL_MAX_LENGTH = 254;
@@ -45,6 +48,37 @@ public class AccountFieldValidator {
             case PASSWORD -> passwordRules.check(value);
             case CONFIRM_PASSWORD -> validateConfirmPassword(value, password);
         };
+    }
+
+    /**
+     * Checks a whole submission, giving one error per failing field. Other title is only checked when Title
+     * is Other, when it is also required.
+     */
+    public Map<AccountField, AccountFieldError> validateAll(AccountDetails details) {
+        Map<AccountField, AccountFieldError> errors = new EnumMap<>(AccountField.class);
+        validate(AccountField.TITLE, details.title(), null).ifPresent(error -> errors.put(AccountField.TITLE, error));
+        if (isOtherTitle(details.title())) {
+            validateTitleOtherWhenNeeded(details.titleOther()).ifPresent(error -> errors.put(AccountField.TITLE_OTHER, error));
+        }
+        validate(AccountField.FIRST_NAME, details.firstName(), null).ifPresent(error -> errors.put(AccountField.FIRST_NAME, error));
+        validate(AccountField.SURNAME, details.surname(), null).ifPresent(error -> errors.put(AccountField.SURNAME, error));
+        validate(AccountField.EMAIL, details.email(), null).ifPresent(error -> errors.put(AccountField.EMAIL, error));
+        validate(AccountField.PHONE, details.phone(), null).ifPresent(error -> errors.put(AccountField.PHONE, error));
+        validate(AccountField.PASSWORD, details.password(), null).ifPresent(error -> errors.put(AccountField.PASSWORD, error));
+        validate(AccountField.CONFIRM_PASSWORD, details.confirmPassword(), details.password())
+                .ifPresent(error -> errors.put(AccountField.CONFIRM_PASSWORD, error));
+        return errors;
+    }
+
+    /** Whether this title value, as submitted, means the free-text title applies. */
+    public static boolean isOtherTitle(String title) {
+        return title != null && OTHER_TITLE.equals(title.strip());
+    }
+
+    private static Optional<AccountFieldError> validateTitleOtherWhenNeeded(String value) {
+        return isBlank(value)
+                ? Optional.of(AccountFieldError.TITLE_OTHER_REQUIRED)
+                : tooLong(value, TITLE_OTHER_MAX_LENGTH, AccountFieldError.TITLE_OTHER_TOO_LONG);
     }
 
     private static Optional<AccountFieldError> validateTitle(String value) {

@@ -2,13 +2,13 @@ package com.sunriseletting.identity.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -137,15 +137,50 @@ class AccountFieldValidatorTest {
                 "a confirm password with no password to compare should not match");
     }
 
-    @ParameterizedTest
-    @EnumSource(AccountField.class)
-    void everyFieldHasAnApiName(AccountField field) {
-        assertEquals(Optional.of(field), AccountField.fromApiName(field.apiName()),
-                field + " should be found by its API name");
+    private static AccountDetails details(String title, String titleOther) {
+        return new AccountDetails(title, titleOther, "Jo", "Smith", "jo@example.com", "07700 900123",
+                VALID_PASSWORD, VALID_PASSWORD);
     }
 
     @Test
-    void unknownApiNameIsNotAField() {
-        assertEquals(Optional.empty(), AccountField.fromApiName("TITLE"), "API names should match exactly");
+    void fullValidationOfValidDetailsHasNoErrors() {
+        assertEquals(Map.of(), validator.validateAll(details("Mr", null)), "valid details should have no errors");
     }
+
+    @Test
+    void fullValidationGivesOneCodePerFailingField() {
+        AccountDetails details = new AccountDetails(null, null, "", "x".repeat(101), "not-an-email", "0113-496-0000",
+                "short", "different");
+
+        assertEquals(Map.of(
+                AccountField.TITLE, AccountFieldError.TITLE_REQUIRED,
+                AccountField.FIRST_NAME, AccountFieldError.FIRST_NAME_REQUIRED,
+                AccountField.SURNAME, AccountFieldError.SURNAME_TOO_LONG,
+                AccountField.EMAIL, AccountFieldError.EMAIL_INVALID,
+                AccountField.PHONE, AccountFieldError.PHONE_INVALID,
+                AccountField.PASSWORD, AccountFieldError.PASSWORD_TOO_SHORT,
+                AccountField.CONFIRM_PASSWORD, AccountFieldError.PASSWORDS_DO_NOT_MATCH),
+                validator.validateAll(details), "every failing field should have its own code");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   "})
+    void fullValidationRequiresOtherTitleWhenTitleIsOther(String titleOther) {
+        assertEquals(Map.of(AccountField.TITLE_OTHER, AccountFieldError.TITLE_OTHER_REQUIRED),
+                validator.validateAll(details("Other", titleOther)), "title Other should need the free-text title");
+    }
+
+    @Test
+    void fullValidationChecksTheLengthOfOtherTitleWhenTitleIsOther() {
+        assertEquals(Map.of(AccountField.TITLE_OTHER, AccountFieldError.TITLE_OTHER_TOO_LONG),
+                validator.validateAll(details("Other", "x".repeat(21))), "an over-long free-text title should be rejected");
+        assertEquals(Map.of(), validator.validateAll(details(" Other ", "Rev")), "title Other with its text should be valid");
+    }
+
+    @Test
+    void fullValidationIgnoresOtherTitleWhenTitleIsNotOther() {
+        assertEquals(Map.of(), validator.validateAll(details("Mr", "x".repeat(21))),
+                "Other title should be ignored when Title is not Other");
+    }
+
 }

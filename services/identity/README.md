@@ -6,6 +6,17 @@ Owns accounts and credentials for Sunrise Letting. It exposes JSON APIs only and
 
 Its data store is PostgreSQL, with the schema managed by Flyway migrations in `src/main/resources/db/migration`. No other service reads that data store directly.
 
+## API
+
+All requests and responses are JSON. Field names are `title`, `titleOther`, `firstName`, `surname`, `email`, `phone`, `password` and `confirmPassword`. Errors are stable codes, which the caller maps to its own copy (see `AccountFieldError`).
+
+| Request | Body | Responses |
+|---|---|---|
+| `POST /api/account-validation/{field}` | `{ "value": "...", "password": "..." }` (`password` only for `confirmPassword`) | `200 { "error": "<CODE>" }`, or `{ "error": null }` if valid. `404` for an unknown field. Never checks whether an account exists. |
+| `POST /api/accounts/visitors` | All the fields above | `201 { "accountId": "<uuid>", "role": "VISITOR" }`. `400 { "errors": { "<field>": "<CODE>" } }` with one code per failing field. `409 { "error": "ACCOUNT_NOT_CREATED" }` if the email is in use. |
+
+Request bodies are never logged, because they carry passwords. Passwords are stored only as BCrypt hashes.
+
 ## Build
 
 Run from the repo root (use `./mvnw` on Linux or macOS), with Docker running:
