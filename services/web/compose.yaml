@@ -1,0 +1,8 @@
+# Local runs only: spring-boot:run starts this through Spring Boot Docker Compose support.
+# Tests use Testcontainers, and in the cluster the Redis connection comes from environment variables.
+services:
+  redis:
+    image: redis:8.2.2
+    # A random host port, so it doesn't clash with anything else on the machine.
+    ports:
+      - "6379"

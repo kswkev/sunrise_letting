@@ -13,12 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 
 /**
- * Starts the whole web application on a real port, with no data store or domain service,
- * and checks what a browser would load.
+ * Starts the whole web application on a real port, with Redis for sessions but no domain data store
+ * or domain service, and checks what a browser would load.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@Import(TestcontainersConfiguration.class)
 class WebApplicationIT {
 
     private final HttpClient client = HttpClient.newHttpClient();
