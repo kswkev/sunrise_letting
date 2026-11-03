@@ -196,6 +196,22 @@ main:focus {
     font-weight: bold;
 }
 
+/* Sign-out button (4.18): looks like the other header links. */
+.sign-out {
+    margin: 0;
+}
+
+.sign-out__button {
+    min-height: 1.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--colour-link-on-dark);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 /* Footer (3.1) */
 .site-footer {
     background: var(--colour-dark);

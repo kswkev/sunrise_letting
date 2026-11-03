@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
@@ -26,6 +27,7 @@ public class SecurityConfiguration {
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
                 .exceptionHandling(exceptions -> exceptions.accessDeniedHandler(
                         new ExpiredFormAccessDeniedHandler(expiredFormResponders.orderedStream().toList())))
+                .addFilterBefore(new SignedInUserFilter(), AnonymousAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
@@ -42,5 +44,15 @@ public class SecurityConfiguration {
     @Bean
     SignInService signInService(SecurityContextRepository securityContextRepository, ObjectProvider<SignInListener> listeners) {
         return new SignInService(securityContextRepository, listeners.orderedStream().toList());
+    }
+
+    @Bean
+    SignOutService signOutService(SecurityContextRepository securityContextRepository, ObjectProvider<SignOutListener> listeners) {
+        return new SignOutService(securityContextRepository, listeners.orderedStream().toList());
+    }
+
+    @Bean
+    ExpiredFormResponder signOutExpiredFormResponder(SignOutService signOutService) {
+        return new SignOutExpiredFormResponder(signOutService);
     }
 }

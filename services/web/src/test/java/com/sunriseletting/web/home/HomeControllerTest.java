@@ -1,10 +1,13 @@
 package com.sunriseletting.web.home;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 import java.util.List;
 
+import com.sunriseletting.web.security.AccountRole;
 import com.sunriseletting.web.security.SecurityConfiguration;
+import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.testsupport.Html;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
@@ -118,6 +124,18 @@ class HomeControllerTest {
             assertThat(hrefs).as("header links should carry no query string on " + uri)
                     .containsExactly("/properties", "/sign-in", "/create-account");
         }
+    }
+
+    @Test
+    void signedInHeaderOnTheHomePageHasNoSignInOrCreateAccount() {
+        Authentication visitor = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+                List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
+
+        Document page = Html.page(mvc.get().uri("/").with(authentication(visitor)).exchange());
+
+        assertThat(page.select("header nav li").eachText()).as("the Visitor's items, in order").containsExactly("Properties to let", "Sign out");
+        assertThat(page.select("header form.sign-out[action=/sign-out][method=post] input[name=_csrf]")).as("the form carries a token").hasSize(1);
+        assertThat(page.select("a[href=/sign-in], a[href=/create-account]")).as("those links aren't rendered at all").isEmpty();
     }
 
     @Test
