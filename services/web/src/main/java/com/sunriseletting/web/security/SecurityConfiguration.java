@@ -19,10 +19,13 @@ import org.springframework.security.web.context.SecurityContextRepository;
 public class SecurityConfiguration {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository securityContextRepository) {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
+            ObjectProvider<ExpiredFormResponder> expiredFormResponders) {
         return http
                 .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
+                .exceptionHandling(exceptions -> exceptions.accessDeniedHandler(
+                        new ExpiredFormAccessDeniedHandler(expiredFormResponders.orderedStream().toList())))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)

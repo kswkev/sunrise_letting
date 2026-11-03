@@ -123,6 +123,18 @@ main:focus {
     max-width: 40em;
 }
 
+/* Create an account: widths that hint at the expected length (#1 spec). */
+@media (min-width: 40em) {
+    #create-account-form #title,
+    #create-account-form #title-other {
+        width: 12em;
+    }
+
+    #create-account-form #phone {
+        width: 20em;
+    }
+}
+
 /* Skip link (4.1) */
 .skip-link {
     position: absolute;

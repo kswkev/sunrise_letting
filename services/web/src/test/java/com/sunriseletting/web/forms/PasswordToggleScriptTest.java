@@ -2,6 +2,7 @@ package com.sunriseletting.web.forms;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sunriseletting.web.home.HomeController;
 import com.sunriseletting.web.security.SecurityConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 /** The script's behaviour is covered in a real browser by PasswordToggleIT. */
-@WebMvcTest
+@WebMvcTest(HomeController.class)
 @Import(SecurityConfiguration.class)
 class PasswordToggleScriptTest {
 
