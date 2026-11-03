@@ -60,6 +60,11 @@
     box-sizing: border-box;
 }
 
+/* The hidden attribute wins over any display a component's class sets, such as .button. */
+[hidden] {
+    display: none !important;
+}
+
 body {
     margin: 0;
     background: var(--colour-bg);
