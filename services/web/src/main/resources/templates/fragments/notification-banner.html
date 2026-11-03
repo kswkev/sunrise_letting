@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Notification banner, success variant (design-system.md 4.14). Goes at the top of <main>. Argument: heading. */-->
+<div th:fragment="success" class="notification-banner notification-banner--success" role="status" tabindex="-1" autofocus>
+    <h2 class="notification-banner__heading" th:text="${heading}"></h2>
+</div>
+</body>
+</html>

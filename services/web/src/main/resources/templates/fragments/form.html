@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!--/* Shared form components (design-system.md 4.10, 4.13, 4.17). Pass arguments by name; any left out
+       are null, for example:
+       <div th:replace="~{fragments/form :: field(id='email', name='email', label='Email address', type='email',
+            value=${form.email}, error=${fieldErrors['email']}, autocomplete='email', hxPost='...', hxParams='email,_csrf')}"></div>
+     The hx- attributes appear only when hxPost is given. None of these components render required or
+     maxlength (6.6), and the password field has no value argument at all, so it can't echo a password. */-->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--/* Form field (4.10). Arguments: id, name, label, type, value, hint, error, autocomplete, spellcheck,
+       autocapitalize, hxPost, hxParams. The group's id, field-<id>, is the inline validation swap target. */-->
+<div th:fragment="field" class="form-group" th:classappend="${error != null} ? 'form-group--error'" th:id="|field-${id}|"
+     th:with="describedBy=${#strings.trim((hint != null ? id + '-hint ' : '') + (error != null ? id + '-error' : ''))}">
+    <th:block th:replace="~{fragments/form :: labelHintError}"></th:block>
+    <input class="input" th:id="${id}" th:name="${name}" th:type="${type}" th:value="${value}"
+           th:attr="autocomplete=${autocomplete},spellcheck=${spellcheck},autocapitalize=${autocapitalize},aria-describedby=${describedBy},aria-invalid=${error != null} ? 'true',hx-post=${hxPost},hx-trigger=${hxPost != null} ? 'blur',hx-target=${hxPost != null} ? |#field-${id}|,hx-swap=${hxPost != null} ? 'outerHTML',hx-params=${hxParams}">
+</div>
+
+<!--/* Form field with a select (4.10). Arguments as for field, without type, spellcheck and autocapitalize, plus
+       placeholder (the first option's text, with an empty value) and options (the other options' text and values). */-->
+<div th:fragment="select" class="form-group" th:classappend="${error != null} ? 'form-group--error'" th:id="|field-${id}|"
+     th:with="describedBy=${#strings.trim((hint != null ? id + '-hint ' : '') + (error != null ? id + '-error' : ''))}">
+    <th:block th:replace="~{fragments/form :: labelHintError}"></th:block>
+    <select class="input" th:id="${id}" th:name="${name}"
+            th:attr="autocomplete=${autocomplete},aria-describedby=${describedBy},aria-invalid=${error != null} ? 'true',hx-post=${hxPost},hx-trigger=${hxPost != null} ? 'blur',hx-target=${hxPost != null} ? |#field-${id}|,hx-swap=${hxPost != null} ? 'outerHTML',hx-params=${hxParams}">
+        <option value="" th:text="${placeholder}"></option>
+        <option th:each="option : ${options}" th:value="${option}" th:text="${option}" th:selected="${option == value}"></option>
+    </select>
+</div>
+
+<th:block th:fragment="labelHintError">
+    <label class="label" th:for="${id}" th:text="${label}"></label>
+    <p class="hint" th:if="${hint != null}" th:id="|${id}-hint|" th:text="${hint}"></p>
+    <p class="error-message" th:if="${error != null}" th:id="|${id}-error|"><span class="visually-hidden">Error:</span> [[${error}]]</p>
+</th:block>
+
+<!--/* Password field with show/hide toggle (4.17). Arguments: id, name, label, suffix (the visually hidden
+       end of the toggle's name, for example 'confirm password'), hint, error, autocomplete, hxPost, hxParams.
+       The page must also load /js/password-toggle.js. */-->
+<div th:fragment="password" class="form-group password-field" th:classappend="${error != null} ? 'form-group--error'" th:id="|field-${id}|">
+    <label class="label" th:for="${id}" th:text="${label}"></label>
+    <p class="hint" th:if="${hint != null}" th:id="|${id}-hint|" th:text="${hint}"></p>
+    <div class="password-field__error-slot" th:id="|${id}-error-slot|"><p class="error-message" th:if="${error != null}" th:id="|${id}-error|"><span class="visually-hidden">Error:</span> [[${error}]]</p></div>
+    <div class="password-field__wrapper">
+        <input class="input password-field__input" th:id="${id}" th:name="${name}" type="password" spellcheck="false" autocapitalize="none"
+               th:attr="autocomplete=${autocomplete},aria-describedby=${(hint != null ? id + '-hint ' : '') + id + '-error'},aria-invalid=${error != null} ? 'true',hx-post=${hxPost},hx-trigger=${hxPost != null} ? 'blur',hx-target=${hxPost != null} ? |#${id}-error-slot|,hx-swap=${hxPost != null} ? 'innerHTML',hx-params=${hxParams}">
+        <button type="button" class="button button--secondary password-field__toggle" th:attr="aria-controls=${id}" hidden>Show<span class="visually-hidden" th:text="| ${suffix}|"></span></button>
+    </div>
+    <p class="visually-hidden password-field__status" aria-live="polite"></p>
+</div>
+
+<!--/* Error summary, list variant (4.13). errors is a list of SummaryError, one per field, in field order. */-->
+<div th:fragment="errorSummaryList(errors)" class="error-summary" tabindex="-1" autofocus aria-labelledby="error-summary-title">
+    <h2 id="error-summary-title">There is a problem</h2>
+    <ul>
+        <li th:each="summaryError : ${errors}"><a th:href="|#${summaryError.inputId}|" th:text="${summaryError.message}"></a></li>
+    </ul>
+</div>
+
+<!--/* Error summary, form-level variant (4.13). Arguments: message; and, when the paragraph has a link at its end,
+       linkText, linkHref and messageEnd (the text after the link). */-->
+<div th:fragment="errorSummaryForm" class="error-summary" tabindex="-1" autofocus aria-labelledby="error-summary-title">
+    <h2 id="error-summary-title">There is a problem</h2>
+    <p class="error-summary__body">[[${message}]]<th:block th:if="${linkText != null}"> <a th:href="${linkHref}" th:text="${linkText}"></a>[[${messageEnd}]]</th:block></p>
+</div>
+
+</body>
+</html>
