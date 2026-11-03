@@ -80,4 +80,9 @@ public class SecurityConfiguration {
     ExpiredFormResponder signOutExpiredFormResponder(SignOutService signOutService) {
         return new SignOutExpiredFormResponder(signOutService);
     }
+
+    @Bean
+    ExpiredFormResponder keepAliveExpiredFormResponder() {
+        return new KeepAliveExpiredFormResponder();
+    }
 }

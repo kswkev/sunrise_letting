@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/css/site.css">
     <script src="/webjars/htmx.org/dist/htmx.min.js" defer></script>
     <th:block th:replace="${scripts}"></th:block>
+    <script th:if="${sessionTimeoutSeconds != null}" src="/js/session-timeout.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -20,6 +21,6 @@
 <footer class="site-footer">
     <p class="container">© Sunrise Letting</p>
 </footer>
-<!--/* The time-out dialog (design-system.md 4.20) goes here, after the footer, when #2 builds it. */-->
+<th:block th:if="${sessionTimeoutSeconds != null}"><dialog th:replace="~{fragments/timeout-dialog :: dialog(${sessionTimeoutSeconds})}"></dialog></th:block>
 </body>
 </html>

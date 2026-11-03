@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Time-out warning dialog (design-system.md 4.20), closed in the server HTML and opened by /js/session-timeout.js.
+       The script reads every value from these attributes, and the _csrf for the keep-alive from the sign-out form. Argument: timeoutSeconds. */-->
+<dialog th:fragment="dialog(timeoutSeconds)" class="timeout-dialog" id="timeout-dialog" role="alertdialog"
+        aria-labelledby="timeout-dialog-title" aria-describedby="timeout-dialog-text"
+        th:attr="data-timeout-seconds=${timeoutSeconds}" data-warning-seconds="120"
+        data-keep-alive-url="/session/keep-alive" data-timed-out-url="/sign-in?timedOut=true">
+    <h2 id="timeout-dialog-title">You're about to be signed out</h2>
+    <p id="timeout-dialog-text">We will sign you out in 2 minutes unless you choose to stay signed in.</p>
+    <div class="timeout-dialog__actions">
+        <button type="button" class="button timeout-dialog__stay" autofocus>Stay signed in</button>
+        <form class="sign-out" method="post" th:action="@{/sign-out}"><button type="submit" class="button button--secondary">Sign out</button></form>
+    </div>
+</dialog>
+</body>
+</html>

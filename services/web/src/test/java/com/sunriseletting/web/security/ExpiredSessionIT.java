@@ -182,10 +182,34 @@ class ExpiredSessionIT {
         assertEquals(403, denied.statusCode(), "a Visitor is denied");
         assertEquals("You do not have permission to view this page", Jsoup.parse(denied.body()).select("main h1").text(), "the full page");
         HttpResponse<String> next = browser.get("/properties");
-        assertEquals(1, Jsoup.parse(next.body()).select("form.sign-out").size(), "the session is unchanged");
+        assertEquals(1, Jsoup.parse(next.body()).select("header form.sign-out").size(), "the session is unchanged");
         HttpResponse<String> signedOut = browser.post("/sign-out", Map.of("_csrf", CookieJarClient.csrfToken(denied)));
         assertNull(browser.cookie("SESSION"), "the sign-out button on the access-denied page works");
         assertEquals(303, signedOut.statusCode(), "the token rendered on the access-denied page is good");
+    }
+
+    @Test
+    void keepAliveResetsTheIdleTimerAndAnswers401OnceTheSessionHasEnded() throws Exception {
+        signIn();
+        HttpResponse<String> page = browser.get("/properties");
+        Document document = Jsoup.parse(page.body());
+        assertEquals("1800", document.select("#timeout-dialog").attr("data-timeout-seconds"), "a real session's own time-out reaches the page");
+        String token = document.select("#timeout-dialog form input[name=_csrf]").attr("value");
+        long before = lastAccessed();
+        Thread.sleep(20);
+
+        HttpResponse<String> alive = browser.post("/session/keep-alive", Map.of("_csrf", token));
+
+        assertEquals(204, alive.statusCode(), "the session should be kept alive");
+        assertTrue(lastAccessed() > before, "the idle timer should restart");
+        expireSession();
+
+        HttpResponse<String> ended = browser.post("/session/keep-alive", Map.of("_csrf", token));
+
+        assertEquals(401, ended.statusCode(), "a stale token on an ended session is a 401");
+        assertEquals("", ended.body(), "no body");
+        assertNull(location(ended), "no redirect");
+        assertNull(ended.headers().firstValue("HX-Redirect").orElse(null), "no HX-Redirect");
     }
 
     @Test
@@ -227,6 +251,15 @@ class ExpiredSessionIT {
         HttpResponse<String> signedIn = browser.post("/sign-in", Map.of("_csrf", CookieJarClient.csrfToken(form), "email", "jo@example.com", "password", SECRET));
         assertEquals(303, signedIn.statusCode(), "the Visitor should be signed in");
         return signedIn;
+    }
+
+    private long lastAccessed() {
+        String id = new String(Base64.getDecoder().decode(browser.cookie("SESSION")), StandardCharsets.UTF_8);
+        try (RedisConnection connection = redis.getConnection()) {
+            byte[] raw = connection.hashCommands().hGet(("sunrise:web:sessions:sessions:" + id).getBytes(StandardCharsets.UTF_8),
+                    "lastAccessedTime".getBytes(StandardCharsets.UTF_8));
+            return Long.parseLong(new String(raw, StandardCharsets.UTF_8));
+        }
     }
 
     private void expireSession() {
