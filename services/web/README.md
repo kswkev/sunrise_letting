@@ -16,7 +16,7 @@ Run from the repo root (use `./mvnw` on Linux or macOS):
 mvnw.cmd verify -pl services/web -am
 ```
 
-This compiles the service and runs its unit and integration tests. The integration tests need Docker running, because they start Redis with Testcontainers. `mvnw.cmd test` runs only the unit and page tests and doesn't need Docker.
+This compiles the service and runs its unit and integration tests. The integration tests need Docker running, because they start Redis and, for the real-browser tests of our own JavaScript (`*IT`, Chrome only), a browser with Testcontainers. `mvnw.cmd test` runs only the unit and page tests and doesn't need Docker.
 
 ## Deploy locally
 
