@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <!--/* Shared page skeleton (design-system.md 3.1). A page uses it with:
-       <html th:replace="~{layout :: layout(~{::title}, ~{::main/content()})}">
-     passing its own <title> and the children of its <main>. */-->
-<html lang="en-GB" th:fragment="layout(title, content)" xmlns:th="http://www.thymeleaf.org">
+       <html th:replace="~{layout :: layout(~{::title}, ~{::main/content()}, ~{}, 'properties')}">
+     The arguments are the page's <title> (with its own "Error: " prefix when it shows errors), the
+     children of its <main>, its own deferred <script src> elements from static/ (~{::script}, or
+     ~{} for none, design-system.md 5.7), and the header's current section (see fragments/header). */-->
+<html lang="en-GB" th:fragment="layout(title, content, scripts, section)" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title th:replace="${title}">Sunrise Letting</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"[45]..","swap":true,"error":true}]}'>
+    <link rel="stylesheet" href="/css/site.css">
     <script src="/webjars/htmx.org/dist/htmx.min.js" defer></script>
+    <th:block th:replace="${scripts}"></th:block>
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to main content</a>
-<header class="site-header">
-    <a th:href="@{/}">Sunrise Letting</a>
-</header>
-<main id="main-content" tabindex="-1" th:insert="${content}"></main>
+<header th:replace="~{fragments/header :: header(${section})}"></header>
+<main id="main-content" class="container" tabindex="-1" th:insert="${content}"></main>
 <footer class="site-footer">
-    <p>© Sunrise Letting</p>
+    <p class="container">© Sunrise Letting</p>
 </footer>
+<!--/* The time-out dialog (design-system.md 4.20) goes here, after the footer, when #2 builds it. */-->
 </body>
 </html>
