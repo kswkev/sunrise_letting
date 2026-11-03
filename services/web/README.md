@@ -6,7 +6,7 @@ The Sunrise Letting website. This service owns all pages, for both the public Vi
 
 It has no domain data store and holds no domain logic. Anything beyond rendering belongs in a domain service, which this service calls through its API.
 
-HTTP sessions are kept in Redis, so the service can run as several replicas without sticky sessions. Redis here is session infrastructure only: it holds no domain data and no other service uses it.
+HTTP sessions are kept in Redis, so the service can run as several replicas without sticky sessions. Redis here is session infrastructure only: it holds no domain data and no other service uses it. Besides sessions it holds a short-lived gate (a hash of the remember-me series, no token) that lets only one request at a time exchange a remember-me cookie, across replicas. Remember-me tokens themselves live in identity; `web` only carries them in a cookie.
 
 ## Build
 

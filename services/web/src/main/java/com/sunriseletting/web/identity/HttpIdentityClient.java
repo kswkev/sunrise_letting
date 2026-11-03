@@ -1,5 +1,6 @@
 package com.sunriseletting.web.identity;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -124,6 +125,75 @@ class HttpIdentityClient implements IdentityClient {
         }
     }
 
+    @Override
+    public RememberMeTokenResult issueRememberMeToken(String accountId) {
+        try {
+            return restClient.post()
+                    .uri("/api/remember-me-tokens")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new IssueTokenBody(accountId))
+                    .exchange((request, response) -> {
+                        int status = response.getStatusCode().value();
+                        if (status == HttpStatus.CREATED.value()) {
+                            IssuedAnswer answer = response.bodyTo(IssuedAnswer.class);
+                            if (answer == null || answer.series() == null || answer.token() == null || answer.expiresAt() == null) {
+                                return RememberMeTokenResult.unavailable();
+                            }
+                            return new RememberMeTokenResult.Issued(answer.series(), answer.token(), answer.expiresAt());
+                        }
+                        if (status == HttpStatus.UNPROCESSABLE_CONTENT.value()) {
+                            return RememberMeTokenResult.notAllowed();
+                        }
+                        return unexpectedStatus(status, RememberMeTokenResult.unavailable());
+                    });
+        } catch (RestClientException | HttpMessageConversionException e) {
+            log.warn("Identity issue remember-me token failed: {}", e.getClass().getSimpleName());
+            return RememberMeTokenResult.unavailable();
+        }
+    }
+
+    @Override
+    public RememberMeVerifyResult verifyRememberMeToken(String series, String token) {
+        try {
+            return restClient.post()
+                    .uri("/api/remember-me-tokens/verify")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new VerifyTokenBody(series, token))
+                    .exchange((request, response) -> {
+                        int status = response.getStatusCode().value();
+                        if (status == HttpStatus.OK.value()) {
+                            VerifiedAnswer answer = response.bodyTo(VerifiedAnswer.class);
+                            if (answer == null || answer.accountId() == null || !isKnownRole(answer.role())
+                                    || answer.token() == null || answer.expiresAt() == null) {
+                                return RememberMeVerifyResult.unavailable();
+                            }
+                            return new RememberMeVerifyResult.Verified(answer.accountId(), AccountRole.valueOf(answer.role()), answer.token(), answer.expiresAt());
+                        }
+                        if (status == HttpStatus.UNAUTHORIZED.value()) {
+                            return RememberMeVerifyResult.invalid();
+                        }
+                        return unexpectedStatus(status, RememberMeVerifyResult.unavailable());
+                    });
+        } catch (RestClientException | HttpMessageConversionException e) {
+            log.warn("Identity verify remember-me token failed: {}", e.getClass().getSimpleName());
+            return RememberMeVerifyResult.unavailable();
+        }
+    }
+
+    @Override
+    public void revokeRememberMeToken(String series) {
+        try {
+            restClient.delete()
+                    .uri("/api/remember-me-tokens/{series}", series)
+                    .exchange((request, response) -> {
+                        int status = response.getStatusCode().value();
+                        return status == HttpStatus.NO_CONTENT.value() ? status : unexpectedStatus(status, status);
+                    });
+        } catch (RestClientException e) {
+            log.warn("Identity revoke remember-me token failed: {}", e.getClass().getSimpleName());
+        }
+    }
+
     private static AuthenticationResult signedIn(CreatedAnswer answer) {
         if (answer == null || answer.accountId() == null || !isKnownRole(answer.role())) {
             return AuthenticationResult.unavailable();
@@ -154,6 +224,33 @@ class HttpIdentityClient implements IdentityClient {
         @Override
         public String toString() {
             return "AuthenticationBody[redacted]";
+        }
+    }
+
+    private record IssueTokenBody(String accountId) {
+    }
+
+    private record VerifyTokenBody(String series, String token) {
+
+        @Override
+        public String toString() {
+            return "VerifyTokenBody[redacted]";
+        }
+    }
+
+    private record IssuedAnswer(String series, String token, Instant expiresAt) {
+
+        @Override
+        public String toString() {
+            return "IssuedAnswer[redacted]";
+        }
+    }
+
+    private record VerifiedAnswer(String accountId, String role, String token, Instant expiresAt) {
+
+        @Override
+        public String toString() {
+            return "VerifiedAnswer[redacted]";
         }
     }
 

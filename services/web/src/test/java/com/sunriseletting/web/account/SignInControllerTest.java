@@ -15,9 +15,11 @@ import java.util.Map;
 import com.sunriseletting.web.identity.AuthenticationResult;
 import com.sunriseletting.web.identity.IdentityClient;
 import com.sunriseletting.web.security.AccountRole;
+import com.sunriseletting.web.security.RememberMeLogin;
 import com.sunriseletting.web.security.SecurityConfiguration;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.testsupport.Html;
+import com.sunriseletting.web.testsupport.RecordingExchangeGate;
 import jakarta.servlet.http.HttpSession;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -39,7 +41,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester.MockMvcRequest
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @WebMvcTest(SignInController.class)
-@Import({ SecurityConfiguration.class, SignInExpiredFormResponder.class })
+@Import({ SecurityConfiguration.class, SignInExpiredFormResponder.class, RememberMeLogin.class, RecordingExchangeGate.class })
 class SignInControllerTest {
 
     private static final String SECRET = "Sup3r-Secret-Pa55!";

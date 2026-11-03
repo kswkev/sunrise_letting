@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.sunriseletting.web.identity.AuthenticationResult;
 import com.sunriseletting.web.identity.IdentityClient;
+import com.sunriseletting.web.security.RememberMeLogin;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.security.SignInDestinations;
 import com.sunriseletting.web.security.SignInService;
@@ -34,11 +35,14 @@ public class SignInController {
 
     private final SignInService signInService;
 
+    private final RememberMeLogin rememberMeLogin;
+
     private final MessageSource messages;
 
-    SignInController(IdentityClient identityClient, SignInService signInService, MessageSource messages) {
+    SignInController(IdentityClient identityClient, SignInService signInService, RememberMeLogin rememberMeLogin, MessageSource messages) {
         this.identityClient = identityClient;
         this.signInService = signInService;
+        this.rememberMeLogin = rememberMeLogin;
         this.messages = messages;
     }
 
@@ -65,6 +69,9 @@ public class SignInController {
         AuthenticationResult result = identityClient.authenticate(email, password);
         if (result instanceof AuthenticationResult.SignedIn signedIn) {
             signInService.signIn(signedIn.accountId(), signedIn.role(), request, response);
+            if (values.rememberMe()) {
+                rememberMeLogin.remember(new SessionPrincipal(signedIn.accountId(), signedIn.role()), request, response);
+            }
             return new ModelAndView(redirect(SignInDestinations.forVisitor(returnTo), HttpStatus.SEE_OTHER));
         }
         if (result instanceof AuthenticationResult.FieldErrors failed) {

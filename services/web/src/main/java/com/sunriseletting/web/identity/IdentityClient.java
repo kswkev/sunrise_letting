@@ -14,4 +14,13 @@ public interface IdentityClient {
 
     /** Checks an email and password. Both go to identity exactly as typed. */
     AuthenticationResult authenticate(String email, String password);
+
+    /** Asks identity for a remember-me token for an account. */
+    RememberMeTokenResult issueRememberMeToken(String accountId);
+
+    /** Exchanges a remember-me token for a new one. Sending a token that was already replaced revokes all of the account's tokens. */
+    RememberMeVerifyResult verifyRememberMeToken(String series, String token);
+
+    /** Revokes one series. Nothing comes back: signing out carries on whatever happens here. */
+    void revokeRememberMeToken(String series);
 }

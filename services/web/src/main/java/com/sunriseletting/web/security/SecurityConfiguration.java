@@ -1,6 +1,7 @@
 package com.sunriseletting.web.security;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,7 +22,8 @@ public class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityContextRepository securityContextRepository,
-            ObjectProvider<ExpiredFormResponder> expiredFormResponders) {
+            ObjectProvider<ExpiredFormResponder> expiredFormResponders, ObjectProvider<RememberMeLogin> rememberMeLogin) {
+        rememberMeLogin.ifAvailable(login -> http.addFilterBefore(new RememberMeFilter(login), AnonymousAuthenticationFilter.class));
         return http
                 .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
@@ -33,6 +35,11 @@ public class SecurityConfiguration {
                 .logout(AbstractHttpConfigurer::disable)
                 .requestCache(AbstractHttpConfigurer::disable)
                 .build();
+    }
+
+    @Bean
+    SiteCookies siteCookies(@Value("${server.servlet.session.cookie.secure:true}") boolean secure) {
+        return new SiteCookies(secure);
     }
 
     @Bean
