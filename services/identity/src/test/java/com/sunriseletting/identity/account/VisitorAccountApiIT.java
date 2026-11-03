@@ -191,6 +191,16 @@ class VisitorAccountApiIT {
     }
 
     @Test
+    void phoneWithCharactersThatAreNotAllowedHasItsOwnCode() throws Exception {
+        HttpResponse<String> response = createAccount(validRequestWith("phone", "0113-496-0000"));
+
+        assertEquals(400, response.statusCode(), "a phone with hyphens should be rejected");
+        assertEquals("PHONE_INVALID_CHARACTERS", json.readTree(response.body()).get("errors").get("phone").asString(),
+                "the phone should have the code for characters that are not allowed");
+        assertEquals(0, accountCount(), "no account should be created");
+    }
+
+    @Test
     void valueOverItsMaximumLengthIsRejected() throws Exception {
         HttpResponse<String> response = createAccount(validRequestWith("firstName", "x".repeat(101)));
 

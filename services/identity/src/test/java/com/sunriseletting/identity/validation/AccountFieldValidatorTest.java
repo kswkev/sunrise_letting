@@ -48,14 +48,16 @@ class AccountFieldValidatorTest {
 
                 Arguments.of(AccountField.PHONE, null, AccountFieldError.PHONE_REQUIRED),
                 Arguments.of(AccountField.PHONE, "   ", AccountFieldError.PHONE_REQUIRED),
-                Arguments.of(AccountField.PHONE, "0113-496-0000", AccountFieldError.PHONE_INVALID),
-                Arguments.of(AccountField.PHONE, "(0113) 496 0000", AccountFieldError.PHONE_INVALID),
-                Arguments.of(AccountField.PHONE, "07700.900123", AccountFieldError.PHONE_INVALID),
-                Arguments.of(AccountField.PHONE, "44+7700900123", AccountFieldError.PHONE_INVALID),
-                Arguments.of(AccountField.PHONE, "++447700900123", AccountFieldError.PHONE_INVALID),
+                Arguments.of(AccountField.PHONE, "0113-496-0000", AccountFieldError.PHONE_INVALID_CHARACTERS),
+                Arguments.of(AccountField.PHONE, "(0113) 496 0000", AccountFieldError.PHONE_INVALID_CHARACTERS),
+                Arguments.of(AccountField.PHONE, "07700.900123", AccountFieldError.PHONE_INVALID_CHARACTERS),
+                Arguments.of(AccountField.PHONE, "44+7700900123", AccountFieldError.PHONE_INVALID_CHARACTERS),
+                Arguments.of(AccountField.PHONE, "++447700900123", AccountFieldError.PHONE_INVALID_CHARACTERS),
                 Arguments.of(AccountField.PHONE, "+1 202 555 0100", AccountFieldError.PHONE_INVALID),
                 Arguments.of(AccountField.PHONE, "07700 90012", AccountFieldError.PHONE_INVALID),
-                Arguments.of(AccountField.PHONE, "seven", AccountFieldError.PHONE_INVALID),
+                Arguments.of(AccountField.PHONE, "+", AccountFieldError.PHONE_INVALID),
+                Arguments.of(AccountField.PHONE, " 0113-496-0000 ", AccountFieldError.PHONE_INVALID_CHARACTERS),
+                Arguments.of(AccountField.PHONE, "seven", AccountFieldError.PHONE_INVALID_CHARACTERS),
 
                 Arguments.of(AccountField.PASSWORD, null, AccountFieldError.PASSWORD_REQUIRED),
                 Arguments.of(AccountField.PASSWORD, "Aa1!", AccountFieldError.PASSWORD_TOO_SHORT));
@@ -157,7 +159,7 @@ class AccountFieldValidatorTest {
                 AccountField.FIRST_NAME, AccountFieldError.FIRST_NAME_REQUIRED,
                 AccountField.SURNAME, AccountFieldError.SURNAME_TOO_LONG,
                 AccountField.EMAIL, AccountFieldError.EMAIL_INVALID,
-                AccountField.PHONE, AccountFieldError.PHONE_INVALID,
+                AccountField.PHONE, AccountFieldError.PHONE_INVALID_CHARACTERS,
                 AccountField.PASSWORD, AccountFieldError.PASSWORD_TOO_SHORT,
                 AccountField.CONFIRM_PASSWORD, AccountFieldError.PASSWORDS_DO_NOT_MATCH),
                 validator.validateAll(details), "every failing field should have its own code");

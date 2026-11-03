@@ -53,7 +53,8 @@ class AccountValidationControllerTest {
     @CsvSource({
             "title,      Sir,                        TITLE_INVALID",
             "email,      not-an-email,               EMAIL_INVALID",
-            "phone,      0113-496-0000,              PHONE_INVALID",
+            "phone,      0113-496-0000,              PHONE_INVALID_CHARACTERS",
+            "phone,      +1 202 555 0100,            PHONE_INVALID",
             "password,   short,                      PASSWORD_TOO_SHORT",
     })
     void invalidValueGivesItsCode(String field, String value, String code) {

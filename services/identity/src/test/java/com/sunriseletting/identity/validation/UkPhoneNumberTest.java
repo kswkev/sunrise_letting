@@ -1,6 +1,8 @@
 package com.sunriseletting.identity.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
@@ -50,5 +52,18 @@ class UkPhoneNumberTest {
     })
     void anythingElseIsNotAValidNumber(String input) {
         assertEquals(Optional.empty(), UkPhoneNumber.toE164(input), "'" + input + "' should not be a valid UK number");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"07700 900123", "+44 7700 900123", " 0113 496 0000 ", "+1 202 555 0100", "123", "+"})
+    void digitsSpacesAndALeadingPlusAreAllowedCharacters(String input) {
+        assertTrue(UkPhoneNumber.hasOnlyAllowedCharacters(input), "'" + input + "' should have only allowed characters");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0113-496-0000", "(0113) 496 0000", "07700.900123", "44+7700900123", "++447700900123",
+            "phone", "0770O 900123", "07700\t900123"})
+    void anythingElseIsNotAnAllowedCharacter(String input) {
+        assertFalse(UkPhoneNumber.hasOnlyAllowedCharacters(input), "'" + input + "' should have a character that is not allowed");
     }
 }

@@ -107,6 +107,9 @@ public class AccountFieldValidator {
         if (isBlank(value)) {
             return Optional.of(AccountFieldError.PHONE_REQUIRED);
         }
+        if (!UkPhoneNumber.hasOnlyAllowedCharacters(value)) {
+            return Optional.of(AccountFieldError.PHONE_INVALID_CHARACTERS);
+        }
         return UkPhoneNumber.toE164(value).isPresent() ? Optional.empty() : Optional.of(AccountFieldError.PHONE_INVALID);
     }
 

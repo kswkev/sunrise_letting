@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  */
 public final class UkPhoneNumber {
 
-    private static final Pattern ALLOWED_CHARACTERS = Pattern.compile("\\+?[0-9 ]+");
+    private static final Pattern ALLOWED_CHARACTERS = Pattern.compile("\\+?[0-9 ]*");
 
     /**
      * After the 0 or +44: mobiles are 07 (except 070 personal numbers and 076 pagers, but including 07624),
@@ -21,15 +21,16 @@ public final class UkPhoneNumber {
     private UkPhoneNumber() {
     }
 
+    /** Whether the value, after trimming, has only digits, spaces and an optional leading +. */
+    public static boolean hasOnlyAllowedCharacters(String input) {
+        return input != null && ALLOWED_CHARACTERS.matcher(input.strip()).matches();
+    }
+
     public static Optional<String> toE164(String input) {
-        if (input == null) {
+        if (!hasOnlyAllowedCharacters(input)) {
             return Optional.empty();
         }
-        String stripped = input.strip();
-        if (!ALLOWED_CHARACTERS.matcher(stripped).matches()) {
-            return Optional.empty();
-        }
-        Matcher number = UK_NUMBER.matcher(stripped.replace(" ", ""));
+        Matcher number = UK_NUMBER.matcher(input.strip().replace(" ", ""));
         return number.matches() ? Optional.of("+44" + number.group(1)) : Optional.empty();
     }
 }
