@@ -27,6 +27,11 @@ There is one Maven wrapper, at the root. Run commands from the root (use `mvnw.c
 ./mvnw spring-boot:run -pl services/properties                 # run one service locally
 ```
 
+Each module must have a `README.md` at its root (e.g. `services/properties/README.md`), which details:
+- the purpose of the module
+- the build command used to build it
+- the steps to deploy it in a developer's local environment
+
 ## Development approach
 
 The team works in an agile way: each issue is a small, independently deliverable user story, and only what the issue asks for gets built.
