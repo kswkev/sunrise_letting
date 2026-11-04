@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -280,6 +281,16 @@ class HttpIdentityClientTest {
                         .body("{\"errors\":{\"email\":\"EMAIL_INVALID\"}}"));
 
         assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "the sign-in page has no copy for any other code");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"errors\":{\"email\":null}}", "{\"errors\":{\"email\":\"EMAIL_REQUIRED\",\"password\":null}}" })
+    void authenticateIsUnavailableForANullFieldCode(String body) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(body));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "a field with no code is outside the contract");
+        server.verify();
     }
 
     @Test
