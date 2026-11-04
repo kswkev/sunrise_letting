@@ -119,9 +119,13 @@ public class RememberMeLogin implements SignOutListener {
         return matcher.matches() ? matcher : null;
     }
 
-    /** Using a token doesn't extend its life, so the cookie lasts as long as identity says, never a fresh 30 days. */
+    /**
+     * Using a token doesn't extend its life, so the cookie lasts as long as identity says, never a fresh 30 days.
+     * Never below zero, because a negative lifetime leaves out Max-Age, which makes it a cookie that lasts until the browser closes.
+     */
     private void writeCookie(HttpServletResponse response, String series, String token, Instant expiresAt) {
-        cookies.add(response, COOKIE, series + "." + token, Duration.between(Instant.now(), expiresAt));
+        Duration remaining = Duration.between(Instant.now(), expiresAt);
+        cookies.add(response, COOKIE, series + "." + token, remaining.isNegative() ? Duration.ZERO : remaining);
     }
 
     /** The session lives as long as the login, so a form left open isn't lost to an idle time-out, and is flagged to skip the warning. */

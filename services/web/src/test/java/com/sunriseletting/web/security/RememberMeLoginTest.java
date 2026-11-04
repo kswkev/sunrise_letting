@@ -206,6 +206,17 @@ class RememberMeLoginTest {
         verify(identityClient, description("the cookie should be verified")).verifyRememberMeToken(SERIES, TOKEN);
     }
 
+    @Test
+    void anExpiresAtInThePastGivesTheCookieAMaxAgeOfZero() {
+        when(identityClient.verifyRememberMeToken(SERIES, TOKEN))
+                .thenReturn(new RememberMeVerifyResult.Verified("account-1", AccountRole.VISITOR, NEW_TOKEN, Instant.now().minus(Duration.ofMinutes(5))));
+
+        MvcTestResult result = page().exchange();
+
+        assertThat(setCookie(result)).as("a login that has ended must not leave a cookie that lasts until the browser closes").contains("Max-Age=0;");
+        verify(identityClient, description("the cookie should be verified")).verifyRememberMeToken(SERIES, TOKEN);
+    }
+
     // Signing in over a session left by an earlier remembered login
 
     @Test
