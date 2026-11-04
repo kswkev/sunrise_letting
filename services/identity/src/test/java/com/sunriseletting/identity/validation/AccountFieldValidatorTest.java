@@ -105,9 +105,79 @@ class AccountFieldValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "   "})
-    void singleFieldCheckOfOtherTitleOnlyChecksLength(String value) {
+    void singleFieldCheckOfOtherTitleDoesNotRequireIt(String value) {
         assertEquals(Optional.empty(), validator.validate(AccountField.TITLE_OTHER, value, null),
-                "whether Other title is needed depends on Title, so its own check should only be for length");
+                "whether Other title is needed depends on Title, so its own check should not require it");
+    }
+
+    static Stream<Arguments> controlCharacters() {
+        return Stream.of(
+                Arguments.of(AccountField.EMAIL, "NUL in the local part", "jo\u0000@example.com", AccountFieldError.EMAIL_INVALID),
+                Arguments.of(AccountField.EMAIL, "NUL in the domain", "jo@exam\u0000ple.com", AccountFieldError.EMAIL_INVALID),
+                Arguments.of(AccountField.EMAIL, "NUL at the end", "jo@example.com\u0000", AccountFieldError.EMAIL_INVALID),
+                Arguments.of(AccountField.EMAIL, "U+0001", "j\u0001o@example.com", AccountFieldError.EMAIL_INVALID),
+                Arguments.of(AccountField.EMAIL, "DEL", "j\u007Fo@example.com", AccountFieldError.EMAIL_INVALID),
+                Arguments.of(AccountField.EMAIL, "U+009F", "j\u009Fo@example.com", AccountFieldError.EMAIL_INVALID),
+
+                Arguments.of(AccountField.FIRST_NAME, "NUL", "J\u0000o", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.FIRST_NAME, "only NUL", "\u0000", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.FIRST_NAME, "NUL at the end", "Jo\u0000", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.FIRST_NAME, "U+0001", "J\u0001o", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.FIRST_NAME, "new line inside", "J\no", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.FIRST_NAME, "tab inside", "J\to", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.FIRST_NAME, "DEL", "J\u007Fo", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.FIRST_NAME, "U+009F", "J\u009Fo", AccountFieldError.FIRST_NAME_INVALID_CHARACTERS),
+
+                Arguments.of(AccountField.SURNAME, "NUL", "Smi\u0000th", AccountFieldError.SURNAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.SURNAME, "only NUL", "\u0000", AccountFieldError.SURNAME_INVALID_CHARACTERS),
+                Arguments.of(AccountField.SURNAME, "U+0001", "Smi\u0001th", AccountFieldError.SURNAME_INVALID_CHARACTERS),
+
+                Arguments.of(AccountField.TITLE_OTHER, "NUL", "R\u0000ev", AccountFieldError.TITLE_OTHER_INVALID_CHARACTERS),
+                Arguments.of(AccountField.TITLE_OTHER, "only NUL", "\u0000", AccountFieldError.TITLE_OTHER_INVALID_CHARACTERS),
+                Arguments.of(AccountField.TITLE_OTHER, "U+0001", "R\u0001ev", AccountFieldError.TITLE_OTHER_INVALID_CHARACTERS));
+    }
+
+    @ParameterizedTest(name = "{0}: {1}")
+    @MethodSource("controlCharacters")
+    void singleFieldRejectsControlCharacters(AccountField field, String description, String value, AccountFieldError expected) {
+        assertEquals(Optional.of(expected), validator.validate(field, value, null),
+                field + " with " + description + " should give " + expected);
+    }
+
+    @ParameterizedTest(name = "{0}: {1}")
+    @MethodSource("controlCharacters")
+    void fullValidationRejectsControlCharacters(AccountField field, String description, String value, AccountFieldError expected) {
+        AccountDetails details = switch (field) {
+            case EMAIL -> new AccountDetails("Mr", null, "Jo", "Smith", value, "07700 900123", VALID_PASSWORD, VALID_PASSWORD);
+            case FIRST_NAME -> new AccountDetails("Mr", null, value, "Smith", "jo@example.com", "07700 900123", VALID_PASSWORD, VALID_PASSWORD);
+            case SURNAME -> new AccountDetails("Mr", null, "Jo", value, "jo@example.com", "07700 900123", VALID_PASSWORD, VALID_PASSWORD);
+            case TITLE_OTHER -> details("Other", value);
+            default -> throw new IllegalArgumentException("no control character cases for " + field);
+        };
+
+        assertEquals(Map.of(field, expected), validator.validateAll(details),
+                field + " with " + description + " should give " + expected + " and nothing else");
+    }
+
+    static Stream<Arguments> controlCharactersThatTrimmingRemoves() {
+        return Stream.of(
+                Arguments.of(AccountField.EMAIL, "jo@example.com\n"),
+                Arguments.of(AccountField.FIRST_NAME, "\tJo\n"),
+                Arguments.of(AccountField.SURNAME, "Smith\r\n"),
+                Arguments.of(AccountField.TITLE_OTHER, "\tRev\n"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("controlCharactersThatTrimmingRemoves")
+    void whitespaceControlCharactersAroundAValueAreTrimmedNotRejected(AccountField field, String value) {
+        assertEquals(Optional.empty(), validator.validate(field, value, null),
+                field + " should be trimmed before it is checked, so what is stored has no control characters");
+    }
+
+    @Test
+    void fullValidationIgnoresControlCharactersInOtherTitleWhenTitleIsNotOther() {
+        assertEquals(Map.of(), validator.validateAll(details("Mr", "R\u0000ev")),
+                "Other title is not stored when Title is not Other, so it should not be checked");
     }
 
     @Test

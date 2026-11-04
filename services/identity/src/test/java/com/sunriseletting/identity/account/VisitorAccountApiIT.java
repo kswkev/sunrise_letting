@@ -210,6 +210,37 @@ class VisitorAccountApiIT {
         assertEquals(0, accountCount(), "no account should be created");
     }
 
+    static Stream<Arguments> fieldsHoldingNul() {
+        return Stream.of(
+                Arguments.of("email", "jo\u0000@example.com", "EMAIL_INVALID"),
+                Arguments.of("firstName", "J\u0000o", "FIRST_NAME_INVALID_CHARACTERS"),
+                Arguments.of("surname", "Smi\u0000th", "SURNAME_INVALID_CHARACTERS"),
+                Arguments.of("titleOther", "R\u0000ev", "TITLE_OTHER_INVALID_CHARACTERS"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("fieldsHoldingNul")
+    void nulInAFieldGivesItsCodeAndCreatesNoAccount(String field, String value, String code) throws Exception {
+        Map<String, String> request = validRequestWith("title", "Other");
+        request.put("titleOther", "Rev");
+        request.put(field, value);
+
+        HttpResponse<String> response = createAccount(request);
+
+        assertEquals(400, response.statusCode(), "NUL in " + field + " should be a field error, not reach PostgreSQL");
+        assertEquals(code, json.readTree(response.body()).get("errors").get(field).asString(), field + " should have its code");
+        assertEquals(0, accountCount(), "no account should be created");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("fieldsHoldingNul")
+    void nulInAFieldGivesItsCodeFromTheInlineCheck(String field, String value, String code) throws Exception {
+        HttpResponse<String> response = post("/api/account-validation/" + field, Map.of("value", value));
+
+        assertEquals(200, response.statusCode(), "the inline check should succeed");
+        assertEquals("{\"error\":\"" + code + "\"}", response.body(), "NUL in " + field + " should give its code");
+    }
+
     @Test
     void duplicateEmailAlongsideAnInvalidFieldGivesValidationErrorsOnly() throws Exception {
         createAccount(validRequest());
