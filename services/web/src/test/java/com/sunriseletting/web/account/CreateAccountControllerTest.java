@@ -254,10 +254,13 @@ class CreateAccountControllerTest {
             title           | TITLE_INVALID                    | title            | Select your title
             titleOther      | TITLE_OTHER_REQUIRED             | title-other      | Enter your title
             titleOther      | TITLE_OTHER_TOO_LONG             | title-other      | Title must be 20 characters or fewer
+            titleOther      | TITLE_OTHER_INVALID_CHARACTERS   | title-other      | Title contains characters that can't be used
             firstName       | FIRST_NAME_REQUIRED              | first-name       | Enter your first name
             firstName       | FIRST_NAME_TOO_LONG              | first-name       | First name must be 100 characters or fewer
+            firstName       | FIRST_NAME_INVALID_CHARACTERS    | first-name       | First name contains characters that can't be used
             surname         | SURNAME_REQUIRED                 | surname          | Enter your surname
             surname         | SURNAME_TOO_LONG                 | surname          | Surname must be 100 characters or fewer
+            surname         | SURNAME_INVALID_CHARACTERS       | surname          | Surname contains characters that can't be used
             email           | EMAIL_REQUIRED                   | email            | Enter your email address
             email           | EMAIL_TOO_LONG                   | email            | Email address must be 254 characters or fewer
             email           | EMAIL_INVALID                    | email            | Enter an email address in the correct format, like name@example.com

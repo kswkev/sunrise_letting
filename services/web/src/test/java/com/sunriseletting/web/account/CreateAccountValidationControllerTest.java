@@ -96,6 +96,9 @@ class CreateAccountValidationControllerTest {
             surname,     surname,    SURNAME,     SURNAME_TOO_LONG,         Surname must be 100 characters or fewer
             email,       email,      EMAIL,       EMAIL_INVALID,            'Enter an email address in the correct format, like name@example.com'
             phone,       phone,      PHONE,       PHONE_INVALID_CHARACTERS, 'Phone number can only include numbers, spaces and a + at the start'
+            title-other, titleOther, TITLE_OTHER, TITLE_OTHER_INVALID_CHARACTERS, Title contains characters that can't be used
+            first-name,  firstName,  FIRST_NAME,  FIRST_NAME_INVALID_CHARACTERS,  First name contains characters that can't be used
+            surname,     surname,    SURNAME,     SURNAME_INVALID_CHARACTERS,     Surname contains characters that can't be used
             """)
     void eachFieldMapsToIdentitysNameAndTheMessage(String urlField, String parameter, AccountField field, String code, String message) {
         when(identityClient.validateField(field, "bad value")).thenReturn(new FieldValidationResult.Invalid(code));
