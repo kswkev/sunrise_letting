@@ -17,6 +17,14 @@ All requests and responses are JSON. Field names are `title`, `titleOther`, `fir
 
 Email, first name, surname and other title can't contain control characters once trimmed, because PostgreSQL text can't hold NUL. The email gets `EMAIL_INVALID`; the others get `FIRST_NAME_INVALID_CHARACTERS`, `SURNAME_INVALID_CHARACTERS` and `TITLE_OTHER_INVALID_CHARACTERS`.
 
+A phone number can start with `0` or `+44` and must be in one of these ranges:
+
+- mobiles: `07`, except `070` personal numbers and `076` pagers, but including `07624`
+- landlines: `01` and `02`
+- UK-wide numbers: `03`
+
+Any other number gets `PHONE_INVALID`. That includes freephone `0800`, which is rejected on purpose.
+
 Request bodies are never logged, because they carry passwords. Passwords are stored only as BCrypt hashes, pre-hashed with SHA-256 so that the whole of a long password counts (see `PreHashingBCryptPasswordEncoder`). Anything that checks a password must use that encoder.
 
 ## Build

@@ -5,7 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Recognises UK mobile and landline numbers, written with a leading 0 or with +44, and normalises them to E.164.
+ * Recognises UK mobile, landline and 03 numbers, written with a leading 0 or with +44, and normalises them to E.164.
  */
 public final class UkPhoneNumber {
 
@@ -13,10 +13,11 @@ public final class UkPhoneNumber {
 
     /**
      * After the 0 or +44: mobiles are 07 (except 070 personal numbers and 076 pagers, but including 07624),
-     * landlines are 01 or 02. A few 01 numbers have one digit fewer than the rest.
+     * landlines are 01 or 02, plus the UK-wide 03 range. A few 01 numbers have one digit fewer than the rest.
+     * Freephone 0800 is rejected on purpose.
      */
     private static final Pattern UK_NUMBER =
-            Pattern.compile("(?:0|\\+44)(7[1-57-9][0-9]{8}|7624[0-9]{6}|1[0-9]{8,9}|2[0-9]{9})");
+            Pattern.compile("(?:0|\\+44)(7[1-57-9][0-9]{8}|7624[0-9]{6}|1[0-9]{8,9}|2[0-9]{9}|3[0-9]{9})");
 
     private UkPhoneNumber() {
     }
