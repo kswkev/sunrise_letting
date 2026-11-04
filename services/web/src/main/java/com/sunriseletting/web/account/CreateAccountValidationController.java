@@ -26,6 +26,8 @@ import org.springframework.web.servlet.view.RedirectView;
 @Controller
 public class CreateAccountValidationController {
 
+    private static final String OTHER_TITLE = "Other";
+
     private final IdentityClient identityClient;
 
     private final IdentityErrorMessages errorMessages;
@@ -46,7 +48,7 @@ public class CreateAccountValidationController {
         CreateAccountField field = CreateAccountField.withInputId(inputId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         String value = request.getParameter(field.apiName());
-        if (value == null || value.isBlank()) {
+        if (value == null || value.isBlank() || isIgnored(field, request)) {
             return render(field, null, request);
         }
         FieldValidationResult result = check(field, value, request);
@@ -58,6 +60,15 @@ public class CreateAccountValidationController {
         }
         response.setStatus(HttpStatus.NO_CONTENT.value());
         return null;
+    }
+
+    /** Other title only counts when Title is "Other": identity ignores it otherwise on submit, so no error should show. */
+    private boolean isIgnored(CreateAccountField field, HttpServletRequest request) {
+        if (field != CreateAccountField.TITLE_OTHER) {
+            return false;
+        }
+        String title = request.getParameter(CreateAccountField.TITLE.apiName());
+        return title == null || !OTHER_TITLE.equals(title.strip());
     }
 
     private FieldValidationResult check(CreateAccountField field, String value, HttpServletRequest request) {

@@ -2,6 +2,7 @@ package com.sunriseletting.web.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -39,6 +40,8 @@ class CreateAccountValidationControllerTest {
     private static final String SECRET = "Sup3r-Secret-Pa55!";
 
     private static final String OTHER_SECRET = "0ther-Secret-Pa55!";
+
+    private static final String TOO_LONG_FOR_OTHER_TITLE = "x".repeat(21);
 
     @Autowired
     private MockMvcTester mvc;
@@ -91,12 +94,10 @@ class CreateAccountValidationControllerTest {
     @ParameterizedTest
     @CsvSource(textBlock = """
             title,       title,      TITLE,       TITLE_INVALID,            Select your title
-            title-other, titleOther, TITLE_OTHER, TITLE_OTHER_TOO_LONG,     Title must be 20 characters or fewer
             first-name,  firstName,  FIRST_NAME,  FIRST_NAME_TOO_LONG,      First name must be 100 characters or fewer
             surname,     surname,    SURNAME,     SURNAME_TOO_LONG,         Surname must be 100 characters or fewer
             email,       email,      EMAIL,       EMAIL_INVALID,            'Enter an email address in the correct format, like name@example.com'
             phone,       phone,      PHONE,       PHONE_INVALID_CHARACTERS, 'Phone number can only include numbers, spaces and a + at the start'
-            title-other, titleOther, TITLE_OTHER, TITLE_OTHER_INVALID_CHARACTERS, Title contains characters that can't be used
             first-name,  firstName,  FIRST_NAME,  FIRST_NAME_INVALID_CHARACTERS,  First name contains characters that can't be used
             surname,     surname,    SURNAME,     SURNAME_INVALID_CHARACTERS,     Surname contains characters that can't be used
             """)
@@ -110,6 +111,47 @@ class CreateAccountValidationControllerTest {
         assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-" + urlField);
         assertThat(group.select("#" + urlField + "-error").text()).as("the spec's message should be there").isEqualTo("Error: " + message);
         verify(identityClient, description("identity should be asked about its own field name")).validateField(field, "bad value");
+    }
+
+    @ParameterizedTest
+    @CsvSource(textBlock = """
+            Other,   TITLE_OTHER_TOO_LONG,           Title must be 20 characters or fewer
+            Other,   TITLE_OTHER_INVALID_CHARACTERS, Title contains characters that can't be used
+            ' Other ', TITLE_OTHER_TOO_LONG,         Title must be 20 characters or fewer
+            """)
+    void otherTitleIsCheckedWhenTitleIsOther(String title, String code, String message) {
+        when(identityClient.validateField(AccountField.TITLE_OTHER, "bad value")).thenReturn(new FieldValidationResult.Invalid(code));
+
+        MvcTestResult result = validate("title-other").param("title", title).param("titleOther", "bad value").with(csrf()).exchange();
+
+        assertThat(result).as("an invalid value should still be 200").hasStatusOk();
+        Element group = Html.fragment(result).body().child(0);
+        assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-title-other");
+        assertThat(group.select("#title-other-error").text()).as("the spec's message should be there").isEqualTo("Error: " + message);
+        verify(identityClient, description("identity should be asked about Other title")).validateField(AccountField.TITLE_OTHER, "bad value");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "Mr", "other", "" })
+    void otherTitleIsIgnoredWhenTitleIsNotOther(String title) {
+        MvcTestResult result = validate("title-other").param("title", title).param("titleOther", TOO_LONG_FOR_OTHER_TITLE).with(csrf()).exchange();
+
+        assertThat(result).as("an ignored value should be 200").hasStatusOk();
+        Element group = Html.fragment(result).body().child(0);
+        assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-title-other");
+        assertThat(group.hasClass("form-group--error")).as("no error unless Title is Other").isFalse();
+        assertThat(group.select(".error-message")).as("no message unless Title is Other").isEmpty();
+        assertThat(group.selectFirst("input").attr("value")).as("what was typed should be kept").isEqualTo(TOO_LONG_FOR_OTHER_TITLE);
+        assertIdentityNotCalled("Other title is ignored on submit unless Title is Other, so it shouldn't be checked here");
+    }
+
+    @Test
+    void otherTitleIsIgnoredWhenNoTitleIsSent() {
+        MvcTestResult result = validate("title-other").param("titleOther", TOO_LONG_FOR_OTHER_TITLE).with(csrf()).exchange();
+
+        assertThat(result).as("an ignored value should be 200").hasStatusOk();
+        assertThat(Html.fragment(result).select(".error-message")).as("no message unless Title is Other").isEmpty();
+        assertIdentityNotCalled("no Title sent means it isn't Other, so Other title shouldn't be checked");
     }
 
     @ParameterizedTest
@@ -326,7 +368,7 @@ class CreateAccountValidationControllerTest {
     @ParameterizedTest
     @CsvSource(textBlock = """
             title,       title,      'title,_csrf'
-            title-other, titleOther, 'titleOther,_csrf'
+            title-other, titleOther, 'title,titleOther,_csrf'
             first-name,  firstName,  'firstName,_csrf'
             surname,     surname,    'surname,_csrf'
             email,       email,      'email,_csrf'
@@ -339,7 +381,7 @@ class CreateAccountValidationControllerTest {
         assertThat(input.attr("hx-trigger")).as(id + " should be checked on blur").isEqualTo("blur");
         assertThat(input.attr("hx-target")).as(id + " should swap its whole group").isEqualTo("#field-" + id);
         assertThat(input.attr("hx-swap")).as(id + " should swap its whole group").isEqualTo("outerHTML");
-        assertThat(input.attr("hx-params")).as(id + " should send only its own value and the token").isEqualTo(params);
+        assertThat(input.attr("hx-params")).as(id + " should send only what its check needs and the token").isEqualTo(params);
     }
 
     @Test
@@ -369,6 +411,11 @@ class CreateAccountValidationControllerTest {
         MvcTestResult result = mvc.get().uri("/create-account").exchange();
         assertThat(result).as("the page should load").hasStatusOk();
         return Html.page(result);
+    }
+
+    /** Like verifyNoInteractions, which can't carry a message. */
+    private void assertIdentityNotCalled(String because) {
+        assertThat(mockingDetails(identityClient).getInvocations()).as(because).isEmpty();
     }
 
     private CsrfToken sessionToken(MockHttpSession session) {

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.description;
 import static org.mockito.Mockito.never;
@@ -39,6 +40,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class CreateAccountInlineValidationIT {
 
     private static final String SECRET = "Sup3r-Secret-Pa55!";
+
+    private static final String TOO_LONG_FOR_OTHER_TITLE = "x".repeat(21);
 
     @MockitoBean
     private IdentityClient identityClient;
@@ -99,6 +102,39 @@ class CreateAccountInlineValidationIT {
                 "hx-params should limit the request to the field and the token, so no password is sent");
         verify(identityClient, description("identity should check the email")).validateField(AccountField.EMAIL, "not-an-email");
         verify(identityClient, atLeastOnce().description("the other fields left should be checked too")).validateField(any(), anyString());
+    }
+
+    @Test
+    void leavingOtherTitleWithAnotherTitleChosenShowsNoError(Browser browser) {
+        browser.open("/create-account");
+        recordRequests(browser);
+        new Select(browser.find("#title")).selectByVisibleText("Mr");
+        browser.script("document.querySelector('#title-other').dataset.notSwappedYet = 'yes'");
+
+        browser.find("#title-other").sendKeys(TOO_LONG_FOR_OTHER_TITLE);
+        browser.sendKeys(Keys.TAB);
+        browser.waitUntil("the group to be swapped", () -> browser.find("#title-other").getDomAttribute("data-not-swapped-yet") == null);
+
+        assertTrue(browser.driver().findElements(By.id("title-other-error")).isEmpty(), "no error unless Title is Other");
+        assertEquals(List.of("_csrf", "title", "titleOther"), parametersOfLastRequest(browser),
+                "hx-params should send Title, which the check depends on, and no other value");
+        assertEquals(TOO_LONG_FOR_OTHER_TITLE, browser.find("#title-other").getDomProperty("value"), "what was typed should be kept");
+        verify(identityClient, never().description("Other title shouldn't be checked unless Title is Other"))
+                .validateField(eq(AccountField.TITLE_OTHER), anyString());
+    }
+
+    @Test
+    void leavingOtherTitleWithOtherChosenChecksIt(Browser browser) {
+        when(identityClient.validateField(AccountField.TITLE_OTHER, TOO_LONG_FOR_OTHER_TITLE)).thenReturn(new FieldValidationResult.Invalid("TITLE_OTHER_TOO_LONG"));
+        browser.open("/create-account");
+        new Select(browser.find("#title")).selectByVisibleText("Other");
+
+        browser.find("#title-other").sendKeys(TOO_LONG_FOR_OTHER_TITLE);
+        browser.sendKeys(Keys.TAB);
+        browser.waitUntil("the Other title error to be swapped in", () -> !browser.driver().findElements(By.id("title-other-error")).isEmpty());
+
+        assertTrue(browser.find("#title-other-error").getDomProperty("textContent").contains("Title must be 20 characters or fewer"), "the message should be shown");
+        verify(identityClient, description("identity should check Other title")).validateField(AccountField.TITLE_OTHER, TOO_LONG_FOR_OTHER_TITLE);
     }
 
     @Test
