@@ -53,7 +53,7 @@ public class CreateAccountValidationController {
         }
         FieldValidationResult result = check(field, value, request);
         if (result instanceof FieldValidationResult.Invalid invalid) {
-            return render(field, errorMessages.messageFor(invalid.code(), locale), request);
+            return render(field, errorMessages.messageFor(invalid.code(), locale).orElseThrow(), request);
         }
         if (result instanceof FieldValidationResult.Valid) {
             return render(field, null, request);

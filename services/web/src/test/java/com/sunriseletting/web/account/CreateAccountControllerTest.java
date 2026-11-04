@@ -417,6 +417,52 @@ class CreateAccountControllerTest {
         verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
     }
 
+    // POST: a response outside the contract
+
+    @Test
+    void unknownErrorCodeShowsTheServerErrorWith503() {
+        when(identityClient.createVisitor(any())).thenReturn(new CreateVisitorResult.ValidationFailed(Map.of("email", "SOMETHING_NEW")));
+
+        MvcTestResult result = submit(validForm()).with(csrf()).exchange();
+
+        assertServerError(result);
+        verify(identityClient, description("identity should check the form")).createVisitor(VALID_REQUEST);
+    }
+
+    @Test
+    void unknownErrorCodeAmongKnownOnesShowsOnlyTheServerError() {
+        when(identityClient.createVisitor(any())).thenReturn(
+                new CreateVisitorResult.ValidationFailed(Map.of("email", "SOMETHING_NEW", "phone", "PHONE_REQUIRED")));
+
+        MvcTestResult result = submit(validForm()).with(csrf()).exchange();
+
+        assertServerError(result);
+        verify(identityClient, description("identity should check the form")).createVisitor(VALID_REQUEST);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "SOMETHING_NEW", "visitor", "", "PROPERTY_MANAGER" })
+    void roleOtherThanVisitorShowsTheServerErrorAndSignsNobodyIn(String role) {
+        when(identityClient.createVisitor(any())).thenReturn(new CreateVisitorResult.Created("account-1", role));
+
+        MvcTestResult result = submit(validForm()).with(csrf()).exchange();
+
+        assertServerError(result);
+        verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
+    }
+
+    private void assertServerError(MvcTestResult result) {
+        assertThat(result).as("a response outside the contract should give 503").hasStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        Document page = Html.page(result);
+        assertThat(page.select(".error-summary p.error-summary__body").text()).as("the message should be the server error")
+                .isEqualTo("Sorry, we couldn't create your account. Try again later.");
+        assertThat(page.select(".error-summary ul")).as("the form-level summary has no list").isEmpty();
+        assertThat(page.select(".form-group--error")).as("no field should be marked as wrong").isEmpty();
+        assertThat(page.selectFirst("#first-name").attr("value")).as("values should be kept").isEqualTo("Jo");
+        assertThat(Html.body(result)).as("the response shouldn't contain the password").doesNotContain(SECRET);
+        assertNotSignedIn(result);
+    }
+
     // POST: form expired
 
     @Test

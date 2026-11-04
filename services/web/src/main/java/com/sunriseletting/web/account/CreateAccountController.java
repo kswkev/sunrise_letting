@@ -3,6 +3,7 @@ package com.sunriseletting.web.account;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import com.sunriseletting.web.identity.CreateVisitorResult;
 import com.sunriseletting.web.identity.IdentityClient;
@@ -14,6 +15,8 @@ import com.sunriseletting.web.security.SignInDestinations;
 import com.sunriseletting.web.security.SignInService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -30,6 +33,8 @@ import org.springframework.web.servlet.view.RedirectView;
 @Controller
 @RequestMapping("/create-account")
 public class CreateAccountController {
+
+    private static final Logger log = LoggerFactory.getLogger(CreateAccountController.class);
 
     private final IdentityClient identityClient;
 
@@ -60,16 +65,26 @@ public class CreateAccountController {
         }
         CreateVisitorResult result = identityClient.createVisitor(form.toRequest());
         if (result instanceof CreateVisitorResult.Created created) {
-            signInService.signIn(created.accountId(), AccountRole.valueOf(created.role()), request, response);
+            if (!AccountRole.VISITOR.name().equals(created.role())) {
+                log.warn("Identity created a Visitor account with an unexpected role: {}", created.role());
+                return unavailable(form, returnTo);
+            }
+            signInService.signIn(created.accountId(), AccountRole.VISITOR, request, response);
             return redirectAfterSignUp(returnTo, redirectAttributes);
         }
         if (result instanceof CreateVisitorResult.ValidationFailed failed) {
-            return new ModelAndView(CreateAccountPage.VIEW, CreateAccountPage.withFieldErrors(form, returnTo, messages(failed, locale)));
+            return messages(failed, locale)
+                    .map(messages -> new ModelAndView(CreateAccountPage.VIEW, CreateAccountPage.withFieldErrors(form, returnTo, messages)))
+                    .orElseGet(() -> unavailable(form, returnTo));
         }
         if (result instanceof CreateVisitorResult.NotCreated) {
             return new ModelAndView(CreateAccountPage.VIEW,
                     CreateAccountPage.withFormError(form, returnTo, CreateAccountPage.FORM_ERROR_DUPLICATE));
         }
+        return unavailable(form, returnTo);
+    }
+
+    private ModelAndView unavailable(CreateAccountForm form, String returnTo) {
         return new ModelAndView(CreateAccountPage.VIEW,
                 CreateAccountPage.withFormError(form, returnTo, CreateAccountPage.FORM_ERROR_UNAVAILABLE),
                 HttpStatus.SERVICE_UNAVAILABLE);
@@ -90,9 +105,16 @@ public class CreateAccountController {
         return new ModelAndView(redirect);
     }
 
-    private Map<String, String> messages(CreateVisitorResult.ValidationFailed failed, Locale locale) {
+    /** Each field's message, or empty if any code has no copy: an error the Visitor can't be told about can't be fixed by them. */
+    private Optional<Map<String, String>> messages(CreateVisitorResult.ValidationFailed failed, Locale locale) {
         Map<String, String> messages = new HashMap<>();
-        failed.errors().forEach((field, code) -> messages.put(field, errorMessages.messageFor(code, locale)));
-        return messages;
+        for (Map.Entry<String, String> error : failed.errors().entrySet()) {
+            Optional<String> message = errorMessages.messageFor(error.getValue(), locale);
+            if (message.isEmpty()) {
+                return Optional.empty();
+            }
+            messages.put(error.getKey(), message.get());
+        }
+        return Optional.of(messages);
     }
 }
