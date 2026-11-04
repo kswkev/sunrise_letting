@@ -3,9 +3,9 @@ package com.sunriseletting.web.account;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -192,7 +192,7 @@ class CreateAccountControllerTest {
 
         assertThat(result).as("a signed-in Visitor should be redirected").hasStatus(HttpStatus.FOUND);
         assertThat(result).as("a signed-in Visitor goes to the search page").hasRedirectedUrl("/properties");
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a signed-in Visitor shouldn't create an account");
     }
 
     @Test
@@ -201,7 +201,7 @@ class CreateAccountControllerTest {
 
         assertThat(result).as("a signed-in Visitor should be redirected, not shown the form").hasStatus(HttpStatus.FOUND);
         assertThat(result).as("a signed-in Visitor goes to the search page").hasRedirectedUrl("/properties");
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a signed-in Visitor with no token shouldn't create an account");
     }
 
     // POST: created
@@ -450,7 +450,7 @@ class CreateAccountControllerTest {
         assertThat(token).as("the re-shown form should have a CSRF token").isNotBlank().isNotEqualTo(submittedToken);
 
         assertThat(page.select("script[src=/js/password-toggle.js]")).as("the re-shown form should still load the password script").hasSize(1);
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an expired form shouldn't reach identity");
         assertNotSignedIn(result);
     }
 
@@ -506,6 +506,11 @@ class CreateAccountControllerTest {
     private Authentication visitor() {
         return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
+    }
+
+    /** Like verifyNoInteractions, which can't carry a message. */
+    private void assertIdentityNotCalled(String because) {
+        assertThat(mockingDetails(identityClient).getInvocations()).as(because).isEmpty();
     }
 
     private void assertSignedInAsVisitor(MvcTestResult result) {
