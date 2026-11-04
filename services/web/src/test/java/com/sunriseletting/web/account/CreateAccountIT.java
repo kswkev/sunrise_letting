@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.sunriseletting.web.TestcontainersConfiguration;
+import com.sunriseletting.web.identity.CreateVisitorRequest;
 import com.sunriseletting.web.identity.CreateVisitorResult;
 import com.sunriseletting.web.identity.IdentityClient;
 import org.jsoup.Jsoup;
@@ -46,6 +47,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class CreateAccountIT {
 
     private static final String SECRET = "Sup3r-Secret-Pa55!";
+
+    /** What identity should get for {@link #formValues(String)}. */
+    private static final CreateVisitorRequest VALID_REQUEST =
+            new CreateVisitorRequest("Mr", "", "Jo", "Bloggs", "jo@example.com", "07700 900982", SECRET, SECRET);
 
     private final HttpClient client = HttpClient.newHttpClient();
 
@@ -86,7 +91,7 @@ class CreateAccountIT {
         HttpResponse<String> againForm = get("/create-account", signedInCookie);
         assertEquals(302, againForm.statusCode(), "the session should be signed in on later requests");
         assertEquals("/properties", path(againForm), "a signed-in Visitor doesn't see the form");
-        verify(identityClient, description("identity should be asked once")).createVisitor(any());
+        verify(identityClient, description("identity should be asked once")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -100,7 +105,7 @@ class CreateAccountIT {
 
         assertEquals(303, created.statusCode(), "success should answer See Other");
         assertEquals("/properties/123/viewing", path(created), "the Visitor should go back to the page they came from");
-        verify(identityClient, description("identity should be asked once")).createVisitor(any());
+        verify(identityClient, description("identity should be asked once")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -126,7 +131,7 @@ class CreateAccountIT {
         HttpResponse<String> created = post("/create-account", freshCookie, formValues(token(expired)));
 
         assertEquals(303, created.statusCode(), "submitting again should work as normal");
-        verify(identityClient, times(1).description("identity should be asked once, on the second submit")).createVisitor(any());
+        verify(identityClient, times(1).description("identity should be asked once, on the second submit")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -143,7 +148,7 @@ class CreateAccountIT {
         HttpResponse<String> created = post("/create-account", cookie, formValues(token(expired)));
 
         assertEquals(303, created.statusCode(), "the token on the re-shown form should work");
-        verify(identityClient, description("identity should be asked once, on the second submit")).createVisitor(any());
+        verify(identityClient, description("identity should be asked once, on the second submit")).createVisitor(VALID_REQUEST);
     }
 
     private Map<String, String> formValues(String token) {

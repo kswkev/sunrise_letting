@@ -51,6 +51,10 @@ class CreateAccountControllerTest {
 
     private static final String OTHER_SECRET = "0ther-Secret-Pa55!";
 
+    /** What identity should get for {@link #validForm()}. */
+    private static final CreateVisitorRequest VALID_REQUEST =
+            new CreateVisitorRequest("Mr", "", "Jo", "Bloggs", "jo@example.com", "07700 900982", SECRET, SECRET);
+
     private static final CreateVisitorResult CREATED =
             new CreateVisitorResult.Created("8f14e45f-ceea-467f-a8b2-1d2f6a7b9c10", "VISITOR");
 
@@ -216,8 +220,7 @@ class CreateAccountControllerTest {
         assertThat(result).as("the Visitor should go back to the page they came from").hasRedirectedUrl("/properties/123");
         assertThat(result).flash().as("there should be no banner on the return page").doesNotContainKey(PropertiesController.ACCOUNT_CREATED);
         assertSignedInAsVisitor(result);
-        verify(identityClient, description("identity should get every field exactly as typed")).createVisitor(
-                new CreateVisitorRequest("Mr", "", "Jo", "Bloggs", "jo@example.com", "07700 900982", SECRET, SECRET));
+        verify(identityClient, description("identity should get every field exactly as typed")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -230,7 +233,7 @@ class CreateAccountControllerTest {
         assertThat(result).as("with no return address the Visitor goes to the search page").hasRedirectedUrl("/properties");
         assertThat(result).flash().as("the search page should show the banner").containsEntry(PropertiesController.ACCOUNT_CREATED, true);
         assertSignedInAsVisitor(result);
-        verify(identityClient, description("identity should be asked to create the account")).createVisitor(any());
+        verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
     }
 
     @ParameterizedTest
@@ -243,7 +246,7 @@ class CreateAccountControllerTest {
         assertThat(result).as("success should answer See Other").hasStatus(HttpStatus.SEE_OTHER);
         assertThat(result).as("an unsafe return address counts as none").hasRedirectedUrl("/properties");
         assertThat(result).flash().as("the search page should show the banner").containsEntry(PropertiesController.ACCOUNT_CREATED, true);
-        verify(identityClient, description("identity should be asked to create the account")).createVisitor(any());
+        verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
     }
 
     // POST: validation failed
@@ -288,7 +291,7 @@ class CreateAccountControllerTest {
         assertThat(page.select(".error-summary ul li a").eachText()).as("the summary should use the same message").containsExactly(message);
         assertThat(page.select(".error-summary ul li a").eachAttr("href")).as("the summary should link to the input").containsExactly("#" + inputId);
         assertNotSignedIn(result);
-        verify(identityClient, description("identity should check the form")).createVisitor(any());
+        verify(identityClient, description("identity should check the form")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -309,7 +312,7 @@ class CreateAccountControllerTest {
         Element summary = page.selectFirst("main .error-summary");
         assertThat(summary.hasAttr("autofocus")).as("the summary should take focus").isTrue();
         assertThat(summary.nextElementSibling().tagName()).as("the summary should come before the heading").isEqualTo("h1");
-        verify(identityClient, description("identity should check the form")).createVisitor(any());
+        verify(identityClient, description("identity should check the form")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -332,7 +335,8 @@ class CreateAccountControllerTest {
         assertThat(page.selectFirst("#password").hasAttr("value")).as("Password should never be rendered back").isFalse();
         assertThat(page.selectFirst("#confirm-password").hasAttr("value")).as("Confirm password should never be rendered back").isFalse();
         assertThat(Html.body(result)).as("the response shouldn't contain the password").doesNotContain(SECRET).doesNotContain(OTHER_SECRET);
-        verify(identityClient, description("identity should check the form")).createVisitor(any());
+        verify(identityClient, description("identity should check every field exactly as typed")).createVisitor(
+                new CreateVisitorRequest("Other", " Prof <b> ", "  Jo  ", "O'Neil ", " Not An Email ", " 07700-900982 ", SECRET, OTHER_SECRET));
     }
 
     @Test
@@ -344,7 +348,7 @@ class CreateAccountControllerTest {
         assertThat(result).as("validation errors should re-render with 200").hasStatusOk();
         assertThat(Html.page(result).selectFirst("#phone").attr("aria-describedby")).as("the input should reference the hint and the error")
                 .isEqualTo("phone-hint phone-error");
-        verify(identityClient, description("identity should check the form")).createVisitor(any());
+        verify(identityClient, description("identity should check the form")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -356,7 +360,7 @@ class CreateAccountControllerTest {
         assertThat(result).as("validation errors should re-render with 200").hasStatusOk();
         assertThat(Html.page(result).select("input[type=hidden][name=returnTo]").attr("value")).as("the return address should be kept")
                 .isEqualTo("/properties/123");
-        verify(identityClient, description("identity should check the form")).createVisitor(any());
+        verify(identityClient, description("identity should check the form")).createVisitor(VALID_REQUEST);
     }
 
     // POST: not created (duplicate)
@@ -379,7 +383,7 @@ class CreateAccountControllerTest {
         assertThat(page.selectFirst("#password").hasAttr("value")).as("passwords shouldn't be kept").isFalse();
         assertThat(Html.body(result)).as("the response shouldn't contain the password").doesNotContain(SECRET);
         assertNotSignedIn(result);
-        verify(identityClient, description("identity should be asked to create the account")).createVisitor(any());
+        verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
     }
 
     @Test
@@ -390,7 +394,7 @@ class CreateAccountControllerTest {
 
         assertThat(result).as("a duplicate should re-render with 200").hasStatusOk();
         assertThat(Html.page(result).select(".error-summary__body a").attr("href")).as("sign in shouldn't carry an unsafe address").isEqualTo("/sign-in");
-        verify(identityClient, description("identity should be asked to create the account")).createVisitor(any());
+        verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
     }
 
     // POST: unavailable
@@ -410,7 +414,7 @@ class CreateAccountControllerTest {
         assertThat(page.selectFirst("#first-name").attr("value")).as("values should be kept").isEqualTo("Jo");
         assertThat(Html.body(result)).as("the response shouldn't contain the password").doesNotContain(SECRET);
         assertNotSignedIn(result);
-        verify(identityClient, description("identity should be asked to create the account")).createVisitor(any());
+        verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
     }
 
     // POST: form expired
