@@ -2,11 +2,11 @@
 
 ## Purpose
 
-The Sunrise Letting website. This service owns all pages, for both the public Visitor pages and the Property Manager area: page controllers, Thymeleaf templates and static assets. It uses HTMX for partial page updates, and its HTMX endpoints return Thymeleaf fragments.
+The Sunrise Letting website. This module owns all pages, for both the public Visitor pages and the Property Manager area: page controllers, Thymeleaf templates and static assets. It uses HTMX for partial page updates, and its HTMX endpoints return Thymeleaf fragments.
 
-It has no domain data store and holds no domain logic. Anything beyond rendering belongs in a domain service, which this service calls through its API.
+It has no domain data store and holds no domain logic. Anything beyond rendering belongs in a domain service, which this module calls through its API.
 
-HTTP sessions are kept in Redis, so the service can run as several replicas without sticky sessions. Redis here is session infrastructure only: it holds no domain data and no other service uses it. Besides sessions it holds a short-lived gate (a hash of the remember-me series, no token) that lets only one request at a time exchange a remember-me cookie, across replicas. Remember-me tokens themselves live in identity; `web` only carries them in a cookie.
+HTTP sessions are kept in Redis, so the website can run as several replicas without sticky sessions. Redis here is session infrastructure only: it holds no domain data and no other service uses it. Besides sessions it holds a short-lived gate (a hash of the remember-me series, no token) that lets only one request at a time exchange a remember-me cookie, across replicas. Remember-me tokens themselves live in identity; `web` only carries them in a cookie.
 
 ## Remember me
 
@@ -31,25 +31,25 @@ What a remembered Visitor gets, and the limits that were accepted when it was bu
 Run from the repo root (use `./mvnw` on Linux or macOS):
 
 ```
-mvnw.cmd verify -pl services/web -am
+mvnw.cmd verify -pl web -am
 ```
 
-This compiles the service and runs its unit and integration tests. The integration tests need Docker running, because they start Redis and, for the real-browser tests of our own JavaScript (`*IT`, Chrome only), a browser with Testcontainers. `mvnw.cmd test` runs only the unit and page tests and doesn't need Docker.
+This compiles the module and runs its unit and integration tests. The integration tests need Docker running, because they start Redis and, for the real-browser tests of our own JavaScript (`*IT`, Chrome only), a browser with Testcontainers. `mvnw.cmd test` runs only the unit and page tests and doesn't need Docker.
 
 ## Deploy locally
 
 You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
 
-1. Start the service from the repo root:
+1. Start the website from the repo root:
 
    ```
-   mvnw.cmd spring-boot:run -pl services/web
+   mvnw.cmd spring-boot:run -pl web
    ```
 
    This starts Redis from `compose.yaml` automatically and connects to it, with no manual setup.
 
 2. Open <http://localhost:8080/> to see the home page, <http://localhost:8080/create-account> to sign up, or <http://localhost:8080/sign-in> to sign in.
-3. Press `Ctrl+C` in the terminal to stop the service. Redis stops with it.
+3. Press `Ctrl+C` in the terminal to stop the website. Redis stops with it.
 
 Pages that call identity, such as Create account and Sign in, need the identity service running on its local address, <http://localhost:8081> (see its README). Pages that don't call it work without it. To point at a different address, set `identity.base-url`, or the environment variable `IDENTITY_BASEURL`.
 

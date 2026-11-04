@@ -17,11 +17,11 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Sunrise Letting</name>
-    <description>Parent and aggregator for the Sunrise Letting services</description>
+    <description>Parent and aggregator for the Sunrise Letting modules</description>
 
-    <!-- One module per domain service, e.g. <module>services/properties</module>. -->
+    <!-- The web module, plus one module per domain service, e.g. <module>services/properties</module>. -->
     <modules>
-        <module>services/web</module>
+        <module>web</module>
         <module>services/identity</module>
     </modules>
 

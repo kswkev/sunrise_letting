@@ -10,22 +10,24 @@ The services are written in Java with Spring Boot, built with Maven and tested w
 
 ## Service layout and commands
 
-Each domain service is its own Spring Boot application, as a Maven module under `services/<service>/` (e.g. `services/properties/`), so it can be deployed independently.
+Each domain service is its own Spring Boot application, as a Maven module under `services/<service>/` (e.g. `services/properties/`), so it can be deployed independently. The website is also a Spring Boot application, but it isn't a domain service, so its module is at the root in `web/`.
 
-The root `pom.xml` is both the aggregator and the parent of every service:
+The root `pom.xml` is both the aggregator and the parent of every module:
 - It inherits from `spring-boot-starter-parent`, which fixes the Spring Boot version and the versions of everything Spring Boot manages (Spring, JUnit 5, etc.). Java version is set there too.
-- Versions for any other dependency go in its `<dependencyManagement>`. Service POMs declare dependencies **without versions**.
+- Versions for any other dependency go in its `<dependencyManagement>`. Module POMs declare dependencies **without versions**.
 - A new service must be added to `<modules>` and use the root POM as its `<parent>`.
 
 There is one Maven wrapper, at the root. Run commands from the root (use `mvnw.cmd` on Windows):
 
 ```
-./mvnw verify                                                  # build and test all services
+./mvnw verify                                                  # build and test all modules
 ./mvnw verify -pl services/properties -am                      # build and test one service
 ./mvnw test -pl services/properties -Dtest=PropertySearchTest  # one test class
 ./mvnw test -pl services/properties -Dtest=PropertySearchTest#methodName  # one test method
 ./mvnw spring-boot:run -pl services/properties                 # run one service locally
 ```
+
+For the website, use `-pl web` (e.g. `./mvnw spring-boot:run -pl web`).
 
 Each module must have a `README.md` at its root (e.g. `services/properties/README.md`), which details:
 - the purpose of the module
@@ -60,7 +62,7 @@ Production code without a test that drove it should not be added.
 ## Front end
 
 - The website is server-rendered with **Thymeleaf**, using **HTMX** for partial page updates (e.g. live search results, inline form validation). There is no single-page-app framework and no Node toolchain.
-- All pages live in a dedicated **`web`** service (`services/web/`), for both the public Visitor pages and the Property Manager area. It owns templates, static assets and page controllers, and calls the domain services' APIs. It has no data store of its own and holds no domain logic.
+- All pages live in a dedicated **`web`** module (`web/`), for both the public Visitor pages and the Property Manager area. It owns templates, static assets and page controllers, and calls the domain services' APIs. It has no data store of its own and holds no domain logic.
 - Domain services expose APIs only and never render HTML.
 - HTMX endpoints return Thymeleaf fragments, not JSON.
 - HTMX is delivered as a WebJar (`org.webjars.npm:htmx.org`), with its version in the root `<dependencyManagement>`. Add `org.webjars:webjars-locator-lite` (version managed by Spring Boot) so templates can reference it without a version, e.g. `/webjars/htmx.org/dist/htmx.min.js`. Don't copy front-end libraries into `static/` or load them from a CDN.
@@ -85,7 +87,7 @@ The subagents in `.claude/agents/` form the pipeline:
 
 1. **business-analyst**: creates issues from the brief, or turns an existing issue into an implementation plan grouped by service. Never changes code.
 2. **ui-ux-designer**: for issues with pages, designs the flow, layout, HTMX interactions and accessibility, writing a spec to `docs/design/<issue-number>-<title>.md`. Owns the site-wide design system in `docs/design/design-system.md`. Only writes under `docs/design/`.
-3. **developer**: implements the plan steps for one service only, with tests. In the `web` service it builds pages to the issue's design spec. Does not commit, push or open PRs unless told to.
+3. **developer**: implements the plan steps for one service only (or the `web` module), with tests. In `web` it builds pages to the issue's design spec. Does not commit, push or open PRs unless told to.
 4. **tech-lead**: reviews the feature branch's diff against `develop` and the issue's acceptance criteria. Read-only.
 
 Alongside the pipeline, **devops** sets up and maintains GitHub Actions workflows (CI builds and tests on pull requests and pushes). It only writes under `.github/` and reports any change needed elsewhere. Does not commit, push or open PRs unless told to.
