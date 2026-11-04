@@ -3,6 +3,7 @@ package com.sunriseletting.web.account;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import com.sunriseletting.web.identity.AccountField;
 import com.sunriseletting.web.identity.FieldValidationResult;
@@ -37,7 +38,10 @@ public class CreateAccountValidationController {
         this.errorMessages = errorMessages;
     }
 
-    /** Returning null means the response is complete: a 204, which HTMX doesn't swap. */
+    /**
+     * Returning null means the response is complete: a 204, which HTMX doesn't swap. That's the answer
+     * when the check can't be done, including when identity's code has no copy; the submit still checks everything.
+     */
     @PostMapping("/create-account/validate/{inputId}")
     public ModelAndView validate(@PathVariable String inputId, HttpServletRequest request, HttpServletResponse response, Locale locale) {
         if (request.getHeader("HX-Request") == null) {
@@ -52,11 +56,14 @@ public class CreateAccountValidationController {
             return render(field, null, request);
         }
         FieldValidationResult result = check(field, value, request);
-        if (result instanceof FieldValidationResult.Invalid invalid) {
-            return render(field, errorMessages.messageFor(invalid.code(), locale).orElseThrow(), request);
-        }
         if (result instanceof FieldValidationResult.Valid) {
             return render(field, null, request);
+        }
+        if (result instanceof FieldValidationResult.Invalid invalid) {
+            Optional<String> message = errorMessages.messageFor(invalid.code(), locale);
+            if (message.isPresent()) {
+                return render(field, message.get(), request);
+            }
         }
         response.setStatus(HttpStatus.NO_CONTENT.value());
         return null;

@@ -307,6 +307,28 @@ class CreateAccountValidationControllerTest {
         verify(identityClient, description("identity should be tried")).validateField(AccountField.PASSWORD, SECRET);
     }
 
+    @Test
+    void unknownErrorCodeGives204ForAPlainField() {
+        when(identityClient.validateField(AccountField.EMAIL, "jo@example.com")).thenReturn(new FieldValidationResult.Invalid("SOMETHING_NEW"));
+
+        MvcTestResult result = validate("email").param("email", "jo@example.com").with(csrf()).exchange();
+
+        assertThat(result).as("a code with no copy means the check can't be done, which changes nothing").hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(Html.body(result)).as("204 has no body").isEmpty();
+        verify(identityClient, description("identity should be tried")).validateField(AccountField.EMAIL, "jo@example.com");
+    }
+
+    @Test
+    void unknownErrorCodeGives204ForAPassword() {
+        when(identityClient.validateField(AccountField.PASSWORD, SECRET)).thenReturn(new FieldValidationResult.Invalid("SOMETHING_NEW"));
+
+        MvcTestResult result = validate("password").param("password", SECRET).with(csrf()).exchange();
+
+        assertThat(result).as("a code with no copy means the check can't be done, which changes nothing").hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(Html.body(result)).as("204 has no body").isEmpty();
+        verify(identityClient, description("identity should be tried")).validateField(AccountField.PASSWORD, SECRET);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = { "first-name", "password", "confirm-password" })
     void requestWithoutHxRequestRedirectsToTheForm(String urlField) {
