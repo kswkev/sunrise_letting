@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.description;
@@ -85,6 +86,21 @@ class SignInServiceTest {
         service.signIn("account-1", AccountRole.VISITOR, request, response);
 
         assertEquals(1800, request.getSession(false).getMaxInactiveInterval(), "a Visitor's session should idle out after 30 minutes");
+    }
+
+    @Test
+    void clearsWhatAnEarlierRememberedLoginLeftInTheSession() {
+        MockHttpSession existing = new MockHttpSession();
+        existing.setAttribute(RememberMeLogin.SESSION_ATTRIBUTE, Boolean.TRUE);
+        existing.setAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE, "2030-01-01T00:00:00Z");
+        request.setSession(existing);
+
+        service.signIn("account-1", AccountRole.VISITOR, request, response);
+
+        assertNull(request.getSession(false).getAttribute(RememberMeLogin.SESSION_ATTRIBUTE),
+                "a new sign-in must not keep the earlier login's skipped time-out warning");
+        assertNull(request.getSession(false).getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE),
+                "a new sign-in must not keep the earlier login's expiry");
     }
 
     @Test

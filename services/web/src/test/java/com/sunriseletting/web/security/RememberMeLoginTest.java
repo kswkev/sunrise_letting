@@ -205,6 +205,46 @@ class RememberMeLoginTest {
                 .isCloseTo(Duration.ofDays(10).toSeconds(), within(60L));
         verify(identityClient, description("the cookie should be verified")).verifyRememberMeToken(SERIES, TOKEN);
     }
+
+    // Signing in over a session left by an earlier remembered login
+
+    @Test
+    void signingInWithoutTheBoxOverARememberedSessionGivesAnOrdinarySession() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+
+        MvcTestResult result = signIn().session(rememberedSession(Instant.now().plus(Duration.ofDays(20)))).with(csrf()).exchange();
+
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session.getAttribute(RememberMeLogin.SESSION_ATTRIBUTE)).as("the session can time out, so the warning must show").isNull();
+        assertThat(session.getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE)).as("there's no login left for the session to last as long as").isNull();
+        assertThat(session.getMaxInactiveInterval()).as("the earlier login's long life must not carry over").isEqualTo(1800);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void signingInWithTheBoxOverARememberedSessionKeepsTheNewLogin() {
+        Instant expiresAt = Instant.now().plus(Duration.ofDays(30));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, expiresAt));
+
+        MvcTestResult result = signIn().param("remember-me", "on").session(rememberedSession(Instant.now().plus(Duration.ofDays(20)))).with(csrf()).exchange();
+
+        assertRememberedUntil(result, expiresAt);
+        verify(identityClient, description("identity should issue the token")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void exchangingTheCookieOverARememberedSessionKeepsTheNewLogin() {
+        Instant expiresAt = Instant.now().plus(Duration.ofDays(10));
+        when(identityClient.verifyRememberMeToken(SERIES, TOKEN)).thenReturn(new RememberMeVerifyResult.Verified("account-1", AccountRole.VISITOR, NEW_TOKEN, expiresAt));
+
+        MvcTestResult result = page().session(rememberedSession(Instant.now().plus(Duration.ofDays(20)))).exchange();
+
+        assertRememberedUntil(result, expiresAt);
+        verify(identityClient, description("the cookie should be verified")).verifyRememberMeToken(SERIES, TOKEN);
+    }
+
     // Signing in over a cookie left by an earlier login
 
     @Test
@@ -477,6 +517,22 @@ class RememberMeLoginTest {
 
     private MockMvcRequestBuilder page() {
         return mvc.get().uri("/properties").cookie(new Cookie("remember-me", COOKIE_VALUE));
+    }
+
+    /** A session with no one signed in that still holds what an earlier remembered login set. */
+    private MockHttpSession rememberedSession(Instant expiresAt) {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(RememberMeLogin.SESSION_ATTRIBUTE, Boolean.TRUE);
+        session.setAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE, expiresAt.toString());
+        return session;
+    }
+
+    private void assertRememberedUntil(MvcTestResult result, Instant expiresAt) {
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session.getAttribute(RememberMeLogin.SESSION_ATTRIBUTE)).as("the session is flagged again").isEqualTo(true);
+        assertThat(session.getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE)).as("the session ends with the new login").isEqualTo(expiresAt.toString());
+        assertThat((long) session.getMaxInactiveInterval()).as("the session should last as long as the new login")
+                .isCloseTo(Duration.between(Instant.now(), expiresAt).toSeconds(), within(60L));
     }
 
     private String setCookie(MvcTestResult result) {
