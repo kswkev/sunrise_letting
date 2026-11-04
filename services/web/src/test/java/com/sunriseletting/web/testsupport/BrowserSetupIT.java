@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Import;
@@ -69,6 +71,32 @@ class BrowserSetupIT {
                 "the wait should give up");
 
         assertTrue(failure.getMessage().contains("something that never happens"),
+                "the failure should say what it was waiting for: " + failure.getMessage());
+    }
+
+    @Test
+    void waitHelperTreatsAStaleElementAsNotYet(Browser browser) {
+        AtomicInteger calls = new AtomicInteger();
+
+        browser.waitUntil("an element swapped out while it was read", () -> {
+            if (calls.incrementAndGet() == 1) {
+                throw new StaleElementReferenceException("swapped out");
+            }
+            return true;
+        });
+
+        assertEquals(2, calls.get(), "the wait should try again after a stale element, then stop once the condition is true");
+    }
+
+    @Test
+    void waitHelperStillFailsWithAClearMessageWhenTheElementStaysStale(Browser browser) {
+        TimeoutException failure = assertThrows(TimeoutException.class,
+                () -> browser.waitUntil("an element that stays stale", Duration.ofMillis(200), () -> {
+                    throw new StaleElementReferenceException("swapped out");
+                }),
+                "the wait should give up");
+
+        assertTrue(failure.getMessage().contains("an element that stays stale"),
                 "the failure should say what it was waiting for: " + failure.getMessage());
     }
 
