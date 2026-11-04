@@ -14,5 +14,6 @@ public record NewAccount(
         String surname,
         String phone,
         String passwordHash,
-        Role role) {
+        Role role,
+        boolean passwordTemporary) {
 }

@@ -19,3 +19,6 @@ logging:
     org.springframework.web.servlet.mvc.method.annotation: INFO
     org.springframework.http.converter: INFO
     org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: ERROR
+
+# Property Manager accounts to seed (identity.property-managers) come only from the deployment secret's environment
+# variables, such as IDENTITY_PROPERTY_MANAGERS_0_EMAIL. They are never committed here. See the README.

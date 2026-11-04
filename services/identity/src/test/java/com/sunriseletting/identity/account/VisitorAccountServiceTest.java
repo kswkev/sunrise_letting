@@ -1,6 +1,7 @@
 package com.sunriseletting.identity.account;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,6 +63,7 @@ class VisitorAccountServiceTest {
         assertEquals("+447700900123", stored.phone(), "the phone should be stored in E.164");
         assertEquals("the-hash", stored.passwordHash(), "only the hash of the password should be stored");
         assertEquals(Role.VISITOR, stored.role(), "the account should have the Visitor role");
+        assertFalse(stored.passwordTemporary(), "a Visitor chooses their own password, so it isn't temporary");
         assertEquals("Mr", stored.title(), "the title should be stored trimmed");
         assertEquals("Jo", stored.firstName(), "the first name should be stored trimmed");
         assertEquals("Smith", stored.surname(), "the surname should be stored trimmed");

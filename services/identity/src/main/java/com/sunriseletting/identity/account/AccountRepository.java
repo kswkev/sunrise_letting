@@ -23,8 +23,8 @@ public class AccountRepository {
      */
     public boolean insertIfEmailIsNew(NewAccount account) {
         int inserted = jdbc.sql("""
-                        INSERT INTO accounts (id, email, title, title_other, first_name, surname, phone, password_hash, role)
-                        VALUES (:id, :email, :title, :titleOther, :firstName, :surname, :phone, :passwordHash, :role)
+                        INSERT INTO accounts (id, email, title, title_other, first_name, surname, phone, password_hash, role, password_temporary)
+                        VALUES (:id, :email, :title, :titleOther, :firstName, :surname, :phone, :passwordHash, :role, :passwordTemporary)
                         ON CONFLICT (email) DO NOTHING
                         """)
                 .param("id", account.id())
@@ -36,6 +36,7 @@ public class AccountRepository {
                 .param("phone", account.phone())
                 .param("passwordHash", account.passwordHash())
                 .param("role", account.role().name())
+                .param("passwordTemporary", account.passwordTemporary())
                 .update();
         return inserted == 1;
     }

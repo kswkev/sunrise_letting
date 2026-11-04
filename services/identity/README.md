@@ -57,6 +57,13 @@ You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
    Spring Boot starts PostgreSQL from `services/identity/compose.yaml`, connects to it, applies the Flyway migrations and listens on <http://localhost:8081/>.
 3. Press `Ctrl+C` in the terminal to stop the service. Spring Boot stops the PostgreSQL container too.
 
+No Property Manager accounts are seeded unless you ask for them. To have one locally, set these in the same terminal before step 2, with values of your own:
+
+```
+$env:IDENTITY_PROPERTY_MANAGERS_0_EMAIL = "pm@example.com"
+$env:IDENTITY_PROPERTY_MANAGERS_0_TEMPORARY_PASSWORD = "<a temporary password>"
+```
+
 ## Configuration
 
 `compose.yaml` is for local runs only. Everywhere else, set the datasource with environment variables:
@@ -66,3 +73,18 @@ You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
 | `SPRING_DATASOURCE_URL` | JDBC URL of the PostgreSQL database |
 | `SPRING_DATASOURCE_USERNAME` | Database user |
 | `SPRING_DATASOURCE_PASSWORD` | Database password |
+| `IDENTITY_PROPERTY_MANAGERS_<n>_EMAIL` | Email of a Property Manager account to seed. Optional, supplied by the deployment secret. |
+| `IDENTITY_PROPERTY_MANAGERS_<n>_TEMPORARY_PASSWORD` | That account's temporary password. It doesn't have to meet the sign-up password rules. |
+
+`<n>` counts up from 0 with no gaps; entries after a gap are ignored.
+
+### Seeding Property Manager accounts
+
+On each start, the service goes through the configured accounts:
+
+- If no account has the email (trimmed and lower-cased), it creates one with the Property Manager role only and the password marked as temporary. The password is stored only as a hash, made by the same encoder as every other password, so it signs in through `POST /api/authentications`.
+- If the email belongs to a Property Manager, it leaves that account unchanged, so a restart creates no duplicates and doesn't undo a changed password. Removing an entry doesn't remove the account.
+- If the email belongs to a Visitor, it leaves that account unchanged, logs an error naming the email and carries on, because one account can't hold both roles. That person needs a different email for their Property Manager account.
+- If an entry has no email or no password, it logs an error giving the entry's number and carries on.
+
+Finally it logs how many accounts were created and skipped. Temporary passwords are never logged.

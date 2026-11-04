@@ -46,7 +46,8 @@ public class VisitorAccountService {
                 details.surname().strip(),
                 UkPhoneNumber.toE164(details.phone()).orElseThrow(),
                 passwordEncoder.encode(details.password()),
-                Role.VISITOR);
+                Role.VISITOR,
+                false);
 
         return repository.insertIfEmailIsNew(account)
                 ? new CreateVisitorAccountResult.Created(account.id(), account.role())
