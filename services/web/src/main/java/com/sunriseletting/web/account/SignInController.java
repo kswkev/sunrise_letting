@@ -3,6 +3,7 @@ package com.sunriseletting.web.account;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import com.sunriseletting.web.identity.AuthenticationResult;
 import com.sunriseletting.web.identity.IdentityClient;
@@ -13,6 +14,8 @@ import com.sunriseletting.web.security.SignInService;
 import com.sunriseletting.web.security.SignedInMarker;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,6 +34,8 @@ import org.springframework.web.servlet.view.RedirectView;
 @Controller
 @RequestMapping("/sign-in")
 public class SignInController {
+
+    private static final Logger log = LoggerFactory.getLogger(SignInController.class);
 
     private final IdentityClient identityClient;
 
@@ -85,11 +90,17 @@ public class SignInController {
             return new ModelAndView(redirect(SignInDestinations.forVisitor(returnTo), HttpStatus.SEE_OTHER));
         }
         if (result instanceof AuthenticationResult.FieldErrors failed) {
-            return new ModelAndView(SignInPage.VIEW, SignInPage.withFieldErrors(values, messages(failed, locale)));
+            return messages(failed, locale)
+                    .map(fieldMessages -> new ModelAndView(SignInPage.VIEW, SignInPage.withFieldErrors(values, fieldMessages)))
+                    .orElseGet(() -> unavailable(values));
         }
         if (result instanceof AuthenticationResult.InvalidCredentials) {
             return new ModelAndView(SignInPage.VIEW, SignInPage.withFormError(values, SignInPage.FORM_ERROR_INVALID));
         }
+        return unavailable(values);
+    }
+
+    private ModelAndView unavailable(SignInPage.Values values) {
         return new ModelAndView(SignInPage.VIEW, SignInPage.withFormError(values, SignInPage.FORM_ERROR_UNAVAILABLE),
                 HttpStatus.SERVICE_UNAVAILABLE);
     }
@@ -102,10 +113,20 @@ public class SignInController {
         return redirect;
     }
 
-    /** This page's copy, not sign-up's: "Enter your password" rather than "Enter a password". */
-    private Map<String, String> messages(AuthenticationResult.FieldErrors failed, Locale locale) {
+    /**
+     * This page's copy, not sign-up's: "Enter your password" rather than "Enter a password".
+     * Empty if any code has no copy: an error the Visitor can't be told about can't be fixed by them.
+     */
+    private Optional<Map<String, String>> messages(AuthenticationResult.FieldErrors failed, Locale locale) {
         Map<String, String> fieldMessages = new HashMap<>();
-        failed.errors().forEach((field, code) -> fieldMessages.put(field, messages.getMessage("sign-in.error." + code, null, locale)));
-        return fieldMessages;
+        for (Map.Entry<String, String> error : failed.errors().entrySet()) {
+            String message = messages.getMessage("sign-in.error." + error.getValue(), null, null, locale);
+            if (message == null) {
+                log.warn("Identity answered with a sign-in error code that has no copy: {}", error.getValue());
+                return Optional.empty();
+            }
+            fieldMessages.put(error.getKey(), message);
+        }
+        return Optional.of(fieldMessages);
     }
 }

@@ -411,6 +411,19 @@ class SignInControllerTest {
     }
 
     @Test
+    void aFieldCodeWithNoCopyShowsTheServerErrorAndSignsNobodyIn() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.FieldErrors(Map.of("email", "EMAIL_INVALID")));
+
+        MvcTestResult result = submit("jo@example.com", SECRET).with(csrf()).exchange();
+
+        assertThat(result).as("a code with no copy is outside the contract, not a crash").hasStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(Html.page(result).select(".error-summary p.error-summary__body").text()).as("the agreed message")
+                .isEqualTo("Sorry, you can't sign in at the moment. Try again later.");
+        assertNotSignedIn(result);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
     void identityUnavailableAnswers503WithTheFormLevelMessage() {
         when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(AuthenticationResult.unavailable());
 
