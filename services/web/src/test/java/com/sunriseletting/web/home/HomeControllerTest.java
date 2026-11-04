@@ -9,6 +9,7 @@ import com.sunriseletting.web.security.AccountRole;
 import com.sunriseletting.web.security.SecurityConfiguration;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.testsupport.Html;
+import com.sunriseletting.web.testsupport.SignedInUsers;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
@@ -136,6 +137,16 @@ class HomeControllerTest {
         assertThat(page.select("header nav li").eachText()).as("the Visitor's items, in order").containsExactly("Properties to let", "Sign out");
         assertThat(page.select("header form.sign-out[action=/sign-out][method=post] input[name=_csrf]")).as("the form carries a token").hasSize(1);
         assertThat(page.select("a[href=/sign-in], a[href=/create-account]")).as("those links aren't rendered at all").isEmpty();
+    }
+
+    @Test
+    void propertyManagerHeaderOnTheHomePageHasTheThreeItemsWithNoneCurrentAndNoBand() {
+        Document page = Html.page(mvc.get().uri("/").with(authentication(SignedInUsers.propertyManager(false))).exchange());
+
+        assertThat(page.select("header nav li").eachText()).as("the Property Manager's items, in order")
+                .containsExactly("Properties to let", "Property Manager area", "Sign out");
+        assertThat(page.select("header nav [aria-current]")).as("the home page isn't one of the nav's sections").isEmpty();
+        assertThat(page.select(".area-band")).as("the band is for /manage pages only").isEmpty();
     }
 
     @Test

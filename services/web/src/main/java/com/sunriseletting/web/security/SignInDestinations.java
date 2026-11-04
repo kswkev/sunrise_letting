@@ -7,7 +7,7 @@ public final class SignInDestinations {
 
     private static final String MANAGE = "/manage";
 
-    private static final String CHANGE_PASSWORD = "/manage/change-password";
+    static final String CHANGE_PASSWORD = "/manage/change-password";
 
     private SignInDestinations() {
     }

@@ -151,7 +151,7 @@ class SecurityConfigurationTest {
 
         MvcTestResult result = mvc.get().uri(path).with(authentication(manager)).exchange();
 
-        assertThat(result).as("the rule lets them through, to a 404 until #3 adds the pages").hasStatus(HttpStatus.NOT_FOUND);
+        assertThat(result).as("the rule lets them through, to a 404 because this test loads no Property Manager pages").hasStatus(HttpStatus.NOT_FOUND);
     }
 
     @Test
