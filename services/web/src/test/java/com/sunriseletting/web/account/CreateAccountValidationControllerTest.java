@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.description;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -171,7 +170,7 @@ class CreateAccountValidationControllerTest {
         assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-" + urlField);
         assertThat(group.hasClass("form-group--error")).as("no error until submit").isFalse();
         assertThat(group.select(".error-message")).as("no message until submit").isEmpty();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an empty value shouldn't be sent to identity");
     }
 
     @Test
@@ -180,7 +179,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("a missing value should be 200").hasStatusOk();
         assertThat(Html.fragment(result).select(".form-group--error")).as("no error until submit").isEmpty();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a missing value shouldn't be sent to identity");
     }
 
     @Test
@@ -257,7 +256,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("an empty value should be 200").hasStatusOk();
         assertThat(Html.body(result)).as("an empty password should give an empty body").isBlank();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an empty password shouldn't be sent to identity");
     }
 
     @Test
@@ -282,7 +281,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("an empty value should be 200").hasStatusOk();
         assertThat(Html.body(result)).as("an empty value should give an empty body").isBlank();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an empty Confirm password shouldn't be sent to identity");
     }
 
     // Can't check, and requests that aren't from HTMX
@@ -315,7 +314,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("these endpoints serve HTMX only").hasStatus(HttpStatus.SEE_OTHER);
         assertThat(result).as("a plain request should go to the form").hasRedirectedUrl("/create-account");
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a request that isn't from HTMX shouldn't reach identity");
     }
 
     @Test
@@ -323,7 +322,7 @@ class CreateAccountValidationControllerTest {
         MvcTestResult result = validate("nonsense").with(csrf()).exchange();
 
         assertThat(result).as("only the form's fields have an endpoint").hasStatus(HttpStatus.NOT_FOUND);
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an unknown field shouldn't reach identity");
     }
 
     // Expired form token
@@ -339,7 +338,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("an expired token changes nothing, never a 403").hasStatus(HttpStatus.NO_CONTENT);
         assertThat(Html.body(result)).as("204 has no body").isEmpty();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a request with no token shouldn't reach identity");
     }
 
     @ParameterizedTest
@@ -360,7 +359,7 @@ class CreateAccountValidationControllerTest {
         assertThat(result).as("an expired token changes nothing, never a 403").hasStatus(HttpStatus.NO_CONTENT);
         assertThat(Html.body(result)).as("204 has no body").isEmpty();
         assertThat(sessionToken(session).getToken()).as("the session's CSRF token should be left as it is").isEqualTo(before.getToken());
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a request with the wrong token shouldn't reach identity");
     }
 
     // The page turns inline validation on
