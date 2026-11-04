@@ -32,6 +32,7 @@ import com.sunriseletting.web.identity.RememberMeTokenResult;
 import com.sunriseletting.web.identity.RememberMeVerifyResult;
 import com.sunriseletting.web.testsupport.CookieJarClient;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +102,9 @@ class RememberMeIT {
         browser.post("/sign-in", Map.of("_csrf", CookieJarClient.csrfToken(form), "email", "jo@example.com", "password", SECRET, "remember-me", "on"));
         assertEquals(series + "." + TOKEN, browser.cookie("remember-me"), "signing in should set the cookie");
         assertEquals("true", sessionAttribute(browser.cookie("SESSION"), RememberMeLogin.SESSION_ATTRIBUTE), "the flag should be stored in Redis");
-        assertEquals(1, Jsoup.parse(browser.get("/properties").body()).select("form.sign-out").size(), "the flag should read back from Redis");
+        Document nextPage = Jsoup.parse(browser.get("/properties").body());
+        assertEquals(1, nextPage.select("header form.sign-out").size(), "the session should read back from Redis as signed in");
+        assertEquals(0, nextPage.select("#timeout-dialog").size(), "the flag should read back from Redis, so this session shows no time-out warning");
 
         browser.removeCookie("SESSION");
         HttpResponse<String> back = browser.get("/properties");
