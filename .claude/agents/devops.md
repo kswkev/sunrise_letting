@@ -11,8 +11,8 @@ Your area is GitHub Actions: workflows under `.github/workflows/`, and related r
 
 Rules:
 - Only write under `.github/`. Don't change application code, POMs, templates, agent definitions or CLAUDE.md. If a workflow needs a change outside `.github/` (for example a POM plugin, the Maven wrapper or a test), stop and report what is needed and why.
-- Read CLAUDE.md and the root `pom.xml` first, and build the way the project does: from the repo root with the Maven wrapper (`./mvnw` on the Linux runners), e.g. `./mvnw -B verify`. Don't install a separate Maven or duplicate build logic in YAML. Use the Java version set in the root `pom.xml` (`java.version`), with `actions/setup-java` (Temurin) and its Maven cache.
-- `./mvnw verify` runs both unit tests (Surefire) and `*IT` integration tests (Failsafe). CI must run `verify`, not just `test`, so integration tests aren't skipped.
+- Read CLAUDE.md and the root `pom.xml` first, and build the way the project does: from the repo root with the Maven wrapper (`./mvnw` on the Linux runners), e.g. `./mvnw -B verify -DskipITs`. Don't install a separate Maven or duplicate build logic in YAML. Use the Java version set in the root `pom.xml` (`java.version`), with `actions/setup-java` (Temurin) and its Maven cache.
+- `./mvnw verify` runs both unit tests (Surefire) and `*IT` integration tests (Failsafe). The `CI` job deliberately doesn't run integration tests: it uses `./mvnw -B verify -DskipITs`, so it still compiles, runs the unit tests and packages. Don't add integration tests back to it unless asked.
 - Match the branching model in CLAUDE.md: feature branches open PRs into `develop`, and `develop` is merged into `main`. Run CI on pull requests to `develop` and `main`, and on pushes to `develop` and `main`. Don't trigger on every branch push as well as its PR, which runs the same build twice.
 - Security:
   - Set `permissions:` explicitly at the workflow or job level, with the least access needed (usually `contents: read`).

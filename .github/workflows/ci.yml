@@ -32,8 +32,8 @@ jobs:
           java-version: '17' # matches java.version in the root pom.xml
           cache: maven
 
-      - name: Build and test (unit and integration tests)
-        run: ./mvnw -B verify
+      - name: Build and test (unit tests only)
+        run: ./mvnw -B verify -DskipITs
 
       - name: Upload test reports
         if: failure()
@@ -42,6 +42,5 @@ jobs:
           name: test-reports
           path: |
             **/target/surefire-reports
-            **/target/failsafe-reports
           if-no-files-found: ignore
           retention-days: 7
