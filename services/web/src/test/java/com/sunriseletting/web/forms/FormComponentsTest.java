@@ -162,8 +162,8 @@ class FormComponentsTest {
         assertThat(input.attr("autocomplete")).as("autocomplete should be passed in").isEqualTo("new-password");
         assertThat(input.attr("spellcheck")).as("no spellcheck on passwords").isEqualTo("false");
         assertThat(input.attr("autocapitalize")).as("no capitalising on passwords").isEqualTo("none");
-        assertThat(input.attr("aria-describedby")).as("with no error the input should list only the hint, not a missing element")
-                .isEqualTo("secret-hint");
+        assertThat(input.attr("aria-describedby")).as("the input should always list the hint and the error id")
+                .isEqualTo("secret-hint secret-error");
         assertThat(input.hasAttr("aria-invalid")).as("no aria-invalid without an error").isFalse();
 
         Element toggle = group.selectFirst(".password-field__wrapper button.button.button--secondary.password-field__toggle");

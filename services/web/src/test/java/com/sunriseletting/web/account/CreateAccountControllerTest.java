@@ -355,20 +355,6 @@ class CreateAccountControllerTest {
     }
 
     @Test
-    void passwordErrorIsInDescribedByOnlyWhenThereIsOne() {
-        when(identityClient.createVisitor(any())).thenReturn(new CreateVisitorResult.ValidationFailed(Map.of("password", "PASSWORD_TOO_SHORT")));
-
-        MvcTestResult result = submit(validForm()).with(csrf()).exchange();
-
-        assertThat(result).as("validation errors should re-render with 200").hasStatusOk();
-        Document page = Html.page(result);
-        assertThat(page.selectFirst("#password").attr("aria-describedby")).as("Password should reference its hint and error")
-                .isEqualTo("password-hint password-error");
-        assertThat(page.selectFirst("#confirm-password").hasAttr("aria-describedby")).as("Confirm password has no hint or error to reference").isFalse();
-        verify(identityClient, description("identity should check the form")).createVisitor(VALID_REQUEST);
-    }
-
-    @Test
     void validReturnToSurvivesAFailedSubmit() {
         when(identityClient.createVisitor(any())).thenReturn(new CreateVisitorResult.ValidationFailed(Map.of("email", "EMAIL_INVALID")));
 

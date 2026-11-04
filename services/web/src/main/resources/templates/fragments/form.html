@@ -41,14 +41,13 @@
 <!--/* Password field with show/hide toggle (4.17). Arguments: id, name, label, suffix (the visually hidden
        end of the toggle's name, for example 'confirm password'), hint, error, autocomplete, hxPost, hxParams.
        The page must also load /js/password-toggle.js. */-->
-<div th:fragment="password" class="form-group password-field" th:classappend="${error != null} ? 'form-group--error'" th:id="|field-${id}|"
-     th:with="describedBy=${#strings.trim((hint != null ? id + '-hint ' : '') + (error != null ? id + '-error' : ''))}">
+<div th:fragment="password" class="form-group password-field" th:classappend="${error != null} ? 'form-group--error'" th:id="|field-${id}|">
     <label class="label" th:for="${id}" th:text="${label}"></label>
     <p class="hint" th:if="${hint != null}" th:id="|${id}-hint|" th:text="${hint}"></p>
     <div class="password-field__error-slot" th:id="|${id}-error-slot|"><th:block th:replace="~{fragments/form :: errorMessage}"></th:block></div>
     <div class="password-field__wrapper">
         <input class="input password-field__input" th:id="${id}" th:name="${name}" type="password" spellcheck="false" autocapitalize="none"
-               th:attr="autocomplete=${autocomplete},aria-describedby=${describedBy},aria-invalid=${error != null} ? 'true',hx-post=${hxPost},hx-trigger=${hxPost != null} ? 'blur',hx-target=${hxPost != null} ? |#${id}-error-slot|,hx-swap=${hxPost != null} ? 'innerHTML',hx-params=${hxParams}">
+               th:attr="autocomplete=${autocomplete},aria-describedby=${(hint != null ? id + '-hint ' : '') + id + '-error'},aria-invalid=${error != null} ? 'true',hx-post=${hxPost},hx-trigger=${hxPost != null} ? 'blur',hx-target=${hxPost != null} ? |#${id}-error-slot|,hx-swap=${hxPost != null} ? 'innerHTML',hx-params=${hxParams}">
         <button type="button" class="button button--secondary password-field__toggle" th:attr="aria-controls=${id}" hidden>Show<span class="visually-hidden" th:text="| ${suffix}|"></span></button>
     </div>
     <p class="visually-hidden password-field__status" aria-live="polite"></p>
