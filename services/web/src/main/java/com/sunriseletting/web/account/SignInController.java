@@ -79,6 +79,8 @@ public class SignInController {
             signInService.signIn(signedIn.accountId(), signedIn.role(), request, response);
             if (values.rememberMe()) {
                 rememberMeLogin.remember(new SessionPrincipal(signedIn.accountId(), signedIn.role()), request, response);
+            } else {
+                rememberMeLogin.forget(request, response);
             }
             return new ModelAndView(redirect(SignInDestinations.forVisitor(returnTo), HttpStatus.SEE_OTHER));
         }

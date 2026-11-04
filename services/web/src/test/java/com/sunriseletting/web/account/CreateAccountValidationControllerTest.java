@@ -10,8 +10,10 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import com.sunriseletting.web.identity.AccountField;
 import com.sunriseletting.web.identity.FieldValidationResult;
 import com.sunriseletting.web.identity.IdentityClient;
+import com.sunriseletting.web.security.RememberMeLogin;
 import com.sunriseletting.web.security.SecurityConfiguration;
 import com.sunriseletting.web.testsupport.Html;
+import com.sunriseletting.web.testsupport.RecordingExchangeGate;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
@@ -33,7 +35,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @WebMvcTest({ CreateAccountController.class, CreateAccountValidationController.class })
 @Import({ SecurityConfiguration.class, IdentityErrorMessages.class, CreateAccountExpiredFormResponder.class,
-        CreateAccountValidationExpiredFormResponder.class })
+        CreateAccountValidationExpiredFormResponder.class, RememberMeLogin.class, RecordingExchangeGate.class })
 class CreateAccountValidationControllerTest {
 
     private static final String SECRET = "Sup3r-Secret-Pa55!";

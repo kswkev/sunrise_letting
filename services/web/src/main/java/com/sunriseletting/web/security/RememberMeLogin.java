@@ -46,14 +46,29 @@ public class RememberMeLogin implements SignOutListener {
         this.gate = gate;
     }
 
-    /** After someone signed in with the box ticked. If no token can be had, they simply have an ordinary session. */
+    /**
+     * After someone signed in with the box ticked. If no token can be had, they simply have an ordinary session.
+     * Either way, a login the browser already held ends here.
+     */
     public void remember(SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
-        if (principal.role() != AccountRole.VISITOR) {
-            return;
-        }
-        if (identityClient.issueRememberMeToken(principal.accountId()) instanceof RememberMeTokenResult.Issued issued) {
+        if (principal.role() == AccountRole.VISITOR
+                && identityClient.issueRememberMeToken(principal.accountId()) instanceof RememberMeTokenResult.Issued issued) {
+            revokeSeriesOnCookie(request);
             writeCookie(response, issued.series(), issued.token(), issued.expiresAt());
             keepSession(request, issued.expiresAt());
+            return;
+        }
+        forget(request, response);
+    }
+
+    /**
+     * After someone signed in with no new login to remember: ends any login the browser still holds, which may be someone
+     * else's, kept through an outage. If identity is down the series stays valid until it expires, but the cookie still goes.
+     */
+    public void forget(HttpServletRequest request, HttpServletResponse response) {
+        if (hasCookie(request)) {
+            revokeSeriesOnCookie(request);
+            cookies.clear(response, COOKIE);
         }
     }
 
@@ -87,14 +102,16 @@ public class RememberMeLogin implements SignOutListener {
 
     @Override
     public void onSignOut(HttpServletRequest request, HttpServletResponse response) {
-        if (!hasCookie(request)) {
-            return;
+        forget(request, response);
+    }
+
+    private void revokeSeriesOnCookie(HttpServletRequest request) {
+        if (hasCookie(request)) {
+            Matcher value = parse(request);
+            if (value != null) {
+                identityClient.revokeRememberMeToken(value.group(1));
+            }
         }
-        Matcher value = parse(request);
-        if (value != null) {
-            identityClient.revokeRememberMeToken(value.group(1));
-        }
-        cookies.clear(response, COOKIE);
     }
 
     private Matcher parse(HttpServletRequest request) {

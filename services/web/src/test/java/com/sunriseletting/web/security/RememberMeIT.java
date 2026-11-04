@@ -268,6 +268,23 @@ class RememberMeIT {
         assertLastsAbout(Duration.ofHours(1), timeToLive(cookie), "Redis should drop the session when the login ends");
     }
 
+    @Test
+    void aStaleCookieCanNotSignASharedBrowserBackInAsTheEarlierAccount() throws Exception {
+        browser.setCookie("remember-me", series + "." + TOKEN);
+        when(identityClient.verifyRememberMeToken(series, TOKEN)).thenReturn(RememberMeVerifyResult.unavailable());
+
+        signInWithoutTheBox();
+
+        assertNull(browser.cookie("remember-me"), "signing in without the box should clear the earlier login");
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(series);
+        browser.removeCookie("SESSION");
+
+        HttpResponse<String> next = browser.get("/properties");
+
+        assertEquals(1, Jsoup.parse(next.body()).select("header a[href=/sign-in]").size(), "once the session has ended the browser is signed out");
+        verify(identityClient, times(1).description("only the attempt during the outage should have used the cookie")).verifyRememberMeToken(series, TOKEN);
+    }
+
     private void signInRemembered(Instant expiresAt) throws Exception {
         when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(series, TOKEN, expiresAt));

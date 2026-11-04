@@ -9,6 +9,7 @@ import com.sunriseletting.web.identity.CreateVisitorResult;
 import com.sunriseletting.web.identity.IdentityClient;
 import com.sunriseletting.web.properties.PropertiesController;
 import com.sunriseletting.web.security.AccountRole;
+import com.sunriseletting.web.security.RememberMeLogin;
 import com.sunriseletting.web.security.ReturnAddress;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.security.SignInDestinations;
@@ -42,11 +43,14 @@ public class CreateAccountController {
 
     private final SignInService signInService;
 
+    private final RememberMeLogin rememberMeLogin;
+
     private final IdentityErrorMessages errorMessages;
 
-    CreateAccountController(IdentityClient identityClient, SignInService signInService, IdentityErrorMessages errorMessages) {
+    CreateAccountController(IdentityClient identityClient, SignInService signInService, RememberMeLogin rememberMeLogin, IdentityErrorMessages errorMessages) {
         this.identityClient = identityClient;
         this.signInService = signInService;
+        this.rememberMeLogin = rememberMeLogin;
         this.errorMessages = errorMessages;
     }
 
@@ -73,6 +77,7 @@ public class CreateAccountController {
                 return unavailable(form, returnTo);
             }
             signInService.signIn(created.accountId(), AccountRole.VISITOR, request, response);
+            rememberMeLogin.forget(request, response);
             return redirectAfterSignUp(returnTo, redirectAttributes);
         }
         if (result instanceof CreateVisitorResult.ValidationFailed failed) {
