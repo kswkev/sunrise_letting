@@ -91,6 +91,8 @@ class CreateAccountInlineValidationIT {
         browser.find("#email").sendKeys("not-an-email");
         browser.sendKeys(Keys.TAB);
         browser.waitUntil("the email error to be swapped in", () -> !browser.driver().findElements(By.id("email-error")).isEmpty());
+        // First name's own check can still be on its way, and would swap the input out while the test reads it.
+        waitForRequests(browser, 3);
 
         assertEquals("Error: Enter an email address in the correct format, like name@example.com", browser.find("#email-error").getText().replaceAll("\\s+", " "),
                 "the field should show the message");
