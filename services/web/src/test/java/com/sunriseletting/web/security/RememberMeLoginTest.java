@@ -298,6 +298,20 @@ class RememberMeLoginTest {
     }
 
     @Test
+    void aPropertyManagerSigningInWithoutTheBoxClearsAnEarlierCookieAndRevokesItsSeries() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
+
+        MvcTestResult result = signIn().cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
+
+        assertThat(result).as("the Property Manager should be signed in").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(setCookie(result)).as("the earlier login's cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session keeps the Property Manager's time-out").isEqualTo(7200);
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(SERIES);
+        verify(identityClient, never().description("Remember me is ignored for Property Managers")).issueRememberMeToken(any());
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
     void aFailedSignInLeavesTheCookieAlone() {
         when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(AuthenticationResult.invalidCredentials());
 
@@ -342,6 +356,22 @@ class RememberMeLoginTest {
         assertThat(Html.page(result).select("header a[href=/sign-in]")).as("the request is signed out").hasSize(1);
         assertThat(setCookie(result)).as("the cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
         verify(identityClient, description("identity should have been asked")).verifyRememberMeToken(SERIES, TOKEN);
+    }
+
+    @Test
+    void aCookieThatVerifiesAsAPropertyManagerSignsNobodyInAndIsRevoked() {
+        when(identityClient.verifyRememberMeToken(SERIES, TOKEN))
+                .thenReturn(new RememberMeVerifyResult.Verified("account-2", AccountRole.PROPERTY_MANAGER, NEW_TOKEN, Instant.now().plus(Duration.ofDays(10))));
+
+        MvcTestResult result = page().exchange();
+
+        assertThat(result).as("the page still loads").hasStatusOk();
+        assertThat(Html.page(result).select("header a[href=/sign-in]")).as("Property Managers must sign in every time").hasSize(1);
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session == null || session.getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE) == null).as("there's no long interval to keep").isTrue();
+        assertThat(setCookie(result)).as("the cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        verify(identityClient, description("identity should have been asked")).verifyRememberMeToken(SERIES, TOKEN);
+        verify(identityClient, description("the login should end")).revokeRememberMeToken(SERIES);
     }
 
     @ParameterizedTest
