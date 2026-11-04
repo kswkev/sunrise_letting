@@ -136,6 +136,75 @@ class RememberMeLoginTest {
         verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
     }
 
+    @Test
+    void signingInWithTheBoxTickedKeepsTheSessionForTheLifeOfTheLogin() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, Instant.now().plus(Duration.ofDays(30))));
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat((long) result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session shouldn't idle out before the login ends")
+                .isCloseTo(Duration.ofDays(30).toSeconds(), within(60L));
+        verify(identityClient, description("identity should issue the token")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aSessionIsNeverKeptPastTheEndOfTheLogin() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, Instant.now().plus(Duration.ofMinutes(10))));
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat((long) result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session should end with the login")
+                .isCloseTo(Duration.ofMinutes(10).toSeconds(), within(60L));
+        verify(identityClient, description("identity should issue the token")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void signingInWithoutTheBoxKeepsTheOrdinaryTimeOut() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+
+        MvcTestResult result = signIn().with(csrf()).exchange();
+
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("other sessions don't get longer").isEqualTo(1800);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void whenNoTokenCanBeIssuedTheSessionKeepsTheOrdinaryTimeOut() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(RememberMeTokenResult.unavailable());
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("with no login there's nothing to keep the session for").isEqualTo(1800);
+        verify(identityClient, description("identity should have been asked")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aPropertyManagerTickingTheBoxKeepsTheOrdinaryTimeOut() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER));
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("Remember me is ignored for Property Managers").isEqualTo(1800);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void exchangingTheCookieKeepsTheSessionForWhatIsLeftOfTheLogin() {
+        when(identityClient.verifyRememberMeToken(SERIES, TOKEN))
+                .thenReturn(new RememberMeVerifyResult.Verified("account-1", AccountRole.VISITOR, NEW_TOKEN, Instant.now().plus(Duration.ofDays(10))));
+
+        MvcTestResult result = page().exchange();
+
+        assertThat((long) result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session should last as long as the login has left, not a fresh 30 days")
+                .isCloseTo(Duration.ofDays(10).toSeconds(), within(60L));
+        verify(identityClient, description("the cookie should be verified")).verifyRememberMeToken(SERIES, TOKEN);
+    }
     // Coming back with only the cookie
 
     @Test
