@@ -22,6 +22,7 @@
     <!-- One module per domain service, e.g. <module>services/properties</module>. -->
     <modules>
         <module>services/web</module>
+        <module>services/identity</module>
     </modules>
 
     <properties>
@@ -35,6 +36,12 @@
                 <groupId>org.webjars.npm</groupId>
                 <artifactId>htmx.org</artifactId>
                 <version>2.0.11</version>
+            </dependency>
+            <!-- Parses rendered HTML in page and fragment tests. -->
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>1.24.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

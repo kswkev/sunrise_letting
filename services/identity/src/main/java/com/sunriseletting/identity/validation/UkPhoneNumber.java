@@ -1,0 +1,37 @@
+package com.sunriseletting.identity.validation;
+
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Recognises UK mobile, landline and 03 numbers, written with a leading 0 or with +44, and normalises them to E.164.
+ */
+public final class UkPhoneNumber {
+
+    private static final Pattern ALLOWED_CHARACTERS = Pattern.compile("\\+?[0-9 ]*");
+
+    /**
+     * After the 0 or +44: mobiles are 07 (except 070 personal numbers and 076 pagers, but including 07624),
+     * landlines are 01 or 02, plus the UK-wide 03 range. A few 01 numbers have one digit fewer than the rest.
+     * Freephone 0800 is rejected on purpose.
+     */
+    private static final Pattern UK_NUMBER =
+            Pattern.compile("(?:0|\\+44)(7[1-57-9][0-9]{8}|7624[0-9]{6}|1[0-9]{8,9}|2[0-9]{9}|3[0-9]{9})");
+
+    private UkPhoneNumber() {
+    }
+
+    /** Whether the value, after trimming, has only digits, spaces and an optional leading +. */
+    public static boolean hasOnlyAllowedCharacters(String input) {
+        return input != null && ALLOWED_CHARACTERS.matcher(input.strip()).matches();
+    }
+
+    public static Optional<String> toE164(String input) {
+        if (!hasOnlyAllowedCharacters(input)) {
+            return Optional.empty();
+        }
+        Matcher number = UK_NUMBER.matcher(input.strip().replace(" ", ""));
+        return number.matches() ? Optional.of("+44" + number.group(1)) : Optional.empty();
+    }
+}

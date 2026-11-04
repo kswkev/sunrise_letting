@@ -10,18 +10,26 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
- * Starts the whole web application on a real port, with no data store or domain service,
- * and checks what a browser would load.
+ * Starts the whole web application on a real port, with Redis for sessions but no domain data store
+ * or domain service, and checks what a browser would load.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@Import(TestcontainersConfiguration.class)
 class WebApplicationIT {
 
     private final HttpClient client = HttpClient.newHttpClient();
+
+    @Autowired
+    private ApplicationContext context;
 
     @LocalServerPort
     private int port;
@@ -43,6 +51,12 @@ class WebApplicationIT {
 
         assertEquals(200, response.statusCode(), "HTMX script URL used by the layout should be served from the WebJar");
         assertTrue(response.body().contains("htmx"), "HTMX script URL should return the HTMX library");
+    }
+
+    @Test
+    void thereIsNoGeneratedUserAccount() {
+        assertEquals(0, context.getBeanNamesForType(UserDetailsService.class).length,
+                "accounts live in identity, so Spring Security shouldn't generate a user and log its password");
     }
 
     private HttpResponse<String> get(String path) throws IOException, InterruptedException {

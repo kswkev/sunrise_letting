@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en-GB" xmlns:th="http://www.thymeleaf.org">
+<head><title>Form components fixture</title></head>
+<body>
+<div th:replace="~{fragments/form :: field(id='neutral', name='neutralName', label='Neutral', type='text', value='  Typed As Is ', autocomplete='given-name', spellcheck='false')}"></div>
+<div th:replace="~{fragments/form :: field(id='hinted', name='hinted', label='Hinted', type='tel', hint='A hint', autocomplete='tel')}"></div>
+<div th:replace="~{fragments/form :: field(id='wrong', name='wrong', label='Wrong', type='email', value='<bad>', hint='A hint', error='Enter it properly', autocomplete='email', spellcheck='false', autocapitalize='none')}"></div>
+<div th:replace="~{fragments/form :: field(id='live', name='liveName', label='Live', type='text', hxPost='/validate/live', hxParams='liveName,_csrf')}"></div>
+<div th:replace="~{fragments/form :: select(id='choice', name='choice', label='Choice', value='B', placeholder='Pick one', options=${ {'A','B'} }, autocomplete='honorific-prefix')}"></div>
+<div th:replace="~{fragments/form :: select(id='choice-wrong', name='choiceWrong', label='Choice wrong', placeholder='Pick one', options=${ {'A','B'} }, error='Pick a choice', hxPost='/validate/choice', hxParams='choiceWrong,_csrf')}"></div>
+
+<div th:replace="~{fragments/form :: password(id='secret', name='secret', label='Secret', suffix='secret', hint='A secret hint', autocomplete='new-password')}"></div>
+<div th:replace="~{fragments/form :: password(id='secret-wrong', name='secretWrong', label='Secret wrong', suffix='secret wrong', error='Bad secret', autocomplete='current-password', hxPost='/validate/secret', hxParams='secret,secretWrong,_csrf')}"></div>
+
+<div th:replace="~{fragments/form :: errorSummaryList(${summaryErrors})}"></div>
+<div th:replace="~{fragments/form :: errorSummaryForm(message='Plain message.')}"></div>
+<div th:replace="~{fragments/form :: errorSummaryForm(message='Before the link,', linkText='follow it', linkHref='/somewhere', messageEnd='.')}"></div>
+
+<div th:replace="~{fragments/notification-banner :: success(heading='It worked')}"></div>
+</body>
+</html>

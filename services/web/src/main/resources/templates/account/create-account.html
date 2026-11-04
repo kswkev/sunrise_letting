@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main/content()}, ~{::script}, 'create-account')}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${hasErrors} ? 'Error: Create an account - Sunrise Letting' : 'Create an account - Sunrise Letting'">Create an account - Sunrise Letting</title>
+    <script src="/js/password-toggle.js" defer></script>
+</head>
+<body>
+<main>
+    <div class="form-column" th:with="signInHref=${returnTo != null} ? @{/sign-in(returnTo=${returnTo})} : @{/sign-in}">
+        <th:block th:if="${!summaryErrors.isEmpty()}"><div th:replace="~{fragments/form :: errorSummaryList(${summaryErrors})}"></div></th:block>
+        <th:block th:if="${formError == 'duplicate'}"><div th:replace="~{fragments/form :: errorSummaryForm(message=#{create-account.error.duplicate}, linkText=#{create-account.error.duplicate.link}, linkHref=${signInHref}, messageEnd=#{create-account.error.duplicate.end})}"></div></th:block>
+        <th:block th:if="${formError == 'unavailable'}"><div th:replace="~{fragments/form :: errorSummaryForm(message=#{create-account.error.unavailable})}"></div></th:block>
+        <th:block th:if="${formError == 'expired'}"><div th:replace="~{fragments/form :: errorSummaryForm(message=#{create-account.error.expired})}"></div></th:block>
+        <h1>Create an account</h1>
+        <p>You need an account to request a viewing or apply for a property.</p>
+        <p>Already have an account? <a th:href="${signInHref}">Sign in</a></p>
+        <form id="create-account-form" method="post" th:action="@{/create-account}" novalidate>
+            <input th:if="${returnTo != null}" type="hidden" name="returnTo" th:value="${returnTo}">
+            <th:block th:replace="~{account/create-account-fields :: field-title}"></th:block>
+            <th:block th:replace="~{account/create-account-fields :: field-title-other}"></th:block>
+            <th:block th:replace="~{account/create-account-fields :: field-first-name}"></th:block>
+            <th:block th:replace="~{account/create-account-fields :: field-surname}"></th:block>
+            <th:block th:replace="~{account/create-account-fields :: field-email}"></th:block>
+            <th:block th:replace="~{account/create-account-fields :: field-phone}"></th:block>
+            <th:block th:replace="~{account/create-account-fields :: field-password}"></th:block>
+            <th:block th:replace="~{account/create-account-fields :: field-confirm-password}"></th:block>
+            <button type="submit" class="button">Create account</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

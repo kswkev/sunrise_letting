@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html th:replace="~{layout :: layout(~{::title}, ~{::main/content()}, ~{::script}, '')}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Fixture - Sunrise Letting</title>
+    <script src="/js/fixtures/browser-setup.js" defer></script>
+</head>
+<body>
+<main>
+    <h1 id="fixture-target">Fixture</h1>
+    <button id="load-error" type="button" hx-get="/fixtures/browser-setup/server-error" hx-target="#error-target">Load an error</button>
+    <div id="error-target"></div>
+    <button id="load-nothing" type="button" hx-get="/fixtures/browser-setup/no-content" hx-target="#nothing-target">Load nothing</button>
+    <div id="nothing-target">Unchanged</div>
+</main>
+</body>
+</html>

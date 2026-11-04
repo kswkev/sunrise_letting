@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: web
+  # Accounts live in identity, so Spring Security shouldn't generate a user and log its password.
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+  mvc:
+    log-request-details: false
+  # Redis comes from compose.yaml on local runs. In the cluster, set the environment variables
+  # SPRING_DATA_REDIS_HOST, SPRING_DATA_REDIS_PORT and SPRING_DATA_REDIS_PASSWORD.
+  session:
+    timeout: 30m
+    data:
+      redis:
+        namespace: sunrise:web:sessions
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        # Browsers treat http://localhost as secure, so this works on a local run too.
+        secure: true
+        same-site: lax
+        path: /
+
+# identity's port on a developer's machine. In the cluster, set the environment variable IDENTITY_BASEURL.
+identity:
+  base-url: http://localhost:8081
+  connect-timeout: 2s
+  read-timeout: 5s
+
+# Request bodies carry passwords. These loggers can print them at debug level, so they stay
+# at INFO even if a wider package such as org.springframework.web is turned up for debugging.
+# The resolver logs at WARN the parse error for a malformed body, which can quote part of the body.
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: INFO
+    org.springframework.web.servlet.mvc.method.annotation: INFO
+    org.springframework.http.converter: INFO
+    org.springframework.web.client: INFO
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: ERROR

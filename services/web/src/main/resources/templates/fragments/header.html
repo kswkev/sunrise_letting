@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Site header (design-system.md 3.1). section is the current nav item: 'properties', 'sign-in',
+       'create-account', or '' when the page isn't one of them. These are the signed-out items, with
+       no returnTo on the links. The signed-in items come with #2 and #3. */-->
+<header class="site-header" th:fragment="header(section)">
+    <div class="container site-header__inner">
+        <a class="site-header__name" href="/">Sunrise <span class="site-header__accent">Letting</span></a>
+        <nav aria-label="Main">
+            <ul class="site-nav">
+                <li><a href="/properties" th:attr="aria-current=${section == 'properties'} ? 'page'">Properties to let</a></li>
+                <li><a href="/sign-in" th:attr="aria-current=${section == 'sign-in'} ? 'page'">Sign in</a></li>
+                <li><a href="/create-account" th:attr="aria-current=${section == 'create-account'} ? 'page'">Create account</a></li>
+            </ul>
+        </nav>
+    </div>
+    <!--/* The Property Manager band (design-system.md 4.19) goes here, inside the header, when #3 builds it. */-->
+</header>
+</body>
+</html>
