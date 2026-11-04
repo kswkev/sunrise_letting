@@ -283,9 +283,11 @@ class CreateAccountInlineValidationIT {
         browser.open("/create-account");
 
         browser.find("#create-account-form button[type=submit]").click();
-        browser.waitUntil("the error summary to show", () -> !browser.driver().findElements(By.cssSelector(".error-summary")).isEmpty());
 
-        assertEquals("error-summary", browser.focused().getDomAttribute("class"), "focus should go to the error summary");
+        // The browser applies autofocus at its next rendering step, a moment after the element exists, so wait for the focus itself.
+        browser.waitUntil("focus to go to the error summary",
+                () -> "error-summary".equals(browser.script("return document.activeElement.className")));
+
         verify(identityClient, description("identity should check the form as submitted, with every field empty"))
                 .createVisitor(new CreateVisitorRequest("", "", "", "", "", "", "", ""));
     }
