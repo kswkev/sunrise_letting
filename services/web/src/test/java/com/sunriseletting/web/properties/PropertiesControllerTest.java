@@ -1,8 +1,13 @@
 package com.sunriseletting.web.properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
+import java.util.List;
+
+import com.sunriseletting.web.security.AccountRole;
 import com.sunriseletting.web.security.SecurityConfiguration;
+import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.testsupport.Html;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -10,6 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
@@ -42,6 +50,32 @@ class PropertiesControllerTest {
     }
 
     @Test
+    void signedOutHeaderHasTheThreeSignedOutItems() {
+        Document page = Html.page(mvc.get().uri("/properties").exchange());
+
+        assertThat(page.select("header nav li").eachText()).as("the signed-out items, in order")
+                .containsExactly("Properties to let", "Sign in", "Create account");
+        assertThat(page.select("form.sign-out")).as("no Sign out when signed out").isEmpty();
+    }
+
+    @Test
+    void signedInHeaderHasPropertiesToLetAndTheSignOutForm() {
+        MvcTestResult result = mvc.get().uri("/properties").with(authentication(visitor())).exchange();
+
+        assertThat(result).as("the page should load").hasStatusOk();
+        Document page = Html.page(result);
+        assertThat(page.select("header nav li").eachText()).as("the Visitor's items, in order").containsExactly("Properties to let", "Sign out");
+        assertThat(page.select("header nav a[aria-current=page]").eachText()).as("the current page is still marked").containsExactly("Properties to let");
+        Element form = page.selectFirst("header nav li:last-child form.sign-out");
+        assertThat(form.attr("method")).as("sign out is a POST").isEqualToIgnoringCase("post");
+        assertThat(form.attr("action")).as("sign out posts to its endpoint").isEqualTo("/sign-out");
+        assertThat(form.select("input[type=hidden][name=_csrf]").attr("value")).as("the form carries a CSRF token").isNotBlank();
+        assertThat(form.select("button[type=submit].sign-out__button").text()).as("the button's text").isEqualTo("Sign out");
+        assertThat(page.select("a[href=/sign-in]")).as("Sign in isn't rendered at all").isEmpty();
+        assertThat(page.select("a[href=/create-account]")).as("Create account isn't rendered at all").isEmpty();
+    }
+
+    @Test
     void flashShowsTheSuccessBannerAboveTheHeading() {
         MvcTestResult result = mvc.get().uri("/properties").flashAttr(PropertiesController.ACCOUNT_CREATED, true).exchange();
 
@@ -62,5 +96,10 @@ class PropertiesControllerTest {
 
         assertThat(second).as("the page should load").hasStatusOk();
         assertThat(Html.page(second).select(".notification-banner")).as("the banner should be shown only once").isEmpty();
+    }
+
+    private Authentication visitor() {
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+                List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 }

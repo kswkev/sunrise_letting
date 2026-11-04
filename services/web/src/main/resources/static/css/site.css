@@ -196,6 +196,22 @@ main:focus {
     font-weight: bold;
 }
 
+/* Sign-out button (4.18): looks like the other header links. */
+.sign-out {
+    margin: 0;
+}
+
+.sign-out__button {
+    min-height: 1.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--colour-link-on-dark);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 /* Footer (3.1) */
 .site-footer {
     background: var(--colour-dark);
@@ -373,4 +389,76 @@ button:focus {
     background: var(--colour-success);
     color: #ffffff;
     font-size: var(--text-h3);
+}
+
+.notification-banner--info {
+    border-color: var(--colour-link);
+}
+
+.notification-banner--info .notification-banner__heading {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    background: var(--colour-link);
+    color: #ffffff;
+    font-size: var(--text-h3);
+}
+
+/* Time-out warning dialog (4.20): scrolls inside itself at 400% zoom rather than being cut off. */
+.timeout-dialog {
+    width: calc(100% - 2 * var(--space-3));
+    max-width: 30rem;
+    max-height: calc(100vh - 2 * var(--space-3));
+    overflow: auto;
+    padding: var(--space-4);
+    border: 4px solid var(--colour-dark);
+    background: var(--colour-bg);
+    color: var(--colour-text);
+}
+
+.timeout-dialog::backdrop {
+    background: rgba(29, 29, 27, 0.7);
+}
+
+.timeout-dialog__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.timeout-dialog__actions .button {
+    width: 100%;
+}
+
+@media (min-width: 40em) {
+    .timeout-dialog__actions {
+        flex-direction: row;
+    }
+
+    .timeout-dialog__actions .button {
+        width: auto;
+    }
+}
+
+/* Single checkbox (4.10): the hint lines up with the label text. */
+.checkbox {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    column-gap: var(--space-2);
+    align-items: center;
+}
+
+.checkbox__input {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+}
+
+.checkbox__label {
+    font-family: var(--font-ui);
+}
+
+.checkbox__hint {
+    grid-column: 2;
+    margin-top: var(--space-1);
+    margin-bottom: 0;
 }

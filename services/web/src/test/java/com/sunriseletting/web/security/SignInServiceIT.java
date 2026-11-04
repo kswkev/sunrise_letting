@@ -61,6 +61,19 @@ class SignInServiceIT {
             return "ok";
         }
 
+        @GetMapping("/fixture/remembered-session")
+        String rememberedSession(HttpSession session) {
+            session.setAttribute(RememberMeLogin.SESSION_ATTRIBUTE, Boolean.TRUE);
+            session.setAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE, "2099-01-01T00:00:00Z");
+            return "ok";
+        }
+
+        @GetMapping("/fixture/remembered-attributes")
+        String rememberedAttributes(HttpSession session) {
+            return session.getAttribute(RememberMeLogin.SESSION_ATTRIBUTE) + "|" + session.getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE)
+                    + "|" + session.getMaxInactiveInterval();
+        }
+
         @GetMapping("/fixture/sign-in")
         String signIn(HttpServletRequest request, HttpServletResponse response) {
             signInService.signIn("account-1", AccountRole.VISITOR, request, response);
@@ -131,6 +144,15 @@ class SignInServiceIT {
     }
 
     @Test
+    void whatAnEarlierRememberedLoginLeftIsGoneWhenTheSessionIsReadBackFromRedis() throws Exception {
+        String oldCookie = cookie(get(port, "/fixture/remembered-session", null));
+        String cookie = cookie(get(port, "/fixture/sign-in", oldCookie));
+
+        assertEquals("null|null|1800", get(port, "/fixture/remembered-attributes", cookie).body(),
+                "the next request should see an ordinary session, not the earlier login's flag, expiry or long life");
+    }
+
+    @Test
     void anotherReplicaSeesTheSamePrincipal() throws Exception {
         String cookie = cookie(get(port, "/fixture/sign-in", null));
 
@@ -162,7 +184,7 @@ class SignInServiceIT {
     }
 
     private String cookie(HttpResponse<String> response) {
-        String setCookie = response.headers().firstValue("Set-Cookie").orElse(null);
+        String setCookie = response.headers().allValues("Set-Cookie").stream().filter(header -> header.startsWith("SESSION=")).findFirst().orElse(null);
         assertNotNull(setCookie, "the response should set the session cookie");
         return setCookie.substring("SESSION=".length(), setCookie.indexOf(';'));
     }

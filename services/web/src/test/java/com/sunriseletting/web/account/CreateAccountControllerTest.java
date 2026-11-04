@@ -20,9 +20,12 @@ import com.sunriseletting.web.identity.CreateVisitorResult;
 import com.sunriseletting.web.identity.IdentityClient;
 import com.sunriseletting.web.properties.PropertiesController;
 import com.sunriseletting.web.security.AccountRole;
+import com.sunriseletting.web.security.RememberMeLogin;
 import com.sunriseletting.web.security.SecurityConfiguration;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.testsupport.Html;
+import com.sunriseletting.web.testsupport.RecordingExchangeGate;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -47,7 +50,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 import org.springframework.validation.BindingResult;
 
 @WebMvcTest(CreateAccountController.class)
-@Import({ SecurityConfiguration.class, IdentityErrorMessages.class, CreateAccountExpiredFormResponder.class })
+@Import({ SecurityConfiguration.class, IdentityErrorMessages.class, CreateAccountExpiredFormResponder.class, RememberMeLogin.class, RecordingExchangeGate.class })
 class CreateAccountControllerTest {
 
     private static final String SECRET = "Sup3r-Secret-Pa55!";
@@ -212,6 +215,31 @@ class CreateAccountControllerTest {
     }
 
     // POST: created
+
+    @Test
+    void signingUpOverAnEarlierLoginsCookieClearsItAndRevokesItsSeries() {
+        String series = "A".repeat(22);
+        when(identityClient.createVisitor(any())).thenReturn(CREATED);
+
+        MvcTestResult result = submit(validForm()).cookie(new Cookie("remember-me", series + "." + "B".repeat(43))).with(csrf()).exchange();
+
+        assertThat(result).as("success should answer See Other").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(result.getResponse().getHeaders("Set-Cookie")).as("the cookie would otherwise sign the browser in as the earlier account")
+                .anyMatch(header -> header.startsWith("remember-me=;") && header.contains("Max-Age=0"));
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(series);
+        verify(identityClient, description("identity should create the account")).createVisitor(VALID_REQUEST);
+    }
+
+    @Test
+    void signingUpWithNoCookieRevokesNothing() {
+        when(identityClient.createVisitor(any())).thenReturn(CREATED);
+
+        MvcTestResult result = submit(validForm()).with(csrf()).exchange();
+
+        assertThat(result.getResponse().getHeaders("Set-Cookie")).as("there's nothing to clear").noneMatch(header -> header.startsWith("remember-me="));
+        verify(identityClient, never().description("there's no series to revoke")).revokeRememberMeToken(any());
+        verify(identityClient, description("identity should create the account")).createVisitor(VALID_REQUEST);
+    }
 
     @Test
     void validDetailsWithAReturnAddressSignInAndGoBackToIt() {

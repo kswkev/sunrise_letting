@@ -36,7 +36,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
         </dependency>
-        <!-- HTTP sessions in Redis, so web can run as several replicas. Redis holds sessions only. -->
+        <!-- HTTP sessions in Redis, so web can run as several replicas. Redis holds sessions and the remember-me exchange gate. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-session-data-redis</artifactId>

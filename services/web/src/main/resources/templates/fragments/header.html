@@ -2,16 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <!--/* Site header (design-system.md 3.1). section is the current nav item: 'properties', 'sign-in',
-       'create-account', or '' when the page isn't one of them. These are the signed-out items, with
-       no returnTo on the links. The signed-in items come with #2 and #3. */-->
+       'create-account', or '' when the page isn't one of them. signedInUser comes from SignedInUserFilter.
+       The signed-out items have no returnTo on the links. The Property Manager items come with #3. */-->
 <header class="site-header" th:fragment="header(section)">
     <div class="container site-header__inner">
         <a class="site-header__name" href="/">Sunrise <span class="site-header__accent">Letting</span></a>
         <nav aria-label="Main">
             <ul class="site-nav">
                 <li><a href="/properties" th:attr="aria-current=${section == 'properties'} ? 'page'">Properties to let</a></li>
-                <li><a href="/sign-in" th:attr="aria-current=${section == 'sign-in'} ? 'page'">Sign in</a></li>
-                <li><a href="/create-account" th:attr="aria-current=${section == 'create-account'} ? 'page'">Create account</a></li>
+                <th:block th:if="${signedInUser == null}">
+                    <li><a href="/sign-in" th:attr="aria-current=${section == 'sign-in'} ? 'page'">Sign in</a></li>
+                    <li><a href="/create-account" th:attr="aria-current=${section == 'create-account'} ? 'page'">Create account</a></li>
+                </th:block>
+                <li th:if="${signedInUser != null}">
+                    <form class="sign-out" method="post" th:action="@{/sign-out}"><button type="submit" class="sign-out__button">Sign out</button></form>
+                </li>
             </ul>
         </nav>
     </div>

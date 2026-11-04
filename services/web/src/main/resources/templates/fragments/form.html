@@ -53,6 +53,14 @@
     <p class="visually-hidden password-field__status" aria-live="polite"></p>
 </div>
 
+<!--/* Single checkbox, with an optional hint (4.10). Arguments: id, name, label, hint, checked. */-->
+<div th:fragment="checkbox" class="form-group checkbox">
+    <input type="checkbox" class="checkbox__input" th:id="${id}" th:name="${name}" value="on" th:checked="${checked}"
+           th:attr="aria-describedby=${hint != null} ? |${id}-hint|">
+    <label class="checkbox__label" th:for="${id}" th:text="${label}"></label>
+    <p class="hint checkbox__hint" th:if="${hint != null}" th:id="|${id}-hint|" th:text="${hint}"></p>
+</div>
+
 <!--/* Error summary, list variant (4.13). errors is a list of SummaryError, one per field, in field order. */-->
 <div th:fragment="errorSummaryList(errors)" class="error-summary" tabindex="-1" autofocus aria-labelledby="error-summary-title">
     <h2 id="error-summary-title">There is a problem</h2>

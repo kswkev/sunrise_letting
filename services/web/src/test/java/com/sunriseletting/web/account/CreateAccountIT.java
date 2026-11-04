@@ -185,7 +185,7 @@ class CreateAccountIT {
     }
 
     private String cookie(HttpResponse<String> response) {
-        String setCookie = response.headers().firstValue("Set-Cookie").orElse(null);
+        String setCookie = response.headers().allValues("Set-Cookie").stream().filter(header -> header.startsWith("SESSION=")).findFirst().orElse(null);
         return setCookie == null ? null : setCookie.substring("SESSION=".length(), setCookie.indexOf(';'));
     }
 

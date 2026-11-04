@@ -5,5 +5,10 @@
 <div th:fragment="success" class="notification-banner notification-banner--success" role="status" tabindex="-1" autofocus>
     <h2 class="notification-banner__heading" th:text="${heading}"></h2>
 </div>
+
+<!--/* Notification banner, information variant (4.14). Arguments: heading, and focus, which is false when an error summary has autofocus instead. */-->
+<div th:fragment="info" class="notification-banner notification-banner--info" role="status" tabindex="-1" th:autofocus="${focus}">
+    <h2 class="notification-banner__heading" th:text="${heading}"></h2>
+</div>
 </body>
 </html>

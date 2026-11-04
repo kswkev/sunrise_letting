@@ -17,5 +17,10 @@
 <div th:replace="~{fragments/form :: errorSummaryForm(message='Before the link,', linkText='follow it', linkHref='/somewhere', messageEnd='.')}"></div>
 
 <div th:replace="~{fragments/notification-banner :: success(heading='It worked')}"></div>
+<div id="info-focused"><div th:replace="~{fragments/notification-banner :: info(heading='Just so you know', focus=true)}"></div></div>
+<div id="info-unfocused"><div th:replace="~{fragments/notification-banner :: info(heading='Just so you know', focus=false)}"></div></div>
+
+<div th:replace="~{fragments/form :: checkbox(id='plain-box', name='plainBox', label='Plain box', checked=false)}"></div>
+<div th:replace="~{fragments/form :: checkbox(id='hinted-box', name='hintedBox', label='Hinted box', hint='A box hint', checked=true)}"></div>
 </body>
 </html>

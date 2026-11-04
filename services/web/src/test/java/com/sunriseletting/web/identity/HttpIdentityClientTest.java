@@ -1,5 +1,6 @@
 package com.sunriseletting.web.identity;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
@@ -10,16 +11,19 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.sunriseletting.web.security.AccountRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -210,6 +214,286 @@ class HttpIdentityClientTest {
                 .andRespond(withException(new IOException("Connection refused")));
 
         assertEquals(CreateVisitorResult.unavailable(), client.createVisitor(REQUEST), "a connection error is the server-error state");
+    }
+
+    @Test
+    void authenticateSendsTheDetailsAsTypedAndReturnsTheAccount() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("{\"email\":\" Jo@Example.com \",\"password\":\"%s\"}".formatted(SECRET), JsonCompareMode.STRICT))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\"}", MediaType.APPLICATION_JSON));
+
+        AuthenticationResult result = client.authenticate(" Jo@Example.com ", SECRET);
+
+        assertEquals(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR), result, "a 200 should give the account's id and role");
+        server.verify();
+    }
+
+    @Test
+    void authenticateAcceptsAPropertyManager() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER), client.authenticate("pm@example.com", SECRET),
+                "identity can answer with a Property Manager on this shared page");
+    }
+
+    @Test
+    void authenticateIsUnavailableForARoleOutsideTheContract() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"ADMIN\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "an unknown role is outside the contract");
+    }
+
+    @Test
+    void authenticateIsUnavailableWhenTheAccountIsMissingFromA200() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"role\":\"VISITOR\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "a 200 with no account is outside the contract");
+    }
+
+    @Test
+    void authenticateReturnsTheFieldCodesOn400() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"errors\":{\"email\":\"EMAIL_REQUIRED\",\"password\":\"PASSWORD_REQUIRED\"}}"));
+
+        assertEquals(new AuthenticationResult.FieldErrors(Map.of("email", "EMAIL_REQUIRED", "password", "PASSWORD_REQUIRED")),
+                client.authenticate("", ""), "a 400 should give the field codes");
+    }
+
+    @Test
+    void authenticateIsUnavailableOnA400WithoutFieldCodes() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body("{\"status\":400}"));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET),
+                "a 400 that names no field is Spring's default error");
+    }
+
+    @Test
+    void authenticateIsUnavailableForAFieldCodeOutsideTheContract() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"errors\":{\"email\":\"EMAIL_INVALID\"}}"));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "the sign-in page has no copy for any other code");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"errors\":{\"email\":null}}", "{\"errors\":{\"email\":\"EMAIL_REQUIRED\",\"password\":null}}" })
+    void authenticateIsUnavailableForANullFieldCode(String body) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(body));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "a field with no code is outside the contract");
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "null", "\"\"", "\"visitor\"", "\"ADMIN\"", "1", "{\"a\":1}", "[\"VISITOR\"]" })
+    void authenticateIsUnavailableForAnyRoleOutsideTheContract(String role) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":" + role + "}", MediaType.APPLICATION_JSON));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "the role can't be turned into an AccountRole: " + role);
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"errors\":[\"EMAIL_REQUIRED\"]}", "{\"errors\":{\"email\":{\"a\":1}}}", "{\"errors\":\"EMAIL_REQUIRED\"}", "not json" })
+    void authenticateIsUnavailableForA400ThatCantBeRead(String body) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(body));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "the field errors can't be read: " + body);
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "null", "\"\"", "\"visitor\"", "\"ADMIN\"", "1", "{\"a\":1}", "[\"VISITOR\"]" })
+    void verifyRememberMeTokenIsUnavailableForAnyRoleOutsideTheContract(String role) {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":" + role + ",\"token\":\"t2\",\"expiresAt\":\"2026-12-03T10:15:30Z\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(RememberMeVerifyResult.unavailable(), client.verifyRememberMeToken("s1", "t1"), "the role can't be turned into an AccountRole: " + role);
+        server.verify();
+    }
+
+    @Test
+    void verifyRememberMeTokenIsUnavailableOnABadDate() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\",\"token\":\"t2\",\"expiresAt\":\"soon\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(RememberMeVerifyResult.unavailable(), client.verifyRememberMeToken("s1", "t1"), "a date that can't be read is outside the contract");
+        server.verify();
+    }
+
+    @Test
+    void authenticateReturnsInvalidCredentialsOn401() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"INVALID_CREDENTIALS\"}"));
+
+        assertEquals(AuthenticationResult.invalidCredentials(), client.authenticate("a@example.com", SECRET), "a 401 means wrong details");
+    }
+
+    @Test
+    void authenticateIsUnavailableOn500() {
+        server.expect(requestTo(BASE_URL + "/api/authentications")).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "a 500 is the server-error state");
+    }
+
+    @Test
+    void authenticateIsUnavailableOnAConnectionError() {
+        server.expect(requestTo(BASE_URL + "/api/authentications")).andRespond(withException(new IOException("Connection refused")));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "a connection error is the server-error state");
+    }
+
+    @Test
+    void passwordIsNotLoggedWhenAuthenticating(CapturedOutput output) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body(SECRET));
+
+        client.authenticate("a@example.com", SECRET);
+
+        assertFalse(output.getAll().contains(SECRET), "the password should never be logged");
+    }
+
+    @Test
+    void issueRememberMeTokenSendsTheAccountAndReturnsTheToken() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("{\"accountId\":\"account-1\"}", JsonCompareMode.STRICT))
+                .andRespond(withStatus(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"series\":\"s1\",\"token\":\"t1\",\"expiresAt\":\"2026-12-03T10:15:30Z\"}"));
+
+        RememberMeTokenResult result = client.issueRememberMeToken("account-1");
+
+        assertEquals(new RememberMeTokenResult.Issued("s1", "t1", Instant.parse("2026-12-03T10:15:30Z")), result, "a 201 should give the token");
+        server.verify();
+    }
+
+    @Test
+    void issueRememberMeTokenIsNotAllowedOn422() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens"))
+                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_CONTENT).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"REMEMBER_ME_NOT_ALLOWED\"}"));
+
+        assertEquals(RememberMeTokenResult.notAllowed(), client.issueRememberMeToken("account-1"), "a 422 means no token for this account");
+    }
+
+    @Test
+    void issueRememberMeTokenIsUnavailableOutsideTheContract() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens"))
+                .andRespond(withStatus(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body("{\"series\":\"s1\"}"));
+
+        assertEquals(RememberMeTokenResult.unavailable(), client.issueRememberMeToken("account-1"), "a 201 with no token is outside the contract");
+    }
+
+    @Test
+    void issueRememberMeTokenIsUnavailableOnABadDate() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens"))
+                .andRespond(withStatus(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"series\":\"s1\",\"token\":\"t1\",\"expiresAt\":\"soon\"}"));
+
+        assertEquals(RememberMeTokenResult.unavailable(), client.issueRememberMeToken("account-1"), "a date that can't be read is outside the contract");
+    }
+
+    @Test
+    void issueRememberMeTokenIsUnavailableOnAConnectionError() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens")).andRespond(withException(new IOException("Connection refused")));
+
+        assertEquals(RememberMeTokenResult.unavailable(), client.issueRememberMeToken("account-1"), "a connection error means no token");
+    }
+
+    @Test
+    void verifyRememberMeTokenSendsTheCookieValuesAndReturnsTheNewToken() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("{\"series\":\"s1\",\"token\":\"t1\"}", JsonCompareMode.STRICT))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\",\"token\":\"t2\",\"expiresAt\":\"2026-12-03T10:15:30Z\"}",
+                        MediaType.APPLICATION_JSON));
+
+        RememberMeVerifyResult result = client.verifyRememberMeToken("s1", "t1");
+
+        assertEquals(new RememberMeVerifyResult.Verified("account-1", AccountRole.VISITOR, "t2", Instant.parse("2026-12-03T10:15:30Z")), result,
+                "a 200 should give the account and the new token");
+        server.verify();
+    }
+
+    @Test
+    void verifyRememberMeTokenIsInvalidOn401() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"INVALID_REMEMBER_ME_TOKEN\"}"));
+
+        assertEquals(RememberMeVerifyResult.invalid(), client.verifyRememberMeToken("s1", "t1"), "a 401 means the cookie is no good");
+    }
+
+    @Test
+    void verifyRememberMeTokenIsUnavailableOn500() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify")).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        assertEquals(RememberMeVerifyResult.unavailable(), client.verifyRememberMeToken("s1", "t1"), "a 500 isn't a verdict on the cookie");
+    }
+
+    @Test
+    void verifyRememberMeTokenIsUnavailableOutsideTheContract() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"ADMIN\",\"token\":\"t2\",\"expiresAt\":\"2026-12-03T10:15:30Z\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(RememberMeVerifyResult.unavailable(), client.verifyRememberMeToken("s1", "t1"), "an unknown role is outside the contract");
+    }
+
+    @Test
+    void verifyRememberMeTokenIsUnavailableOnAConnectionError() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify")).andRespond(withException(new IOException("Read timed out")));
+
+        assertEquals(RememberMeVerifyResult.unavailable(), client.verifyRememberMeToken("s1", "t1"), "a timeout isn't a verdict on the cookie");
+    }
+
+    @Test
+    void revokeRememberMeTokenDeletesTheSeries() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/s1"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        client.revokeRememberMeToken("s1");
+
+        server.verify();
+    }
+
+    @Test
+    void revokeRememberMeTokenDoesNotThrowWhenIdentityFails() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/s1")).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        assertDoesNotThrow(() -> client.revokeRememberMeToken("s1"), "signing out carries on whatever identity says");
+    }
+
+    @Test
+    void revokeRememberMeTokenDoesNotThrowOnAConnectionError() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/s1")).andRespond(withException(new IOException("Connection refused")));
+
+        assertDoesNotThrow(() -> client.revokeRememberMeToken("s1"), "signing out carries on whatever happens to the connection");
+    }
+
+    @Test
+    void rememberMeTokensAreNotInToStringOrTheLog(CapturedOutput output) {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\",\"token\":\"new-token-value\",\"expiresAt\":\"2026-12-03T10:15:30Z\"}",
+                        MediaType.APPLICATION_JSON));
+
+        RememberMeVerifyResult result = client.verifyRememberMeToken("s1", "old-token-value");
+
+        assertFalse(result.toString().contains("new-token-value"), "a result that reaches a log line must not carry the token");
+        assertFalse(new RememberMeTokenResult.Issued("s1", "new-token-value", Instant.EPOCH).toString().contains("new-token-value"),
+                "a result that reaches a log line must not carry the token");
+        assertFalse(output.getAll().contains("new-token-value"), "the new token should never be logged");
+        assertFalse(output.getAll().contains("old-token-value"), "the old token should never be logged");
     }
 
     @Test
