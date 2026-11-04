@@ -1,0 +1,455 @@
+{
+  "note": "Made-up test data. Not real listings: areas are real Glasgow districts, but streets, house numbers and descriptions are invented, and postcodes use inward letters Royal Mail never issues (C, I, K, M, O, V), so they can't match a real address. A studio has 0 bedrooms. rentPcm is whole pounds per calendar month.",
+  "properties": [
+    {
+      "id": "GLA-001",
+      "address": { "line1": "2/1, 14 Averlaw Street", "area": "Hillhead", "city": "Glasgow", "postcode": "G12 8CK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1650,
+      "description": "Red sandstone tenement flat close to the university and the subway. Bay-windowed lounge, dining kitchen and three double bedrooms. HMO licence in place."
+    },
+    {
+      "id": "GLA-002",
+      "address": { "line1": "1/2, 37 Averlaw Street", "area": "Hillhead", "city": "Glasgow", "postcode": "G12 8CK" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 995,
+      "description": "Well-kept one-bedroom flat on the first floor, with high ceilings and a modern shower room. Gas central heating throughout."
+    },
+    {
+      "id": "GLA-003",
+      "address": { "line1": "G/1, 8 Dunlaggan Gardens", "area": "Partick", "city": "Glasgow", "postcode": "G11 5MO" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1095,
+      "description": "Main-door ground-floor flat a short walk from the station and riverside. Two double bedrooms and a small shared back court."
+    },
+    {
+      "id": "GLA-004",
+      "address": { "line1": "3/2, 61 Crannock Street", "area": "Partick", "city": "Glasgow", "postcode": "G11 6IV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1125,
+      "description": "Top-floor tenement flat with long views towards the Clyde. Box room suitable for a home office and a recently fitted kitchen."
+    },
+    {
+      "id": "GLA-005",
+      "address": { "line1": "2/2, 19 Merrickvale Road", "area": "Dennistoun", "city": "Glasgow", "postcode": "G31 2KM" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 975,
+      "description": "Traditional flat in a popular street with independent cafes nearby. Original cornicing, a wide hallway and a dining kitchen."
+    },
+    {
+      "id": "GLA-006",
+      "address": { "line1": "1/1, 5 Merrickvale Road", "area": "Dennistoun", "city": "Glasgow", "postcode": "G31 2KM" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 795,
+      "description": "Tidy one-bedroom flat on a regular bus route into the city centre. Double glazed, with a bright lounge. Unfurnished."
+    },
+    {
+      "id": "GLA-007",
+      "address": { "line1": "Flat 4, 22 Tolcarron Lane", "area": "Merchant City", "city": "Glasgow", "postcode": "G1 1OV" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1550,
+      "description": "Warehouse conversion with exposed brick, tall windows and an open-plan living space. Main bedroom has an en suite. Lift access."
+    },
+    {
+      "id": "GLA-008",
+      "address": { "line1": "Flat 11, 22 Tolcarron Lane", "area": "Merchant City", "city": "Glasgow", "postcode": "G1 1OV" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 825,
+      "description": "Smart city-centre studio with a fitted kitchenette and a wet room. Ideal for a single professional. Residents' gym on site."
+    },
+    {
+      "id": "GLA-009",
+      "address": { "line1": "Flat 7, 3 Quayhaven Court", "area": "Finnieston", "city": "Glasgow", "postcode": "G3 8IC" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1495,
+      "description": "Riverside apartment with a balcony and allocated parking. Walking distance to the concert arenas and the restaurants of the area."
+    },
+    {
+      "id": "GLA-010",
+      "address": { "line1": "1/1, 48 Brennoch Street", "area": "Finnieston", "city": "Glasgow", "postcode": "G3 7MV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1050,
+      "description": "Characterful first-floor flat with a press in the hall and shutters in the lounge. Quiet bedroom to the rear."
+    },
+    {
+      "id": "GLA-011",
+      "address": { "line1": "2/1, 26 Pollarden Avenue", "area": "Shawlands", "city": "Glasgow", "postcode": "G41 3CV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1075,
+      "description": "Spacious flat close to Queen's Park and the local shops. Bay-windowed lounge and a kitchen with room for a table."
+    },
+    {
+      "id": "GLA-012",
+      "address": { "line1": "G/2, 9 Pollarden Avenue", "area": "Shawlands", "city": "Glasgow", "postcode": "G41 3CV" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 825,
+      "description": "Ground-floor flat with level access from the close and a shared rear garden. Pets considered."
+    },
+    {
+      "id": "GLA-013",
+      "address": { "line1": "3/1, 70 Larchlaw Street", "area": "Govanhill", "city": "Glasgow", "postcode": "G42 7KO" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 850,
+      "description": "Affordable top-floor flat near good transport links. Recently redecorated, with new flooring in the lounge. Stairs only."
+    },
+    {
+      "id": "GLA-014",
+      "address": { "line1": "1/2, 12 Larchlaw Street", "area": "Govanhill", "city": "Glasgow", "postcode": "G42 7KO" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 625,
+      "description": "Compact studio with a separate shower room and a kitchen area. Electric heating. Bills not included."
+    },
+    {
+      "id": "GLA-015",
+      "address": { "line1": "18 Wrenhope Drive", "area": "Pollokshields", "city": "Glasgow", "postcode": "G41 4IM" },
+      "propertyType": "Detached house",
+      "bedrooms": 5,
+      "bathrooms": 3,
+      "rentPcm": 3400,
+      "description": "Imposing Victorian villa on a tree-lined street, with three reception rooms, a large garden and a driveway."
+    },
+    {
+      "id": "GLA-016",
+      "address": { "line1": "First Floor, 44 Wrenhope Drive", "area": "Pollokshields", "city": "Glasgow", "postcode": "G41 4IM" },
+      "propertyType": "Apartment",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1750,
+      "description": "Generous apartment in a converted villa, with a grand shared stair and use of mature gardens. Off-street parking."
+    },
+    {
+      "id": "GLA-017",
+      "address": { "line1": "2/2, 31 Tenterlaw Road", "area": "Mount Florida", "city": "Glasgow", "postcode": "G42 9OK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 925,
+      "description": "Well-proportioned flat a few minutes from the train station, with quick links to Central. The street is busy on stadium event days."
+    },
+    {
+      "id": "GLA-018",
+      "address": { "line1": "1/1, 15 Ochilbrae Terrace", "area": "Battlefield", "city": "Glasgow", "postcode": "G42 9VM" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 950,
+      "description": "Bright flat with a dual-aspect lounge and a modern bathroom. Close to Queen's Park and regular buses."
+    },
+    {
+      "id": "GLA-019",
+      "address": { "line1": "6 Fernielaw Crescent", "area": "Kelvinside", "city": "Glasgow", "postcode": "G12 0MC" },
+      "propertyType": "Terraced house",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "rentPcm": 3100,
+      "description": "Elegant blonde sandstone terraced house over three floors, with a formal drawing room and a south-facing rear garden."
+    },
+    {
+      "id": "GLA-020",
+      "address": { "line1": "Ground Floor, 2 Fernielaw Crescent", "area": "Kelvinside", "city": "Glasgow", "postcode": "G12 0MC" },
+      "propertyType": "Duplex",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 2350,
+      "description": "Main-door duplex with its own garden and a large family kitchen on the lower level. Residents' parking permit available."
+    },
+    {
+      "id": "GLA-021",
+      "address": { "line1": "5 Hollenby Lane", "area": "Dowanhill", "city": "Glasgow", "postcode": "G12 9CO" },
+      "propertyType": "Mews house",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1850,
+      "description": "Converted coach house on a cobbled lane, with an integral garage and an upstairs living room."
+    },
+    {
+      "id": "GLA-022",
+      "address": { "line1": "2/1, 53 Lorneden Gardens", "area": "Hyndland", "city": "Glasgow", "postcode": "G12 9IK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 2450,
+      "description": "Grand four-bedroom flat with original stained glass, a large reception hall and two bathrooms. Close to the station."
+    },
+    {
+      "id": "GLA-023",
+      "address": { "line1": "1/2, 53 Lorneden Gardens", "area": "Hyndland", "city": "Glasgow", "postcode": "G12 9IK" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1350,
+      "description": "Refurbished flat in a sought-after red sandstone building, with a well-kept back court and a shared drying area."
+    },
+    {
+      "id": "GLA-024",
+      "address": { "line1": "Flat 15, 90 Cadzow Quay", "area": "Anderston", "city": "Glasgow", "postcode": "G3 8KV" },
+      "propertyType": "Apartment",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1020,
+      "description": "Modern apartment within walking distance of the financial district, with a concierge and secure entry."
+    },
+    {
+      "id": "GLA-025",
+      "address": { "line1": "21 Ardenholm Road", "area": "Cathcart", "city": "Glasgow", "postcode": "G44 4MK" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1350,
+      "description": "Semi-detached family home with a driveway and gardens to the front and rear. Extended kitchen and a downstairs WC."
+    },
+    {
+      "id": "GLA-026",
+      "address": { "line1": "2/1, 8 Calderbrae Street", "area": "Bridgeton", "city": "Glasgow", "postcode": "G40 1CI" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 795,
+      "description": "Second-floor flat close to the train station and Glasgow Green. New boiler and double glazing throughout."
+    },
+    {
+      "id": "GLA-027",
+      "address": { "line1": "1/1, 76 Rannoway Road", "area": "Maryhill", "city": "Glasgow", "postcode": "G20 9OM" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 850,
+      "description": "Neat flat beside the canal towpath, with a fitted kitchen and a good-sized bathroom. On-street parking."
+    },
+    {
+      "id": "GLA-028",
+      "address": { "line1": "14 Thornlea Walk", "area": "Scotstoun", "city": "Glasgow", "postcode": "G14 0VI" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1275,
+      "description": "Mid-terraced house with a low-maintenance garden and a shed. Close to the leisure centre and the train station."
+    },
+    {
+      "id": "GLA-029",
+      "address": { "line1": "33 Glenharrow Avenue", "area": "Jordanhill", "city": "Glasgow", "postcode": "G13 1KC" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 2100,
+      "description": "Extended family home in a popular school catchment. Garden room, converted loft and a driveway for two cars."
+    },
+    {
+      "id": "GLA-030",
+      "address": { "line1": "62 Whinfield Drive", "area": "Knightswood", "city": "Glasgow", "postcode": "G13 2OI" },
+      "propertyType": "Cottage",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 925,
+      "description": "Four-in-a-block cottage flat with its own front door and private garden. Good bus links to the West End."
+    },
+    {
+      "id": "GLA-031",
+      "address": { "line1": "11 Beechmuir Grove", "area": "Newlands", "city": "Glasgow", "postcode": "G43 2IV" },
+      "propertyType": "Bungalow",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1950,
+      "description": "Single-level bungalow on a quiet cul-de-sac, with a garage and level access from the street. Mature garden to the rear."
+    },
+    {
+      "id": "GLA-032",
+      "address": { "line1": "3/1, 17 Sallowby Street", "area": "Garnethill", "city": "Glasgow", "postcode": "G3 6CM" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 875,
+      "description": "Hilltop flat with sweeping city views, a few minutes from the art school and the main shopping streets."
+    },
+    {
+      "id": "GLA-033",
+      "address": { "line1": "Flat 6, 28 Barrowgate Close", "area": "Calton", "city": "Glasgow", "postcode": "G40 2VK" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 850,
+      "description": "Modern flat in a small block near the market and live music venues. Secure door entry and a shared courtyard."
+    },
+    {
+      "id": "GLA-034",
+      "address": { "line1": "47 Kilbrannan Way", "area": "Drumchapel", "city": "Glasgow", "postcode": "G15 8MI" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 825,
+      "description": "End-terraced house with front and rear gardens. Fitted kitchen and a family bathroom upstairs. Close to local schools."
+    },
+    {
+      "id": "GLA-035",
+      "address": { "line1": "1/2, 29 Torrance Vennel", "area": "Ibrox", "city": "Glasgow", "postcode": "G51 2OC" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 775,
+      "description": "First-floor flat a short walk from the subway, with a separate kitchen and plenty of storage. Busy on match days."
+    },
+    {
+      "id": "GLA-036",
+      "address": { "line1": "Flat 9, 5 Slipway Court", "area": "Govan", "city": "Glasgow", "postcode": "G51 3KI" },
+      "propertyType": "Maisonette",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1095,
+      "description": "Upper maisonette with its own stair, river views and a balcony. Allocated parking and a lift to the entrance level."
+    },
+    {
+      "id": "GLA-037",
+      "address": { "line1": "Penthouse, 1 Tolcarron Heights", "area": "Merchant City", "city": "Glasgow", "postcode": "G1 2MO" },
+      "propertyType": "Penthouse",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "rentPcm": 4250,
+      "description": "Exceptional penthouse with a wraparound terrace and skyline views. Four bedrooms, three bathrooms, a private lift and two secure parking spaces."
+    },
+    {
+      "id": "GLA-038",
+      "address": { "line1": "Bedsit Flat, 2 Dalmorris Close", "area": "Govanhill", "city": "Glasgow", "postcode": "G42 8VC" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 495,
+      "description": "Small studio."
+    },
+    {
+      "id": "GLA-039",
+      "address": { "line1": "4/2, 9 O'Halloran's Lane", "area": "Partick", "city": "Glasgow", "postcode": "G11 7IO" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 910,
+      "description": "Fourth-floor flat with \"river glimpses\" from the kitchen window. Rent includes water & factor's fees; council tax band B."
+    },
+    {
+      "id": "GLA-040",
+      "address": { "line1": "15 Ross-Macaulay Court", "area": "Shawlands", "city": "Glasgow", "postcode": "G41 2VO" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1560,
+      "description": "Deposit: £1,800. Minimum term 12 months. Rooms sized 3.1m x 4.2m & larger. Heating costs < £85/month on average, and broadband speeds > 500Mbps."
+    },
+    {
+      "id": "GLA-041",
+      "address": { "line1": "Flat 1, 6 Cùl na Beinne Place", "area": "Dennistoun", "city": "Glasgow", "postcode": "G31 3CK" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1010,
+      "description": "Café, deli and bakery on the doorstep. Renovated flat with a Crittall-style kitchen screen and a façade restored in 2023."
+    },
+    {
+      "id": "GLA-042",
+      "address": { "line1": "Flat 7, 88 The Old Road from Kelvinbrae Mill to St Mungo's Walk and Queen Margaret Gardens West", "area": "Maryhill", "city": "Glasgow", "postcode": "G20 8KM" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 880,
+      "description": "A flat with an unusually long address, useful for checking that cards and list rows wrap neatly."
+    },
+    {
+      "id": "GLA-043",
+      "address": { "line1": "11 Lochanhead Square", "area": "Pollokshields", "city": "Glasgow", "postcode": "G41 5OV" },
+      "propertyType": "Townhouse",
+      "bedrooms": 6,
+      "bathrooms": 4,
+      "rentPcm": 3950,
+      "description": "Handsome six-bedroom townhouse set over four floors, with a library, a games room and a walled garden.\n\nLong-term lets preferred. References and a guarantor may be required."
+    },
+    {
+      "id": "GLA-044",
+      "address": { "line1": "1/1, 20 Cowdenhope Street", "area": "Mount Florida", "city": "Glasgow", "postcode": "G42 9CI" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 800,
+      "description": "Rent sits exactly on a round number, which makes this flat useful for checking inclusive price filters. Bright lounge and a separate kitchen."
+    },
+    {
+      "id": "GLA-045",
+      "address": { "line1": "2/1, 20 Cowdenhope Street", "area": "Mount Florida", "city": "Glasgow", "postcode": "G42 9CI" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 800,
+      "description": "Second-floor flat at the same rent as its neighbour downstairs, with a modern shower room and a south-facing lounge."
+    },
+    {
+      "id": "GLA-046",
+      "address": { "line1": "Annexe, 52 Glenharrow Avenue", "area": "Jordanhill", "city": "Glasgow", "postcode": "G13 1KC" },
+      "propertyType": "Annexe",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 875,
+      "description": "Self-contained garden annexe with its own entrance and a small patio. All bills included except broadband."
+    },
+    {
+      "id": "GLA-047",
+      "address": { "line1": "8 Ashlarton Mews", "area": "Newlands", "city": "Glasgow", "postcode": "G43 1MV" },
+      "propertyType": "Townhouse",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "rentPcm": 1895,
+      "description": "Contemporary three-storey townhouse with a roof terrace and a garage. Every bedroom has access to its own bathroom."
+    },
+    {
+      "id": "GLA-048",
+      "address": { "line1": "Flat 3, 77 Corbiehall Terrace", "area": "Scotstoun", "city": "Glasgow", "postcode": "G14 9OK" },
+      "propertyType": "Maisonette",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 995,
+      "description": "Lower maisonette with a private entrance and its own small garden. No pets, please."
+    },
+    {
+      "id": "GLA-049",
+      "address": { "line1": "Flat 2, 40 Ferryloan Wharf", "area": "Finnieston", "city": "Glasgow", "postcode": "G3 8IC" },
+      "propertyType": "Apartment",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1975,
+      "description": "Large corner apartment with windows on two sides and a long balcony over the river. Two parking spaces and a storage cage."
+    },
+    {
+      "id": "GLA-050",
+      "address": { "line1": "2/2, 34 Kirklaggan Place", "area": "Hillhead", "city": "Glasgow", "postcode": "G12 8VK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1795,
+      "description": "This substantial three-bedroom flat sits on the second floor of a classic red sandstone tenement, moments from the subway and a short stroll from the university, and it has been thoughtfully upgraded by its owners while keeping its period features. You enter through a tiled close with a restored wally dado, and the flat's wide reception hall gives access to every room, with two deep presses providing storage for coats and bicycles. The lounge faces the street through a three-part bay window and has working shutters, ornate cornicing and a cast-iron fireplace with a gas stove. To the rear, the dining kitchen has been fitted with shaker-style units, solid worktops, an electric range cooker, a dishwasher and a large fridge-freezer, and there is still room for a table that seats six. The main bedroom is a large double with built-in wardrobes and an en suite shower room with underfloor heating. The second bedroom is another good double, also with fitted wardrobes, and the third is a comfortable single that would work equally well as a home office. A family bathroom with a freestanding bath and a separate shower completes the accommodation. Outside, residents share a well-kept back court with a drying area and a lockable bike store, and on-street parking is by council permit. The flat is let unfurnished, with gas central heating and double glazing to the rear. Sorry, no smokers. Available now for a minimum term of twelve months, subject to references and a deposit equal to five weeks' rent."
+    }
+  ]
+}
