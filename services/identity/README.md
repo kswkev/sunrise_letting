@@ -30,6 +30,9 @@ Remember-me logins live here because identity owns credentials and `web` has no 
 - A known, unexpired series with any other token, including one already replaced, is treated as possible theft: every token of that account is revoked. An unknown or expired series, or a request with no series or token, revokes nothing.
 - The series and token are URL-safe Base64 with no padding (22 and 43 characters).
 - Only the SHA-256 hash of a token is stored, and token values are never logged.
+- The expiry is fixed, not rolling: a Visitor who keeps coming back still has to sign in again 30 days after the login was issued.
+- The theft rule can't tell a lost response from theft, so two cases can still revoke a Visitor's logins: identity replaces the token but `web` never gets the answer and sends the old one again, or `web` gets the new token but the browser doesn't and later sends the old one. See `web`'s README, which also covers how it keeps ordinary parallel requests from doing this.
+- A revoke that never arrives changes nothing here: if `web` signs someone out while identity is down, the series stays valid until it expires, although that browser no longer holds the cookie.
 
 Email, first name, surname and other title can't contain control characters once trimmed, because PostgreSQL text can't hold NUL. The email gets `EMAIL_INVALID`; the others get `FIRST_NAME_INVALID_CHARACTERS`, `SURNAME_INVALID_CHARACTERS` and `TITLE_OTHER_INVALID_CHARACTERS`.
 
