@@ -207,6 +207,8 @@ class CreateAccountInlineValidationIT {
         assertEquals("short", browser.find("#password").getDomProperty("value"), "what was typed should stay in the field");
         assertTrue(browser.find("#field-password").getDomAttribute("class").contains("form-group--error"), "the script should add the error class");
         assertEquals("true", browser.find("#password").getDomAttribute("aria-invalid"), "the script should set aria-invalid");
+        assertEquals("password-hint password-error", browser.find("#password").getDomAttribute("aria-describedby"),
+                "the script should add the message to the hint, so it is read when the user returns to the field");
         verify(identityClient, description("identity should check the password")).validateField(AccountField.PASSWORD, "short");
     }
 

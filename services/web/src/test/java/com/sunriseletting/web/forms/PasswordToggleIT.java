@@ -146,6 +146,7 @@ class PasswordToggleIT {
         assertTrue(browser.find("#field-secret").getDomAttribute("class").contains("form-group--error"),
                 "an error in the slot should add the error class");
         assertEquals("true", input.getDomAttribute("aria-invalid"), "an error in the slot should set aria-invalid");
+        assertEquals("secret-error", input.getDomAttribute("aria-describedby"), "an error in the slot should be read with the input");
         assertEquals("bad", input.getDomProperty("value"), "what was typed should stay in the field");
 
         input.clear();
@@ -157,6 +158,7 @@ class PasswordToggleIT {
         assertFalse(browser.find("#field-secret").getDomAttribute("class").contains("form-group--error"),
                 "an empty slot should remove the error class");
         assertNull(input.getDomAttribute("aria-invalid"), "an empty slot should remove aria-invalid");
+        assertNull(input.getDomAttribute("aria-describedby"), "an empty slot should leave nothing for the input to reference");
         assertEquals("good", input.getDomProperty("value"), "what was typed should stay in the field");
     }
 
