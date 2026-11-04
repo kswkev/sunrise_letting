@@ -7,7 +7,7 @@
 
 <th:block th:fragment="field-title"><div th:replace="~{fragments/form :: select(id='title', name='title', label='Title', value=${form.title}, error=${fieldErrors['title']}, placeholder='Select a title', options=${ {'Mr','Mrs','Miss','Ms','Mx','Dr','Other'} }, autocomplete='honorific-prefix', hxPost='/create-account/validate/title', hxParams='title,_csrf')}"></div></th:block>
 
-<th:block th:fragment="field-title-other"><div th:replace="~{fragments/form :: field(id='title-other', name='titleOther', label='Other title', type='text', value=${form.titleOther}, hint='Only if you chose Other', error=${fieldErrors['titleOther']}, autocomplete='off', spellcheck='false', hxPost='/create-account/validate/title-other', hxParams='titleOther,_csrf')}"></div></th:block>
+<th:block th:fragment="field-title-other"><div th:replace="~{fragments/form :: field(id='title-other', name='titleOther', label='Other title', type='text', value=${form.titleOther}, hint='Only if you chose Other', error=${fieldErrors['titleOther']}, autocomplete='off', spellcheck='false', hxPost='/create-account/validate/title-other', hxParams='title,titleOther,_csrf')}"></div></th:block>
 
 <th:block th:fragment="field-first-name"><div th:replace="~{fragments/form :: field(id='first-name', name='firstName', label='First name', type='text', value=${form.firstName}, error=${fieldErrors['firstName']}, autocomplete='given-name', spellcheck='false', hxPost='/create-account/validate/first-name', hxParams='firstName,_csrf')}"></div></th:block>
 

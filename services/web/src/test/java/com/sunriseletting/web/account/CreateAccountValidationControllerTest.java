@@ -2,8 +2,8 @@ package com.sunriseletting.web.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -39,6 +39,8 @@ class CreateAccountValidationControllerTest {
     private static final String SECRET = "Sup3r-Secret-Pa55!";
 
     private static final String OTHER_SECRET = "0ther-Secret-Pa55!";
+
+    private static final String TOO_LONG_FOR_OTHER_TITLE = "x".repeat(21);
 
     @Autowired
     private MockMvcTester mvc;
@@ -91,11 +93,12 @@ class CreateAccountValidationControllerTest {
     @ParameterizedTest
     @CsvSource(textBlock = """
             title,       title,      TITLE,       TITLE_INVALID,            Select your title
-            title-other, titleOther, TITLE_OTHER, TITLE_OTHER_TOO_LONG,     Title must be 20 characters or fewer
             first-name,  firstName,  FIRST_NAME,  FIRST_NAME_TOO_LONG,      First name must be 100 characters or fewer
             surname,     surname,    SURNAME,     SURNAME_TOO_LONG,         Surname must be 100 characters or fewer
             email,       email,      EMAIL,       EMAIL_INVALID,            'Enter an email address in the correct format, like name@example.com'
             phone,       phone,      PHONE,       PHONE_INVALID_CHARACTERS, 'Phone number can only include numbers, spaces and a + at the start'
+            first-name,  firstName,  FIRST_NAME,  FIRST_NAME_INVALID_CHARACTERS,  First name contains characters that can't be used
+            surname,     surname,    SURNAME,     SURNAME_INVALID_CHARACTERS,     Surname contains characters that can't be used
             """)
     void eachFieldMapsToIdentitysNameAndTheMessage(String urlField, String parameter, AccountField field, String code, String message) {
         when(identityClient.validateField(field, "bad value")).thenReturn(new FieldValidationResult.Invalid(code));
@@ -107,6 +110,47 @@ class CreateAccountValidationControllerTest {
         assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-" + urlField);
         assertThat(group.select("#" + urlField + "-error").text()).as("the spec's message should be there").isEqualTo("Error: " + message);
         verify(identityClient, description("identity should be asked about its own field name")).validateField(field, "bad value");
+    }
+
+    @ParameterizedTest
+    @CsvSource(textBlock = """
+            Other,   TITLE_OTHER_TOO_LONG,           Title must be 20 characters or fewer
+            Other,   TITLE_OTHER_INVALID_CHARACTERS, Title contains characters that can't be used
+            ' Other ', TITLE_OTHER_TOO_LONG,         Title must be 20 characters or fewer
+            """)
+    void otherTitleIsCheckedWhenTitleIsOther(String title, String code, String message) {
+        when(identityClient.validateField(AccountField.TITLE_OTHER, "bad value")).thenReturn(new FieldValidationResult.Invalid(code));
+
+        MvcTestResult result = validate("title-other").param("title", title).param("titleOther", "bad value").with(csrf()).exchange();
+
+        assertThat(result).as("an invalid value should still be 200").hasStatusOk();
+        Element group = Html.fragment(result).body().child(0);
+        assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-title-other");
+        assertThat(group.select("#title-other-error").text()).as("the spec's message should be there").isEqualTo("Error: " + message);
+        verify(identityClient, description("identity should be asked about Other title")).validateField(AccountField.TITLE_OTHER, "bad value");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "Mr", "other", "" })
+    void otherTitleIsIgnoredWhenTitleIsNotOther(String title) {
+        MvcTestResult result = validate("title-other").param("title", title).param("titleOther", TOO_LONG_FOR_OTHER_TITLE).with(csrf()).exchange();
+
+        assertThat(result).as("an ignored value should be 200").hasStatusOk();
+        Element group = Html.fragment(result).body().child(0);
+        assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-title-other");
+        assertThat(group.hasClass("form-group--error")).as("no error unless Title is Other").isFalse();
+        assertThat(group.select(".error-message")).as("no message unless Title is Other").isEmpty();
+        assertThat(group.selectFirst("input").attr("value")).as("what was typed should be kept").isEqualTo(TOO_LONG_FOR_OTHER_TITLE);
+        assertIdentityNotCalled("Other title is ignored on submit unless Title is Other, so it shouldn't be checked here");
+    }
+
+    @Test
+    void otherTitleIsIgnoredWhenNoTitleIsSent() {
+        MvcTestResult result = validate("title-other").param("titleOther", TOO_LONG_FOR_OTHER_TITLE).with(csrf()).exchange();
+
+        assertThat(result).as("an ignored value should be 200").hasStatusOk();
+        assertThat(Html.fragment(result).select(".error-message")).as("no message unless Title is Other").isEmpty();
+        assertIdentityNotCalled("no Title sent means it isn't Other, so Other title shouldn't be checked");
     }
 
     @ParameterizedTest
@@ -126,7 +170,7 @@ class CreateAccountValidationControllerTest {
         assertThat(group.id()).as("the group should be the swap target").isEqualTo("field-" + urlField);
         assertThat(group.hasClass("form-group--error")).as("no error until submit").isFalse();
         assertThat(group.select(".error-message")).as("no message until submit").isEmpty();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an empty value shouldn't be sent to identity");
     }
 
     @Test
@@ -135,7 +179,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("a missing value should be 200").hasStatusOk();
         assertThat(Html.fragment(result).select(".form-group--error")).as("no error until submit").isEmpty();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a missing value shouldn't be sent to identity");
     }
 
     @Test
@@ -212,7 +256,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("an empty value should be 200").hasStatusOk();
         assertThat(Html.body(result)).as("an empty password should give an empty body").isBlank();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an empty password shouldn't be sent to identity");
     }
 
     @Test
@@ -237,7 +281,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("an empty value should be 200").hasStatusOk();
         assertThat(Html.body(result)).as("an empty value should give an empty body").isBlank();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an empty Confirm password shouldn't be sent to identity");
     }
 
     // Can't check, and requests that aren't from HTMX
@@ -263,6 +307,28 @@ class CreateAccountValidationControllerTest {
         verify(identityClient, description("identity should be tried")).validateField(AccountField.PASSWORD, SECRET);
     }
 
+    @Test
+    void unknownErrorCodeGives204ForAPlainField() {
+        when(identityClient.validateField(AccountField.EMAIL, "jo@example.com")).thenReturn(new FieldValidationResult.Invalid("SOMETHING_NEW"));
+
+        MvcTestResult result = validate("email").param("email", "jo@example.com").with(csrf()).exchange();
+
+        assertThat(result).as("a code with no copy means the check can't be done, which changes nothing").hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(Html.body(result)).as("204 has no body").isEmpty();
+        verify(identityClient, description("identity should be tried")).validateField(AccountField.EMAIL, "jo@example.com");
+    }
+
+    @Test
+    void unknownErrorCodeGives204ForAPassword() {
+        when(identityClient.validateField(AccountField.PASSWORD, SECRET)).thenReturn(new FieldValidationResult.Invalid("SOMETHING_NEW"));
+
+        MvcTestResult result = validate("password").param("password", SECRET).with(csrf()).exchange();
+
+        assertThat(result).as("a code with no copy means the check can't be done, which changes nothing").hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(Html.body(result)).as("204 has no body").isEmpty();
+        verify(identityClient, description("identity should be tried")).validateField(AccountField.PASSWORD, SECRET);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = { "first-name", "password", "confirm-password" })
     void requestWithoutHxRequestRedirectsToTheForm(String urlField) {
@@ -270,7 +336,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("these endpoints serve HTMX only").hasStatus(HttpStatus.SEE_OTHER);
         assertThat(result).as("a plain request should go to the form").hasRedirectedUrl("/create-account");
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a request that isn't from HTMX shouldn't reach identity");
     }
 
     @Test
@@ -278,7 +344,7 @@ class CreateAccountValidationControllerTest {
         MvcTestResult result = validate("nonsense").with(csrf()).exchange();
 
         assertThat(result).as("only the form's fields have an endpoint").hasStatus(HttpStatus.NOT_FOUND);
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("an unknown field shouldn't reach identity");
     }
 
     // Expired form token
@@ -294,7 +360,7 @@ class CreateAccountValidationControllerTest {
 
         assertThat(result).as("an expired token changes nothing, never a 403").hasStatus(HttpStatus.NO_CONTENT);
         assertThat(Html.body(result)).as("204 has no body").isEmpty();
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a request with no token shouldn't reach identity");
     }
 
     @ParameterizedTest
@@ -315,7 +381,7 @@ class CreateAccountValidationControllerTest {
         assertThat(result).as("an expired token changes nothing, never a 403").hasStatus(HttpStatus.NO_CONTENT);
         assertThat(Html.body(result)).as("204 has no body").isEmpty();
         assertThat(sessionToken(session).getToken()).as("the session's CSRF token should be left as it is").isEqualTo(before.getToken());
-        verifyNoInteractions(identityClient);
+        assertIdentityNotCalled("a request with the wrong token shouldn't reach identity");
     }
 
     // The page turns inline validation on
@@ -323,7 +389,7 @@ class CreateAccountValidationControllerTest {
     @ParameterizedTest
     @CsvSource(textBlock = """
             title,       title,      'title,_csrf'
-            title-other, titleOther, 'titleOther,_csrf'
+            title-other, titleOther, 'title,titleOther,_csrf'
             first-name,  firstName,  'firstName,_csrf'
             surname,     surname,    'surname,_csrf'
             email,       email,      'email,_csrf'
@@ -336,7 +402,7 @@ class CreateAccountValidationControllerTest {
         assertThat(input.attr("hx-trigger")).as(id + " should be checked on blur").isEqualTo("blur");
         assertThat(input.attr("hx-target")).as(id + " should swap its whole group").isEqualTo("#field-" + id);
         assertThat(input.attr("hx-swap")).as(id + " should swap its whole group").isEqualTo("outerHTML");
-        assertThat(input.attr("hx-params")).as(id + " should send only its own value and the token").isEqualTo(params);
+        assertThat(input.attr("hx-params")).as(id + " should send only what its check needs and the token").isEqualTo(params);
     }
 
     @Test
@@ -366,6 +432,11 @@ class CreateAccountValidationControllerTest {
         MvcTestResult result = mvc.get().uri("/create-account").exchange();
         assertThat(result).as("the page should load").hasStatusOk();
         return Html.page(result);
+    }
+
+    /** Like verifyNoInteractions, which can't carry a message. */
+    private void assertIdentityNotCalled(String because) {
+        assertThat(mockingDetails(identityClient).getInvocations()).as(because).isEmpty();
     }
 
     private CsrfToken sessionToken(MockHttpSession session) {

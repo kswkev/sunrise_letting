@@ -21,9 +21,12 @@ public class AccountFieldValidator {
     private static final int NAME_MAX_LENGTH = 100;
     private static final int EMAIL_MAX_LENGTH = 254;
 
-    /** One @, a non-empty local part, a domain containing a dot, and no whitespace. Not full RFC 5322. */
+    /** One @, a non-empty local part, a domain containing a dot, and no whitespace or control characters. Not full RFC 5322. */
     private static final Pattern EMAIL =
-            Pattern.compile("[^\\s@]+@[^\\s@]+\\.[^\\s@]+", Pattern.UNICODE_CHARACTER_CLASS);
+            Pattern.compile("[^\\s\\p{Cc}@]+@[^\\s\\p{Cc}@]+\\.[^\\s\\p{Cc}@]+", Pattern.UNICODE_CHARACTER_CLASS);
+
+    /** PostgreSQL text can't hold NUL, and no control character belongs in a name. */
+    private static final Pattern CONTROL_CHARACTER = Pattern.compile("\\p{Cc}");
 
     private final PasswordRules passwordRules;
 
@@ -32,7 +35,7 @@ public class AccountFieldValidator {
     }
 
     /**
-     * Checks one field on its own. Other title is only checked for length, because whether it is needed
+     * Checks one field on its own. Other title is not required here, because whether it is needed
      * depends on Title. Nothing here looks up whether an account exists.
      *
      * @param password the password to compare with, only used for {@link AccountField#CONFIRM_PASSWORD}
@@ -40,9 +43,11 @@ public class AccountFieldValidator {
     public Optional<AccountFieldError> validate(AccountField field, String value, String password) {
         return switch (field) {
             case TITLE -> validateTitle(value);
-            case TITLE_OTHER -> tooLong(value, TITLE_OTHER_MAX_LENGTH, AccountFieldError.TITLE_OTHER_TOO_LONG);
-            case FIRST_NAME -> validateName(value, AccountFieldError.FIRST_NAME_REQUIRED, AccountFieldError.FIRST_NAME_TOO_LONG);
-            case SURNAME -> validateName(value, AccountFieldError.SURNAME_REQUIRED, AccountFieldError.SURNAME_TOO_LONG);
+            case TITLE_OTHER -> validateTitleOther(value);
+            case FIRST_NAME -> validateName(value, AccountFieldError.FIRST_NAME_REQUIRED, AccountFieldError.FIRST_NAME_TOO_LONG,
+                    AccountFieldError.FIRST_NAME_INVALID_CHARACTERS);
+            case SURNAME -> validateName(value, AccountFieldError.SURNAME_REQUIRED, AccountFieldError.SURNAME_TOO_LONG,
+                    AccountFieldError.SURNAME_INVALID_CHARACTERS);
             case EMAIL -> validateEmail(value);
             case PHONE -> validatePhone(value);
             case PASSWORD -> passwordRules.check(value);
@@ -76,9 +81,12 @@ public class AccountFieldValidator {
     }
 
     private static Optional<AccountFieldError> validateTitleOtherWhenNeeded(String value) {
-        return isBlank(value)
-                ? Optional.of(AccountFieldError.TITLE_OTHER_REQUIRED)
-                : tooLong(value, TITLE_OTHER_MAX_LENGTH, AccountFieldError.TITLE_OTHER_TOO_LONG);
+        return isBlank(value) ? Optional.of(AccountFieldError.TITLE_OTHER_REQUIRED) : validateTitleOther(value);
+    }
+
+    private static Optional<AccountFieldError> validateTitleOther(String value) {
+        return validateText(value, TITLE_OTHER_MAX_LENGTH, AccountFieldError.TITLE_OTHER_TOO_LONG,
+                AccountFieldError.TITLE_OTHER_INVALID_CHARACTERS);
     }
 
     private static Optional<AccountFieldError> validateTitle(String value) {
@@ -88,8 +96,15 @@ public class AccountFieldValidator {
         return TITLES.contains(value.strip()) ? Optional.empty() : Optional.of(AccountFieldError.TITLE_INVALID);
     }
 
-    private static Optional<AccountFieldError> validateName(String value, AccountFieldError required, AccountFieldError tooLong) {
-        return isBlank(value) ? Optional.of(required) : tooLong(value, NAME_MAX_LENGTH, tooLong);
+    private static Optional<AccountFieldError> validateName(String value, AccountFieldError required, AccountFieldError tooLong,
+            AccountFieldError invalidCharacters) {
+        return isBlank(value) ? Optional.of(required) : validateText(value, NAME_MAX_LENGTH, tooLong, invalidCharacters);
+    }
+
+    private static Optional<AccountFieldError> validateText(String value, int maxLength, AccountFieldError tooLong,
+            AccountFieldError invalidCharacters) {
+        return tooLong(value, maxLength, tooLong)
+                .or(() -> hasControlCharacter(value) ? Optional.of(invalidCharacters) : Optional.empty());
     }
 
     private static Optional<AccountFieldError> validateEmail(String value) {
@@ -126,6 +141,11 @@ public class AccountFieldValidator {
         }
         String stripped = value.strip();
         return stripped.codePointCount(0, stripped.length()) > maxLength ? Optional.of(error) : Optional.empty();
+    }
+
+    /** Looks at the trimmed value, because that is what gets stored. */
+    private static boolean hasControlCharacter(String value) {
+        return value != null && CONTROL_CHARACTER.matcher(value.strip()).find();
     }
 
     private static boolean isBlank(String value) {
