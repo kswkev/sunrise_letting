@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -305,6 +306,55 @@ class HttpIdentityClientTest {
                         .body("{\"errors\":{\"email\":\"EMAIL_INVALID\"}}"));
 
         assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "the sign-in page has no copy for any other code");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"errors\":{\"email\":null}}", "{\"errors\":{\"email\":\"EMAIL_REQUIRED\",\"password\":null}}" })
+    void authenticateIsUnavailableForANullFieldCode(String body) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(body));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "a field with no code is outside the contract");
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "null", "\"\"", "\"visitor\"", "\"ADMIN\"", "1", "{\"a\":1}", "[\"VISITOR\"]" })
+    void authenticateIsUnavailableForAnyRoleOutsideTheContract(String role) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":" + role + "}", MediaType.APPLICATION_JSON));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "the role can't be turned into an AccountRole: " + role);
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"errors\":[\"EMAIL_REQUIRED\"]}", "{\"errors\":{\"email\":{\"a\":1}}}", "{\"errors\":\"EMAIL_REQUIRED\"}", "not json" })
+    void authenticateIsUnavailableForA400ThatCantBeRead(String body) {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(body));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("a", SECRET), "the field errors can't be read: " + body);
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "null", "\"\"", "\"visitor\"", "\"ADMIN\"", "1", "{\"a\":1}", "[\"VISITOR\"]" })
+    void verifyRememberMeTokenIsUnavailableForAnyRoleOutsideTheContract(String role) {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":" + role + ",\"token\":\"t2\",\"expiresAt\":\"2026-12-03T10:15:30Z\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(RememberMeVerifyResult.unavailable(), client.verifyRememberMeToken("s1", "t1"), "the role can't be turned into an AccountRole: " + role);
+        server.verify();
+    }
+
+    @Test
+    void verifyRememberMeTokenIsUnavailableOnABadDate() {
+        server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/verify"))
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\",\"token\":\"t2\",\"expiresAt\":\"soon\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals(RememberMeVerifyResult.unavailable(), client.verifyRememberMeToken("s1", "t1"), "a date that can't be read is outside the contract");
+        server.verify();
     }
 
     @Test

@@ -22,7 +22,7 @@ public record CreateAccountForm(String title, String titleOther, String firstNam
         return new CreateAccountForm(null, null, null, null, null, null, null, null);
     }
 
-    /** For code that runs outside Spring MVC's data binding. */
+    /** Reads the form by hand: Spring MVC's data binding would put it in the model, passwords included. */
     static CreateAccountForm from(HttpServletRequest request) {
         return new CreateAccountForm(request.getParameter("title"), request.getParameter("titleOther"),
                 request.getParameter("firstName"), request.getParameter("surname"), request.getParameter("email"),

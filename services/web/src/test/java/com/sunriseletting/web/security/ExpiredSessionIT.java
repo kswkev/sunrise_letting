@@ -2,7 +2,6 @@ package com.sunriseletting.web.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -114,12 +113,14 @@ class ExpiredSessionIT {
         String staleToken = CookieJarClient.csrfToken(browser.get("/properties"));
         expireSession();
 
-        HttpResponse<String> posted = browser.post("/properties/123/viewing", Map.of("_csrf", staleToken, "message", "typed"));
+        HttpResponse<String> posted = browser.post("/properties/123/viewing", Map.of("_csrf", staleToken, "message", "something-typed-in-the-form"));
 
         assertEquals(302, posted.statusCode(), "not a 403");
-        assertEquals("/sign-in?timedOut=true&returnTo=%2Fproperties%2F123%2Fviewing", location(posted), "back to the form's own page");
+        assertEquals("/sign-in?timedOut=true&returnTo=%2Fproperties%2F123%2Fviewing", location(posted), "back to the form's own page, carrying nothing that was typed");
         assertTrue(CookieJarClient.setCookieHeader(posted, "signed-in").contains("Max-Age=0"), "the redirect clears the marker");
-        assertFalse(location(posted).contains("typed"), "what was typed isn't kept");
+        HttpResponse<String> signInPage = browser.get(location(posted));
+        assertEquals(200, signInPage.statusCode(), "the sign-in page should show");
+        assertFalse(signInPage.body().contains("something-typed-in-the-form"), "what was typed isn't kept");
     }
 
     @Test
@@ -240,8 +241,11 @@ class ExpiredSessionIT {
 
         HttpResponse<String> response = browser.get("/manage/x");
 
-        assertNotEquals(302, response.statusCode(), "the Visitor should be signed back in silently, with no redirect");
-        assertNotNull(browser.cookie("signed-in"), "the silent sign-in sets the marker again");
+        assertEquals(403, response.statusCode(), "the Visitor should be signed back in silently, so a Visitor's answer on this path, with no redirect");
+        assertEquals("You do not have permission to view this page", Jsoup.parse(response.body()).select("main h1").text(), "the signed-in Visitor's access-denied page");
+        String marker = CookieJarClient.setCookieHeader(response, "signed-in");
+        assertNotNull(marker, "the silent sign-in should set the marker again");
+        assertTrue(marker.startsWith("signed-in=1;"), "the silent sign-in should set the marker again: " + marker);
         verify(identityClient, description("the cookie should be verified")).verifyRememberMeToken(series, token);
     }
 

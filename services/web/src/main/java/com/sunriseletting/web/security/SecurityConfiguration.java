@@ -45,6 +45,7 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(signInEntryPoint)
                         .accessDeniedHandler(new ExpiredFormAccessDeniedHandler(expiredFormResponders.orderedStream().toList(),
                                 signInEntryPoint, signedInMarker, managerArea, viewResolver)))
+                .addFilterBefore(new RememberMeSessionFilter(), AnonymousAuthenticationFilter.class)
                 .addFilterBefore(new SignedInUserFilter(), AnonymousAuthenticationFilter.class)
                 .addFilterAfter(new TemporaryPasswordFilter(managerArea), AuthorizationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)

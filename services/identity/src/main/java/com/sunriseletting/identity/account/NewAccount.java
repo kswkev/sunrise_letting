@@ -16,4 +16,10 @@ public record NewAccount(
         String passwordHash,
         Role role,
         boolean passwordTemporary) {
+
+    /** Hides every value, so the personal details and the password hash can never reach a log. */
+    @Override
+    public String toString() {
+        return "NewAccount[hidden]";
+    }
 }

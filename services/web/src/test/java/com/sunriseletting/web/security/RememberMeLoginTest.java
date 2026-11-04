@@ -136,6 +136,179 @@ class RememberMeLoginTest {
         verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
     }
 
+    @Test
+    void signingInWithTheBoxTickedKeepsTheSessionForTheLifeOfTheLogin() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, Instant.now().plus(Duration.ofDays(30))));
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat((long) result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session shouldn't idle out before the login ends")
+                .isCloseTo(Duration.ofDays(30).toSeconds(), within(60L));
+        verify(identityClient, description("identity should issue the token")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aSessionIsNeverKeptPastTheEndOfTheLogin() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, Instant.now().plus(Duration.ofMinutes(10))));
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat((long) result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session should end with the login")
+                .isCloseTo(Duration.ofMinutes(10).toSeconds(), within(60L));
+        verify(identityClient, description("identity should issue the token")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void signingInWithoutTheBoxKeepsTheOrdinaryTimeOut() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+
+        MvcTestResult result = signIn().with(csrf()).exchange();
+
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("other sessions don't get longer").isEqualTo(1800);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void whenNoTokenCanBeIssuedTheSessionKeepsTheOrdinaryTimeOut() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(RememberMeTokenResult.unavailable());
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("with no login there's nothing to keep the session for").isEqualTo(1800);
+        verify(identityClient, description("identity should have been asked")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aPropertyManagerTickingTheBoxKeepsTheOrdinaryTimeOut() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
+
+        MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("Remember me is ignored for Property Managers").isEqualTo(7200);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void exchangingTheCookieKeepsTheSessionForWhatIsLeftOfTheLogin() {
+        when(identityClient.verifyRememberMeToken(SERIES, TOKEN))
+                .thenReturn(new RememberMeVerifyResult.Verified("account-1", AccountRole.VISITOR, NEW_TOKEN, Instant.now().plus(Duration.ofDays(10))));
+
+        MvcTestResult result = page().exchange();
+
+        assertThat((long) result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session should last as long as the login has left, not a fresh 30 days")
+                .isCloseTo(Duration.ofDays(10).toSeconds(), within(60L));
+        verify(identityClient, description("the cookie should be verified")).verifyRememberMeToken(SERIES, TOKEN);
+    }
+    // Signing in over a cookie left by an earlier login
+
+    @Test
+    void signingInWithoutTheBoxClearsAnEarlierCookieAndRevokesItsSeries() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+
+        MvcTestResult result = signIn().cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
+
+        assertThat(result).as("the Visitor should be signed in").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(setCookie(result)).as("the earlier login's cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(SERIES);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void signingInWithoutTheBoxClearsAMalformedCookieAndRevokesNothing() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+
+        MvcTestResult result = signIn().cookie(new Cookie("remember-me", "nonsense")).with(csrf()).exchange();
+
+        assertThat(setCookie(result)).as("the cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        verify(identityClient, never().description("there's no series to revoke")).revokeRememberMeToken(any());
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void signingInWithoutTheBoxAndWithoutACookieRevokesNothing() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+
+        MvcTestResult result = signIn().with(csrf()).exchange();
+
+        assertThat(setCookie(result)).as("there's nothing to clear").isNull();
+        verify(identityClient, never().description("there's no series to revoke")).revokeRememberMeToken(any());
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aNewLoginReplacesTheCookieAndRevokesTheOldSeries() {
+        String newSeries = "D".repeat(22);
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(newSeries, NEW_TOKEN, Instant.now().plus(Duration.ofDays(30))));
+
+        MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
+
+        assertThat(result.getResponse().getHeaders("Set-Cookie").stream().filter(header -> header.startsWith("remember-me=")))
+                .as("the browser should get only the new cookie").hasSize(1);
+        assertThat(setCookie(result)).as("the cookie holds the new login").startsWith("remember-me=" + newSeries + "." + NEW_TOKEN + ";");
+        verify(identityClient, description("the old login should be revoked")).revokeRememberMeToken(SERIES);
+        verify(identityClient, never().description("the new login stays good")).revokeRememberMeToken(newSeries);
+        verify(identityClient, description("identity should issue the token")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aNewLoginOverAMalformedCookieRevokesNothing() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, NEW_TOKEN, Instant.now().plus(Duration.ofDays(30))));
+
+        MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", "nonsense")).with(csrf()).exchange();
+
+        assertThat(setCookie(result)).as("the cookie holds the new login").startsWith("remember-me=" + SERIES + "." + NEW_TOKEN + ";");
+        verify(identityClient, never().description("there's no series to revoke")).revokeRememberMeToken(any());
+        verify(identityClient, description("identity should issue the token")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void whenNoNewTokenCanBeIssuedAnEarlierCookieIsStillClearedAndRevoked() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
+        when(identityClient.issueRememberMeToken("account-1")).thenReturn(RememberMeTokenResult.unavailable());
+
+        MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
+
+        assertThat(result).as("the Visitor should still be signed in").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(setCookie(result)).as("the earlier login's cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(SERIES);
+        verify(identityClient, description("identity should have been asked")).issueRememberMeToken("account-1");
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aPropertyManagerSigningInWithTheBoxClearsAnEarlierCookieAndRevokesItsSeries() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
+
+        MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
+
+        assertThat(setCookie(result)).as("the earlier login's cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(SERIES);
+        verify(identityClient, never().description("Remember me is ignored for Property Managers")).issueRememberMeToken(any());
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aFailedSignInLeavesTheCookieAlone() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(AuthenticationResult.invalidCredentials());
+
+        MvcTestResult result = signIn().cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
+
+        assertThat(result).as("the page should show the error").hasStatusOk();
+        assertThat(setCookie(result)).as("nobody signed in, so the cookie stays").isNull();
+        verify(identityClient, never().description("nobody signed in, so nothing is revoked")).revokeRememberMeToken(any());
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
     // Coming back with only the cookie
 
     @Test

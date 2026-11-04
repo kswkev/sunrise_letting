@@ -3,6 +3,7 @@ package com.sunriseletting.web.account;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -478,6 +479,49 @@ class SignInControllerTest {
 
         assertThat(result).as("a POST without the fields is treated as empty fields").hasStatusOk();
         verify(identityClient, description("missing fields should reach identity as empty")).authenticate("", "");
+    }
+
+    @Test
+    void signingInWithoutRememberMeClearsAStaleCookieAndRevokesItsSeries() {
+        String series = "A".repeat(22);
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(SIGNED_IN);
+
+        MvcTestResult result = submit("jo@example.com", SECRET).cookie(new Cookie("remember-me", series + "." + "B".repeat(43))).with(csrf()).exchange();
+
+        assertThat(result).as("the Visitor should be signed in").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(result.getResponse().getHeaders("Set-Cookie")).as("the cookie left by an earlier login is cleared")
+                .anyMatch(header -> header.startsWith("remember-me=;") && header.contains("Max-Age=0"));
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(series);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    /** {@code HttpIdentityClient} swallows a failed revoke, so a mock that does nothing is what an outage looks like here. */
+    @Test
+    void identityBeingDownWhenRevokingStillClearsTheCookie() {
+        String series = "A".repeat(22);
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(SIGNED_IN);
+        doNothing().when(identityClient).revokeRememberMeToken(series);
+
+        MvcTestResult result = submit("jo@example.com", SECRET).cookie(new Cookie("remember-me", series + "." + "B".repeat(43))).with(csrf()).exchange();
+
+        assertThat(result).as("the Visitor should be signed in").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(result.getResponse().getHeaders("Set-Cookie")).as("the cookie is cleared even so")
+                .anyMatch(header -> header.startsWith("remember-me=;") && header.contains("Max-Age=0"));
+        verify(identityClient, description("revoking should be attempted")).revokeRememberMeToken(series);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aFieldCodeWithNoCopyShowsTheServerErrorAndSignsNobodyIn() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.FieldErrors(Map.of("email", "EMAIL_INVALID")));
+
+        MvcTestResult result = submit("jo@example.com", SECRET).with(csrf()).exchange();
+
+        assertThat(result).as("a code with no copy is outside the contract, not a crash").hasStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(Html.page(result).select(".error-summary p.error-summary__body").text()).as("the agreed message")
+                .isEqualTo("Sorry, you can't sign in at the moment. Try again later.");
+        assertNotSignedIn(result);
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
     }
 
     @Test

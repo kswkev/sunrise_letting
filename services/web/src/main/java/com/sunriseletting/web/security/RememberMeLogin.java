@@ -10,6 +10,7 @@ import com.sunriseletting.web.identity.RememberMeTokenResult;
 import com.sunriseletting.web.identity.RememberMeVerifyResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,6 +22,9 @@ public class RememberMeLogin implements SignOutListener {
 
     /** Set on a session that a remember-me login keeps going, which therefore never shows the time-out warning. */
     public static final String SESSION_ATTRIBUTE = "rememberMeSession";
+
+    /** When the login behind a remembered session ends, as an ISO-8601 instant. */
+    static final String EXPIRES_AT_ATTRIBUTE = "rememberMeExpiresAt";
 
     static final String COOKIE = "remember-me";
 
@@ -42,14 +46,29 @@ public class RememberMeLogin implements SignOutListener {
         this.gate = gate;
     }
 
-    /** After someone signed in with the box ticked. If no token can be had, they simply have an ordinary session. */
+    /**
+     * After someone signed in with the box ticked. If no token can be had, they simply have an ordinary session.
+     * Either way, a login the browser already held ends here.
+     */
     public void remember(SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
-        if (principal.role() != AccountRole.VISITOR) {
+        if (principal.role() == AccountRole.VISITOR
+                && identityClient.issueRememberMeToken(principal.accountId()) instanceof RememberMeTokenResult.Issued issued) {
+            revokeSeriesOnCookie(request);
+            writeCookie(response, issued.series(), issued.token(), issued.expiresAt());
+            keepSession(request, issued.expiresAt());
             return;
         }
-        if (identityClient.issueRememberMeToken(principal.accountId()) instanceof RememberMeTokenResult.Issued issued) {
-            writeCookie(response, issued.series(), issued.token(), issued.expiresAt());
-            markSession(request);
+        forget(request, response);
+    }
+
+    /**
+     * After someone signed in with no new login to remember: ends any login the browser still holds, which may be someone
+     * else's, kept through an outage. If identity is down the series stays valid until it expires, but the cookie still goes.
+     */
+    public void forget(HttpServletRequest request, HttpServletResponse response) {
+        if (hasCookie(request)) {
+            revokeSeriesOnCookie(request);
+            cookies.clear(response, COOKIE);
         }
     }
 
@@ -71,7 +90,7 @@ public class RememberMeLogin implements SignOutListener {
         RememberMeVerifyResult result = identityClient.verifyRememberMeToken(series, value.group(2));
         if (result instanceof RememberMeVerifyResult.Verified verified) {
             signInService.signIn(new SessionPrincipal(verified.accountId(), verified.role(), false), request, response);
-            markSession(request);
+            keepSession(request, verified.expiresAt());
             writeCookie(response, series, verified.token(), verified.expiresAt());
             return;
         }
@@ -83,14 +102,16 @@ public class RememberMeLogin implements SignOutListener {
 
     @Override
     public void onSignOut(HttpServletRequest request, HttpServletResponse response) {
-        if (!hasCookie(request)) {
-            return;
+        forget(request, response);
+    }
+
+    private void revokeSeriesOnCookie(HttpServletRequest request) {
+        if (hasCookie(request)) {
+            Matcher value = parse(request);
+            if (value != null) {
+                identityClient.revokeRememberMeToken(value.group(1));
+            }
         }
-        Matcher value = parse(request);
-        if (value != null) {
-            identityClient.revokeRememberMeToken(value.group(1));
-        }
-        cookies.clear(response, COOKIE);
     }
 
     private Matcher parse(HttpServletRequest request) {
@@ -103,7 +124,23 @@ public class RememberMeLogin implements SignOutListener {
         cookies.add(response, COOKIE, series + "." + token, Duration.between(Instant.now(), expiresAt));
     }
 
-    private void markSession(HttpServletRequest request) {
-        request.getSession().setAttribute(SESSION_ATTRIBUTE, Boolean.TRUE);
+    /** The session lives as long as the login, so a form left open isn't lost to an idle time-out, and is flagged to skip the warning. */
+    private void keepSession(HttpServletRequest request, Instant expiresAt) {
+        HttpSession session = request.getSession();
+        session.setAttribute(SESSION_ATTRIBUTE, Boolean.TRUE);
+        session.setAttribute(EXPIRES_AT_ATTRIBUTE, expiresAt.toString());
+        capToLogin(session);
+    }
+
+    /**
+     * Sets a remembered session's idle time-out to what is left of its login. Each request restarts the idle timer, so this
+     * has to be repeated on each one, or activity would carry the session past the login's fixed expiry. Never below a second,
+     * because an interval of zero or less can mean a session that never runs out.
+     */
+    static void capToLogin(HttpSession session) {
+        if (session.getAttribute(EXPIRES_AT_ATTRIBUTE) instanceof String expiresAt) {
+            long remaining = Duration.between(Instant.now(), Instant.parse(expiresAt)).toSeconds();
+            session.setMaxInactiveInterval((int) Math.max(1, Math.min(remaining, Integer.MAX_VALUE)));
+        }
     }
 }

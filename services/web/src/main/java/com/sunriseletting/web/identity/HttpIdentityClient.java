@@ -115,7 +115,7 @@ class HttpIdentityClient implements IdentityClient {
                         if (status == HttpStatus.BAD_REQUEST.value()) {
                             ValidationFailedAnswer answer = response.bodyTo(ValidationFailedAnswer.class);
                             if (answer == null || answer.errors() == null || answer.errors().isEmpty()
-                                    || !SIGN_IN_FIELD_CODES.containsAll(answer.errors().values())) {
+                                    || !answer.errors().values().stream().allMatch(HttpIdentityClient::isSignInFieldCode)) {
                                 return unexpectedStatus(status, AuthenticationResult.unavailable());
                             }
                             return new AuthenticationResult.FieldErrors(answer.errors());
@@ -244,6 +244,11 @@ class HttpIdentityClient implements IdentityClient {
     private static boolean areChangePasswordFieldCodes(Map<String, String> errors) {
         return errors.entrySet().stream().allMatch(error -> error.getValue() != null
                 && CHANGE_PASSWORD_FIELD_CODES.getOrDefault(error.getKey(), Set.of()).contains(error.getValue()));
+    }
+
+    /** {@code Set.of} sets throw on {@code contains(null)}, and a field with no code can reach here in the JSON. */
+    private static boolean isSignInFieldCode(String code) {
+        return code != null && SIGN_IN_FIELD_CODES.contains(code);
     }
 
     private static boolean isKnownRole(String role) {
