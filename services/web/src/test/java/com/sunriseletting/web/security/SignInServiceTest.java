@@ -25,6 +25,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 
 class SignInServiceTest {
 
+    private static final SessionPrincipal VISITOR = new SessionPrincipal("account-1", AccountRole.VISITOR, false);
+
     private final MockHttpServletRequest request = new MockHttpServletRequest();
 
     private final MockHttpServletResponse response = new MockHttpServletResponse();
@@ -40,7 +42,7 @@ class SignInServiceTest {
 
     @Test
     void putsAnAuthenticatedPrincipalWithTheRoleInTheSession() {
-        service.signIn("account-1", AccountRole.VISITOR, request, response);
+        service.signIn(VISITOR, request, response);
 
         SecurityContext context = (SecurityContext) request.getSession(false)
                 .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
@@ -56,7 +58,7 @@ class SignInServiceTest {
 
     @Test
     void setsTheCurrentSecurityContextForTheRestOfTheRequest() {
-        service.signIn("account-1", AccountRole.VISITOR, request, response);
+        service.signIn(VISITOR, request, response);
 
         assertInstanceOf(SessionPrincipal.class, SecurityContextHolder.getContext().getAuthentication().getPrincipal(),
                 "the rest of this request should see the signed-in principal");
@@ -68,38 +70,58 @@ class SignInServiceTest {
         String oldId = existing.getId();
         request.setSession(existing);
 
-        service.signIn("account-1", AccountRole.VISITOR, request, response);
+        service.signIn(VISITOR, request, response);
 
         assertNotEquals(oldId, request.getSession(false).getId(), "signing in should change the session id");
     }
 
     @Test
     void createsASessionWhenThereIsNone() {
-        service.signIn("account-1", AccountRole.VISITOR, request, response);
+        service.signIn(VISITOR, request, response);
 
         assertNotNull(request.getSession(false), "signing in should create a session");
     }
 
     @Test
     void visitorSessionIdlesOutAfterThirtyMinutes() {
-        service.signIn("account-1", AccountRole.VISITOR, request, response);
+        service.signIn(VISITOR, request, response);
 
         assertEquals(1800, request.getSession(false).getMaxInactiveInterval(), "a Visitor's session should idle out after 30 minutes");
     }
 
     @Test
+    void propertyManagerSessionIdlesOutAfterTwoHours() {
+        service.signIn(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, false), request, response);
+
+        assertEquals(7200, request.getSession(false).getMaxInactiveInterval(), "a Property Manager's session should idle out after 2 hours");
+    }
+
+    @Test
+    void theSessionKeepsTheTemporaryPasswordFlagAndTheManagerAuthority() {
+        SessionPrincipal manager = new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, true);
+
+        service.signIn(manager, request, response);
+
+        SecurityContext context = (SecurityContext) request.getSession(false)
+                .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+        assertEquals(manager, context.getAuthentication().getPrincipal(), "the session should remember that the password is temporary");
+        assertEquals(List.of("ROLE_PROPERTY_MANAGER"), context.getAuthentication().getAuthorities().stream().map(GrantedAuthority::getAuthority).toList(),
+                "the only authority should be the Property Manager role");
+    }
+
+    @Test
     void tellsListenersAboutTheSignIn() {
-        service.signIn("account-1", AccountRole.VISITOR, request, response);
+        service.signIn(VISITOR, request, response);
 
         verify(listener, description("the sign-in hook should hear about the sign-in"))
-                .onSignIn(new SessionPrincipal("account-1", AccountRole.VISITOR), request, response);
+                .onSignIn(VISITOR, request, response);
     }
 
     @Test
     void listenersAreOptional() {
         SignInService withoutListeners = new SignInService(new HttpSessionSecurityContextRepository(), List.of());
 
-        withoutListeners.signIn("account-1", AccountRole.VISITOR, request, response);
+        withoutListeners.signIn(VISITOR, request, response);
 
         assertSame(SessionPrincipal.class, SecurityContextHolder.getContext().getAuthentication().getPrincipal().getClass(),
                 "signing in should work with no listeners");

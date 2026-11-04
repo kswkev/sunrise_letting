@@ -22,6 +22,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,10 +36,12 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.testcontainers.containers.GenericContainer;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Sign-in against real sessions in Redis. Test-only endpoints stand in for the pages that will sign people in. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -63,13 +67,24 @@ class SignInServiceIT {
 
         @GetMapping("/fixture/sign-in")
         String signIn(HttpServletRequest request, HttpServletResponse response) {
-            signInService.signIn("account-1", AccountRole.VISITOR, request, response);
+            signInService.signIn(new SessionPrincipal("account-1", AccountRole.VISITOR, false), request, response);
+            return "ok";
+        }
+
+        @GetMapping("/fixture/sign-in-manager")
+        String signInManager(@RequestParam boolean temporary, HttpServletRequest request, HttpServletResponse response) {
+            signInService.signIn(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, temporary), request, response);
             return "ok";
         }
 
         @GetMapping("/fixture/who-am-i")
         String whoAmI(@AuthenticationPrincipal SessionPrincipal principal, HttpSession session) {
             return principal == null ? "nobody" : principal.accountId() + "|" + principal.role() + "|" + session.getAttribute("kept");
+        }
+
+        @GetMapping("/fixture/temporary-password")
+        String temporaryPassword(@AuthenticationPrincipal SessionPrincipal principal) {
+            return String.valueOf(principal.temporaryPassword());
         }
     }
 
@@ -106,7 +121,43 @@ class SignInServiceIT {
     }
 
     @Test
-    void storedPrincipalHoldsOnlyTheAccountIdAndRole() throws Exception {
+    void signedInSessionHasThePropertyManagerTimeoutInRedis() throws Exception {
+        String cookie = cookie(get(port, "/fixture/sign-in-manager?temporary=false", null));
+
+        byte[] raw = rawField(sessionKey(cookie), "maxInactiveInterval");
+
+        assertEquals(7200, JsonMapper.builder().build().readTree(raw).asInt(), "the stored session should idle out after 2 hours");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void theTemporaryPasswordFlagSurvivesRedis(boolean temporary) throws Exception {
+        String cookie = cookie(get(port, "/fixture/sign-in-manager?temporary=" + temporary, null));
+
+        HttpResponse<String> response = get(port, "/fixture/temporary-password", cookie);
+
+        assertEquals(200, response.statusCode(), "the session should be readable from Redis");
+        assertEquals(String.valueOf(temporary), response.body(), "the next request should see the flag");
+    }
+
+    @Test
+    void aSessionStoredBeforeTheFlagExistedStaysSignedInAndCountsAsNotTemporary() throws Exception {
+        String cookie = cookie(get(port, "/fixture/sign-in-manager?temporary=true", null));
+        removeTheFlagFromTheStoredPrincipal(sessionKey(cookie));
+
+        HttpResponse<String> whoAmI = get(port, "/fixture/who-am-i", cookie);
+        HttpResponse<String> flag = get(port, "/fixture/temporary-password", cookie);
+        HttpResponse<String> signInPage = get(port, "/sign-in", cookie);
+
+        assertEquals(200, whoAmI.statusCode(), "the old session should still be readable from Redis");
+        assertEquals("account-2|PROPERTY_MANAGER|null", whoAmI.body(), "the old session should still be signed in as the same account");
+        assertEquals("false", flag.body(), "with no flag stored, the password counts as not temporary");
+        assertEquals(302, signInPage.statusCode(), "the old session should still count as signed in on the sign-in page");
+        assertEquals("/manage", signInPage.headers().firstValue("Location").orElse(null), "the old session should be routed as a Property Manager");
+    }
+
+    @Test
+    void storedPrincipalHoldsOnlyTheAccountIdRoleAndFlag() throws Exception {
         String cookie = cookie(get(port, "/fixture/sign-in", null));
 
         byte[] raw = rawField(sessionKey(cookie), "sessionAttr:SPRING_SECURITY_CONTEXT");
@@ -115,7 +166,7 @@ class SignInServiceIT {
         assertEquals("account-1", principal.get("accountId").asString(), "the principal should hold the account id");
         Set<String> fields = new java.util.HashSet<>(principal.propertyNames());
         fields.remove("@class");
-        assertEquals(Set.of("accountId", "role"), fields, "the principal should hold nothing but the account id and role");
+        assertEquals(Set.of("accountId", "role", "temporaryPassword"), fields, "the principal should hold nothing but the account id, role and flag");
         assertTrue(principal.get("role").toString().contains("VISITOR"), "the principal should hold the role");
     }
 
@@ -174,6 +225,17 @@ class SignInServiceIT {
     private boolean keyExists(String key) {
         try (RedisConnection connection = redis.getConnection()) {
             return Boolean.TRUE.equals(connection.keyCommands().exists(key.getBytes(StandardCharsets.UTF_8)));
+        }
+    }
+
+    private void removeTheFlagFromTheStoredPrincipal(String key) {
+        JsonMapper mapper = JsonMapper.builder().build();
+        byte[] field = "sessionAttr:SPRING_SECURITY_CONTEXT".getBytes(StandardCharsets.UTF_8);
+        JsonNode context = mapper.readTree(rawField(key, "sessionAttr:SPRING_SECURITY_CONTEXT"));
+        ObjectNode principal = (ObjectNode) context.get("authentication").get("principal");
+        assertNotNull(principal.remove("temporaryPassword"), "the stored principal should have held the flag");
+        try (RedisConnection connection = redis.getConnection()) {
+            connection.hashCommands().hSet(key.getBytes(StandardCharsets.UTF_8), field, mapper.writeValueAsBytes(context));
         }
     }
 

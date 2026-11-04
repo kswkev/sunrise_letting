@@ -79,7 +79,7 @@ class RememberMeIT {
 
     @Test
     void afterClosingTheBrowserTheVisitorIsSignedBackInAndTheFlagSurvivesRedis() throws Exception {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(series, TOKEN, Instant.now().plus(Duration.ofDays(30))));
         when(identityClient.verifyRememberMeToken(series, TOKEN)).thenReturn(verified());
         HttpResponse<String> form = browser.get("/sign-in");

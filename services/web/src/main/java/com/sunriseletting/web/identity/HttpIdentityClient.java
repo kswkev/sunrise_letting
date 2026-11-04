@@ -104,7 +104,7 @@ class HttpIdentityClient implements IdentityClient {
                     .exchange((request, response) -> {
                         int status = response.getStatusCode().value();
                         if (status == HttpStatus.OK.value()) {
-                            return signedIn(response.bodyTo(CreatedAnswer.class));
+                            return signedIn(response.bodyTo(AuthenticatedAnswer.class));
                         }
                         if (status == HttpStatus.BAD_REQUEST.value()) {
                             ValidationFailedAnswer answer = response.bodyTo(ValidationFailedAnswer.class);
@@ -194,11 +194,11 @@ class HttpIdentityClient implements IdentityClient {
         }
     }
 
-    private static AuthenticationResult signedIn(CreatedAnswer answer) {
-        if (answer == null || answer.accountId() == null || !isKnownRole(answer.role())) {
+    private static AuthenticationResult signedIn(AuthenticatedAnswer answer) {
+        if (answer == null || answer.accountId() == null || !isKnownRole(answer.role()) || answer.temporaryPassword() == null) {
             return AuthenticationResult.unavailable();
         }
-        return new AuthenticationResult.SignedIn(answer.accountId(), AccountRole.valueOf(answer.role()));
+        return new AuthenticationResult.SignedIn(answer.accountId(), AccountRole.valueOf(answer.role()), answer.temporaryPassword());
     }
 
     private static boolean isKnownRole(String role) {
@@ -258,6 +258,10 @@ class HttpIdentityClient implements IdentityClient {
     }
 
     private record CreatedAnswer(String accountId, String role) {
+    }
+
+    /** The flag is a wrapper type so that a 200 without it can be told from false. */
+    private record AuthenticatedAnswer(String accountId, String role, Boolean temporaryPassword) {
     }
 
     private record ValidationFailedAnswer(Map<String, String> errors) {

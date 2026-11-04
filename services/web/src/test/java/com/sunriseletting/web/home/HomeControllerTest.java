@@ -128,7 +128,7 @@ class HomeControllerTest {
 
     @Test
     void signedInHeaderOnTheHomePageHasNoSignInOrCreateAccount() {
-        Authentication visitor = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        Authentication visitor = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
 
         Document page = Html.page(mvc.get().uri("/").with(authentication(visitor)).exchange());

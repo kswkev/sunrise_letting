@@ -146,7 +146,7 @@ class SecurityConfigurationTest {
     @ParameterizedTest
     @ValueSource(strings = { "/manage", "/manage/anything" })
     void aPropertyManagerIsLetThrough(String path) {
-        Authentication manager = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER), null,
+        Authentication manager = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_PROPERTY_MANAGER")));
 
         MvcTestResult result = mvc.get().uri(path).with(authentication(manager)).exchange();
@@ -177,7 +177,7 @@ class SecurityConfigurationTest {
     }
 
     private Authentication visitor() {
-        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 }

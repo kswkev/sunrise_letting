@@ -79,7 +79,7 @@ class RememberMeLoginTest {
     @Test
     void signingInWithTheBoxTickedSetsTheCookieWithMaxAgeFromExpiresAt() {
         Instant expiresAt = Instant.now().plus(Duration.ofDays(30));
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, expiresAt));
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
@@ -99,7 +99,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithoutTheBoxSetsNoCookieAndIssuesNothing() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
 
         MvcTestResult result = signIn().with(csrf()).exchange();
 
@@ -112,7 +112,7 @@ class RememberMeLoginTest {
 
     @Test
     void aPropertyManagerTickingTheBoxGetsNoToken() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
 
@@ -123,7 +123,7 @@ class RememberMeLoginTest {
 
     @Test
     void whenNoTokenCanBeIssuedTheVisitorIsStillSignedInWithAnOrdinarySession() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(RememberMeTokenResult.unavailable());
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
@@ -151,7 +151,7 @@ class RememberMeLoginTest {
         assertThat(page.select(".notification-banner")).as("no message").isEmpty();
         HttpSession session = result.getRequest().getSession(false);
         SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
-        assertThat(context.getAuthentication().getPrincipal()).as("the Visitor is signed in").isEqualTo(new SessionPrincipal("account-1", AccountRole.VISITOR));
+        assertThat(context.getAuthentication().getPrincipal()).as("the Visitor is signed in").isEqualTo(new SessionPrincipal("account-1", AccountRole.VISITOR, false));
         assertThat(session.getAttribute(RememberMeLogin.SESSION_ATTRIBUTE)).as("the session is flagged").isEqualTo(true);
         assertThat(setCookie(result)).as("the cookie holds the new token").startsWith("remember-me=" + SERIES + "." + NEW_TOKEN + ";");
         assertThat(maxAge(setCookie(result))).as("the expiry is fixed, so Max-Age comes from expiresAt, not a fresh 30 days")
@@ -316,7 +316,7 @@ class RememberMeLoginTest {
     }
 
     private Authentication visitor() {
-        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 }

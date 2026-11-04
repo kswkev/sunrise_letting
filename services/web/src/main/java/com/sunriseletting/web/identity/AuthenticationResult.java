@@ -7,7 +7,7 @@ import com.sunriseletting.web.security.AccountRole;
 /** What identity said about an email and password. */
 public sealed interface AuthenticationResult {
 
-    record SignedIn(String accountId, AccountRole role) implements AuthenticationResult {
+    record SignedIn(String accountId, AccountRole role, boolean temporaryPassword) implements AuthenticationResult {
     }
 
     /** Fields left empty: identity's field name to its error code. */

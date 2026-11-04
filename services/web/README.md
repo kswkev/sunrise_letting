@@ -35,8 +35,12 @@ You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
 
 Pages that call identity, such as Create account and Sign in, need the identity service running on its local address, <http://localhost:8081> (see its README). Pages that don't call it work without it. To point at a different address, set `identity.base-url`, or the environment variable `IDENTITY_BASEURL`.
 
+Property Managers sign in on the same page. To have an account locally, seed one in identity (see its README). Signing in goes to `/manage/change-password` or `/manage`, which answer 404 until those pages are built.
+
 The session, remember-me and signed-in marker cookies are `Secure`. Browsers accept that on `http://localhost`, but not on other plain HTTP addresses.
 
 ## Deploy to a cluster
 
 There are no Kubernetes manifests yet. Whoever adds them needs to know that `web` needs a Redis reachable inside the cluster (a Deployment or StatefulSet plus a Service, or a managed Redis), with the connection passed as the environment variables `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT` and `SPRING_DATA_REDIS_PASSWORD` (the password from a Secret). It also needs `IDENTITY_BASEURL` set to the identity Service's address. `web` can then run with more than one replica and no session affinity.
+
+Deploy identity before `web` when upgrading to a `web` that reads `temporaryPassword`: `web` treats a sign-in answer without that field as identity being unavailable, so nobody can sign in until identity sends it.

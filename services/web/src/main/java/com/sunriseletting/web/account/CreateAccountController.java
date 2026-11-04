@@ -60,7 +60,7 @@ public class CreateAccountController {
         }
         CreateVisitorResult result = identityClient.createVisitor(form.toRequest());
         if (result instanceof CreateVisitorResult.Created created) {
-            signInService.signIn(created.accountId(), AccountRole.valueOf(created.role()), request, response);
+            signInService.signIn(new SessionPrincipal(created.accountId(), AccountRole.valueOf(created.role()), false), request, response);
             return redirectAfterSignUp(returnTo, redirectAttributes);
         }
         if (result instanceof CreateVisitorResult.ValidationFailed failed) {

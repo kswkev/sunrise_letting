@@ -16,6 +16,8 @@ public class SignInService {
 
     private static final Duration VISITOR_IDLE_TIMEOUT = Duration.ofMinutes(30);
 
+    private static final Duration PROPERTY_MANAGER_IDLE_TIMEOUT = Duration.ofHours(2);
+
     private final SecurityContextRepository securityContextRepository;
 
     private final List<SignInListener> listeners;
@@ -29,19 +31,24 @@ public class SignInService {
      * Puts the principal in the session under a new session id (session fixation protection), and
      * sets the session's own idle time-out, which Redis keeps with it for whichever replica is next.
      */
-    public void signIn(String accountId, AccountRole role, HttpServletRequest request, HttpServletResponse response) {
-        SessionPrincipal principal = new SessionPrincipal(accountId, role);
-
+    public void signIn(SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
         request.getSession(true);
         request.changeSessionId();
-        request.getSession(false).setMaxInactiveInterval((int) VISITOR_IDLE_TIMEOUT.toSeconds());
+        request.getSession(false).setMaxInactiveInterval((int) idleTimeout(principal.role()).toSeconds());
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal, null,
-                List.of(new SimpleGrantedAuthority(role.authority()))));
+                List.of(new SimpleGrantedAuthority(principal.role().authority()))));
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
 
         listeners.forEach(listener -> listener.onSignIn(principal, request, response));
+    }
+
+    private static Duration idleTimeout(AccountRole role) {
+        return switch (role) {
+            case VISITOR -> VISITOR_IDLE_TIMEOUT;
+            case PROPERTY_MANAGER -> PROPERTY_MANAGER_IDLE_TIMEOUT;
+        };
     }
 }

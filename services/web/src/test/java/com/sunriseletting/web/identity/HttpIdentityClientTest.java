@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -221,27 +222,48 @@ class HttpIdentityClientTest {
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(content().json("{\"email\":\" Jo@Example.com \",\"password\":\"%s\"}".formatted(SECRET), JsonCompareMode.STRICT))
-                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\"}", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess("{\"accountId\":\"account-1\",\"role\":\"VISITOR\",\"temporaryPassword\":false}", MediaType.APPLICATION_JSON));
 
         AuthenticationResult result = client.authenticate(" Jo@Example.com ", SECRET);
 
-        assertEquals(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR), result, "a 200 should give the account's id and role");
+        assertEquals(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false), result, "a 200 should give the account's id, role and flag");
         server.verify();
     }
 
     @Test
     void authenticateAcceptsAPropertyManager() {
         server.expect(requestTo(BASE_URL + "/api/authentications"))
-                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\"}", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\",\"temporaryPassword\":false}", MediaType.APPLICATION_JSON));
 
-        assertEquals(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER), client.authenticate("pm@example.com", SECRET),
+        assertEquals(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false), client.authenticate("pm@example.com", SECRET),
                 "identity can answer with a Property Manager on this shared page");
+    }
+
+    @Test
+    void authenticateReturnsATemporaryPassword() {
+        server.expect(requestTo(BASE_URL + "/api/authentications"))
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\",\"temporaryPassword\":true}", MediaType.APPLICATION_JSON));
+
+        assertEquals(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, true), client.authenticate("pm@example.com", SECRET),
+                "a temporary password should reach the sign-in page");
+    }
+
+    /** Assuming "not temporary" would let a Property Manager past the change-password page, so these are outside the contract. */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\"}",
+            "{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\",\"temporaryPassword\":null}",
+            "{\"accountId\":\"account-2\",\"role\":\"PROPERTY_MANAGER\",\"temporaryPassword\":\"maybe\"}" })
+    void authenticateIsUnavailableWithoutABooleanTemporaryFlag(String body) {
+        server.expect(requestTo(BASE_URL + "/api/authentications")).andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+
+        assertEquals(AuthenticationResult.unavailable(), client.authenticate("pm@example.com", SECRET), "a 200 must say whether the password is temporary");
     }
 
     @Test
     void authenticateIsUnavailableForARoleOutsideTheContract() {
         server.expect(requestTo(BASE_URL + "/api/authentications"))
-                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"ADMIN\"}", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess("{\"accountId\":\"account-2\",\"role\":\"ADMIN\",\"temporaryPassword\":false}", MediaType.APPLICATION_JSON));
 
         assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "an unknown role is outside the contract");
     }
@@ -249,7 +271,7 @@ class HttpIdentityClientTest {
     @Test
     void authenticateIsUnavailableWhenTheAccountIsMissingFromA200() {
         server.expect(requestTo(BASE_URL + "/api/authentications"))
-                .andRespond(withSuccess("{\"role\":\"VISITOR\"}", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess("{\"role\":\"VISITOR\",\"temporaryPassword\":false}", MediaType.APPLICATION_JSON));
 
         assertEquals(AuthenticationResult.unavailable(), client.authenticate("a@example.com", SECRET), "a 200 with no account is outside the contract");
     }

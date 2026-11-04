@@ -49,7 +49,7 @@ class SignInControllerTest {
 
     private static final String TIMED_OUT_MESSAGE = "You were signed out because you were inactive";
 
-    private static final AuthenticationResult SIGNED_IN = new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR);
+    private static final AuthenticationResult SIGNED_IN = new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false);
 
     @Autowired
     private MockMvcTester mvc;
@@ -297,6 +297,107 @@ class SignInControllerTest {
         verify(identityClient, never().description("identity shouldn't be asked")).authenticate(any(), any());
     }
 
+    // Property Managers (#32)
+
+    @Test
+    void aPropertyManagerWithATemporaryPasswordGoesToChangeItAndKeepsTheFlag() {
+        when(identityClient.authenticate("pm@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, true));
+
+        MvcTestResult result = submit("pm@example.com", SECRET).with(csrf()).exchange();
+
+        assertThat(result).as("success should answer See Other").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(result).as("a temporary password has to be changed first").hasRedirectedUrl("/manage/change-password");
+        assertSignedInAsManager(result, true);
+        verify(identityClient, description("identity should be asked")).authenticate("pm@example.com", SECRET);
+    }
+
+    @Test
+    void aPropertyManagerWithATemporaryPasswordIgnoresAReturnAddress() {
+        when(identityClient.authenticate("pm@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, true));
+
+        MvcTestResult result = submit("pm@example.com", SECRET).param("returnTo", "/properties/1").with(csrf()).exchange();
+
+        assertThat(result).as("the return address shouldn't get past the change-password page").hasRedirectedUrl("/manage/change-password");
+        verify(identityClient, description("identity should be asked")).authenticate("pm@example.com", SECRET);
+    }
+
+    @Test
+    void aPropertyManagerWithAPermanentPasswordGoesToTheManagerAreaWhateverTheReturnAddress() {
+        when(identityClient.authenticate("pm@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
+
+        MvcTestResult result = submit("pm@example.com", SECRET).param("returnTo", "/properties/1").with(csrf()).exchange();
+
+        assertThat(result).as("success should answer See Other").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(result).as("a Property Manager's return address is ignored").hasRedirectedUrl("/manage");
+        assertSignedInAsManager(result, false);
+        verify(identityClient, description("identity should be asked")).authenticate("pm@example.com", SECRET);
+    }
+
+    @Test
+    void aPropertyManagerTickingRememberMeGetsNoCookieAndNoToken() {
+        when(identityClient.authenticate("pm@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
+
+        MvcTestResult result = submit("pm@example.com", SECRET).param("remember-me", "on").with(csrf()).exchange();
+
+        assertThat(result).as("the box is ignored, and the Property Manager goes to their area").hasRedirectedUrl("/manage");
+        assertThat(result.getResponse().getHeaders("Set-Cookie")).as("no remember-me cookie should be set").noneMatch(header -> header.startsWith("remember-me="));
+        assertThat(result.getRequest().getSession(false).getAttribute(RememberMeLogin.SESSION_ATTRIBUTE))
+                .as("the session can run out, so it isn't a remember-me session").isNull();
+        verify(identityClient, never().description("no token should be issued")).issueRememberMeToken(any());
+        verify(identityClient, description("identity should be asked")).authenticate("pm@example.com", SECRET);
+    }
+
+    @Test
+    void getWhenSignedInAsAPropertyManagerWithATemporaryPasswordRedirectsToChangeIt() {
+        MvcTestResult result = mvc.get().uri("/sign-in").with(authentication(manager(true))).exchange();
+
+        assertThat(result).as("a signed-in Property Manager should be redirected").hasStatus(HttpStatus.FOUND);
+        assertThat(result).as("a temporary password has to be changed first").hasRedirectedUrl("/manage/change-password");
+    }
+
+    @Test
+    void getWhenSignedInAsAPropertyManagerWithAPermanentPasswordRedirectsToTheManagerArea() {
+        MvcTestResult result = mvc.get().uri("/sign-in?returnTo=/properties/1").with(authentication(manager(false))).exchange();
+
+        assertThat(result).as("a signed-in Property Manager should be redirected").hasStatus(HttpStatus.FOUND);
+        assertThat(result).as("the return address is ignored").hasRedirectedUrl("/manage");
+    }
+
+    @Test
+    void timedOutWhenSignedInAsAPropertyManagerGoesToTheManagerAreaWithNoMessage() {
+        MvcTestResult result = mvc.get().uri("/sign-in?timedOut=true&returnTo=/properties/1").cookie(new Cookie("signed-in", "1"))
+                .with(authentication(manager(false))).exchange();
+
+        assertThat(result).as("the tab should be redirected").hasStatus(HttpStatus.FOUND);
+        assertThat(result).as("a Property Manager's return address is ignored").hasRedirectedUrl("/manage");
+        assertThat(Html.body(result)).as("no message and no form").doesNotContain(TIMED_OUT_MESSAGE).doesNotContain("sign-in-form");
+        assertThat(result.getResponse().getHeader("Set-Cookie")).as("a real time-out later must still show the message").isNull();
+    }
+
+    @Test
+    void timedOutWhenSignedInAsAPropertyManagerWithATemporaryPasswordGoesToChangeIt() {
+        MvcTestResult result = mvc.get().uri("/sign-in?timedOut=true&returnTo=/properties/1").with(authentication(manager(true))).exchange();
+
+        assertThat(result).as("the tab should be redirected").hasStatus(HttpStatus.FOUND);
+        assertThat(result).as("a temporary password has to be changed first").hasRedirectedUrl("/manage/change-password");
+    }
+
+    @Test
+    void postWhenAlreadySignedInAsAPropertyManagerRedirectsAndChecksNothing() {
+        MvcTestResult result = submit("pm@example.com", SECRET).with(authentication(manager(true))).with(csrf()).exchange();
+
+        assertThat(result).as("a signed-in Property Manager should be redirected").hasRedirectedUrl("/manage/change-password");
+        verify(identityClient, never().description("identity shouldn't be asked")).authenticate(any(), any());
+    }
+
+    @Test
+    void expiredFormWhenAlreadySignedInAsAPropertyManagerRedirects() {
+        MvcTestResult result = submit("pm@example.com", SECRET).with(authentication(manager(false))).exchange();
+
+        assertThat(result).as("a signed-in Property Manager doesn't need the form").hasRedirectedUrl("/manage");
+        verify(identityClient, never().description("identity shouldn't be asked")).authenticate(any(), any());
+    }
+
     // POST: failures
 
     @Test
@@ -466,7 +567,17 @@ class SignInControllerTest {
         SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
         assertThat(context).as("the session should hold the security context").isNotNull();
         assertThat(context.getAuthentication().getPrincipal()).as("the Visitor should be the principal")
-                .isEqualTo(new SessionPrincipal("account-1", AccountRole.VISITOR));
+                .isEqualTo(new SessionPrincipal("account-1", AccountRole.VISITOR, false));
+    }
+
+    private void assertSignedInAsManager(MvcTestResult result, boolean temporaryPassword) {
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session).as("there should be a session").isNotNull();
+        assertThat(session.getMaxInactiveInterval()).as("a Property Manager's session idles out after 2 hours").isEqualTo(7200);
+        SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+        assertThat(context).as("the session should hold the security context").isNotNull();
+        assertThat(context.getAuthentication().getPrincipal()).as("the Property Manager should be the principal")
+                .isEqualTo(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, temporaryPassword));
     }
 
     private void assertNotSignedIn(MvcTestResult result) {
@@ -485,8 +596,13 @@ class SignInControllerTest {
         return Html.page(result);
     }
 
+    private Authentication manager(boolean temporaryPassword) {
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, temporaryPassword), null,
+                List.of(new SimpleGrantedAuthority("ROLE_PROPERTY_MANAGER")));
+    }
+
     private Authentication visitor() {
-        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 }

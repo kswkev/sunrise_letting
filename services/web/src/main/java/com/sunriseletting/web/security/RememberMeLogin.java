@@ -70,7 +70,7 @@ public class RememberMeLogin implements SignOutListener {
         }
         RememberMeVerifyResult result = identityClient.verifyRememberMeToken(series, value.group(2));
         if (result instanceof RememberMeVerifyResult.Verified verified) {
-            signInService.signIn(verified.accountId(), verified.role(), request, response);
+            signInService.signIn(new SessionPrincipal(verified.accountId(), verified.role(), false), request, response);
             markSession(request);
             writeCookie(response, series, verified.token(), verified.expiresAt());
             return;

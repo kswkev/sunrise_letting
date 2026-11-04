@@ -10,6 +10,7 @@ import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializ
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.security.jackson.SecurityJacksonModules;
 import org.springframework.web.servlet.FlashMap;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
@@ -31,6 +32,8 @@ class SessionConfiguration {
                 .allowIfSubType(AccountRole.class);
         JsonMapper mapper = JsonMapper.builder()
                 .addModules(SecurityJacksonModules.getModules(getClass().getClassLoader(), allowedTypes))
+                // A session stored before a primitive field was added doesn't hold it, and must still be readable: it gets the default.
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
                 .build();
         return new GenericJacksonJsonRedisSerializer(mapper);
     }

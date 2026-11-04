@@ -58,7 +58,7 @@ class SignedInUserFilterTest {
 
     @Test
     void aPropertyManagerSessionGetsItsOwnTimeOut() {
-        Authentication manager = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER), null,
+        Authentication manager = UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_PROPERTY_MANAGER")));
 
         Document page = pageFor(manager, sessionWithTimeout(7200));
@@ -114,7 +114,7 @@ class SignedInUserFilterTest {
     }
 
     private Authentication visitor() {
-        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 }
