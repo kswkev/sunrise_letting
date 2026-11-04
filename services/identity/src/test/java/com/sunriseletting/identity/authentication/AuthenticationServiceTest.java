@@ -54,7 +54,7 @@ class AuthenticationServiceTest {
     }
 
     private Optional<AccountCredentials> storedAccount(String password, Role role) {
-        return Optional.of(new AccountCredentials(ACCOUNT_ID, new PreHashingBCryptPasswordEncoder().encode(password), role));
+        return Optional.of(new AccountCredentials(ACCOUNT_ID, new PreHashingBCryptPasswordEncoder().encode(password), role, false));
     }
 
     @Test
@@ -67,7 +67,7 @@ class AuthenticationServiceTest {
         verify(repository, description("the account should be looked up by email")).findCredentialsByEmail(EMAIL);
         verify(encoder, description("the password should be checked against the stored hash"))
                 .matches(PASSWORD, account.orElseThrow().passwordHash());
-        assertEquals(new AuthenticationResult.Authenticated(ACCOUNT_ID, Role.VISITOR), result,
+        assertEquals(new AuthenticationResult.Authenticated(ACCOUNT_ID, Role.VISITOR, false), result,
                 "the correct password should give the account's id and role");
     }
 
@@ -78,8 +78,34 @@ class AuthenticationServiceTest {
         AuthenticationResult result = service().authenticate(new AuthenticationRequest(EMAIL, PASSWORD));
 
         verify(repository, description("the account should be looked up by email")).findCredentialsByEmail(EMAIL);
-        assertEquals(new AuthenticationResult.Authenticated(ACCOUNT_ID, Role.PROPERTY_MANAGER), result,
+        assertEquals(new AuthenticationResult.Authenticated(ACCOUNT_ID, Role.PROPERTY_MANAGER, false), result,
                 "a Property Manager should get their own role");
+    }
+
+    @Test
+    void temporaryPasswordIsReportedOnASuccessfulCheck() {
+        String hash = new PreHashingBCryptPasswordEncoder().encode(PASSWORD);
+        when(repository.findCredentialsByEmail(EMAIL))
+                .thenReturn(Optional.of(new AccountCredentials(ACCOUNT_ID, hash, Role.PROPERTY_MANAGER, true)));
+
+        AuthenticationResult result = service().authenticate(new AuthenticationRequest(EMAIL, PASSWORD));
+
+        verify(repository, description("the account should be looked up by email")).findCredentialsByEmail(EMAIL);
+        assertEquals(new AuthenticationResult.Authenticated(ACCOUNT_ID, Role.PROPERTY_MANAGER, true), result,
+                "the result should say the password is temporary");
+    }
+
+    @Test
+    void wrongPasswordOnAnAccountWithATemporaryPasswordGivesInvalidCredentials() {
+        String hash = new PreHashingBCryptPasswordEncoder().encode(PASSWORD);
+        when(repository.findCredentialsByEmail(EMAIL))
+                .thenReturn(Optional.of(new AccountCredentials(ACCOUNT_ID, hash, Role.PROPERTY_MANAGER, true)));
+
+        AuthenticationResult result = service().authenticate(new AuthenticationRequest(EMAIL, "Wrong-pw-1"));
+
+        verify(repository, description("the account should be looked up by email")).findCredentialsByEmail(EMAIL);
+        assertEquals(new AuthenticationResult.InvalidCredentials(), result,
+                "a Property Manager should get the same generic result as a Visitor");
     }
 
     @Test

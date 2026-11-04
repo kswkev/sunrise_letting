@@ -42,16 +42,29 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void matchGivesTheAccountIdAndRoleOnly() {
+    void matchGivesTheAccountIdRoleAndTemporaryPasswordFlagOnly() {
         UUID id = UUID.randomUUID();
-        when(service.authenticate(REQUEST)).thenReturn(new AuthenticationResult.Authenticated(id, Role.VISITOR));
+        when(service.authenticate(REQUEST)).thenReturn(new AuthenticationResult.Authenticated(id, Role.VISITOR, false));
 
         MvcTestResult result = post(JSON);
 
         verify(service, description("the service should get the submitted details")).authenticate(REQUEST);
         assertThat(result).as("a match should give 200").hasStatusOk();
-        assertThat(result).bodyJson().as("the response should give only the id and role")
-                .isStrictlyEqualTo("{\"accountId\":\"" + id + "\",\"role\":\"VISITOR\"}");
+        assertThat(result).bodyJson().as("the response should give only the id, role and flag")
+                .isStrictlyEqualTo("{\"accountId\":\"" + id + "\",\"role\":\"VISITOR\",\"temporaryPassword\":false}");
+    }
+
+    @Test
+    void matchOnATemporaryPasswordSaysSo() {
+        UUID id = UUID.randomUUID();
+        when(service.authenticate(REQUEST)).thenReturn(new AuthenticationResult.Authenticated(id, Role.PROPERTY_MANAGER, true));
+
+        MvcTestResult result = post(JSON);
+
+        verify(service, description("the service should get the submitted details")).authenticate(REQUEST);
+        assertThat(result).as("a match should give 200").hasStatusOk();
+        assertThat(result).bodyJson().as("the response should give the flag as true")
+                .isStrictlyEqualTo("{\"accountId\":\"" + id + "\",\"role\":\"PROPERTY_MANAGER\",\"temporaryPassword\":true}");
     }
 
     @Test

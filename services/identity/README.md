@@ -14,9 +14,17 @@ All requests and responses are JSON. Field names are `title`, `titleOther`, `fir
 |---|---|---|
 | `POST /api/account-validation/{field}` | `{ "value": "...", "password": "..." }` (`password` only for `confirmPassword`) | `200 { "error": "<CODE>" }`, or `{ "error": null }` if valid. `404` for an unknown field. Never checks whether an account exists. |
 | `POST /api/accounts/visitors` | All the fields above | `201 { "accountId": "<uuid>", "role": "VISITOR" }`. `400 { "errors": { "<field>": "<CODE>" } }` with one code per failing field. `409 { "error": "ACCOUNT_NOT_CREATED" }` if the email is in use. |
-| `POST /api/authentications` | `{ "email": "...", "password": "..." }` | `200 { "accountId": "<uuid>", "role": "VISITOR" \| "PROPERTY_MANAGER" }`. `400 { "errors": { "email": "EMAIL_REQUIRED", "password": "PASSWORD_REQUIRED" } }`, listing only the empty fields. `401 { "error": "INVALID_CREDENTIALS" }` for an unknown email or a wrong password alike. |
+| `POST /api/authentications` | `{ "email": "...", "password": "..." }` | `200 { "accountId": "<uuid>", "role": "VISITOR" \| "PROPERTY_MANAGER", "temporaryPassword": true \| false }`. `400 { "errors": { "email": "EMAIL_REQUIRED", "password": "PASSWORD_REQUIRED" } }`, listing only the empty fields. `401 { "error": "INVALID_CREDENTIALS" }` for an unknown email or a wrong password alike. |
+| `POST /api/accounts/{accountId}/password` | `{ "newPassword": "...", "confirmNewPassword": "..." }` | `204` with no body when the password is changed. `400 { "errors": { "newPassword": "<CODE>", "confirmNewPassword": "<CODE>" } }`, listing only the failing fields. `404 { "error": "ACCOUNT_NOT_FOUND" }` for an unknown account. `409 { "error": "NO_TEMPORARY_PASSWORD" }` if the account doesn't have a temporary password. `400` with no codes if `accountId` isn't a UUID or the body isn't valid JSON. |
 
 The email is trimmed and matched without regard to case, as when an account is created. The password is never trimmed, so a password of spaces isn't empty; it is just wrong. An unknown email is checked against a dummy hash, so it takes as long to answer as a wrong password.
+
+Changing a password is only for replacing a temporary password at first sign-in. Identity trusts the `accountId` in the path: the caller is `web`, which takes it from the signed-in session, and identity is only reachable inside the cluster.
+
+- The account is checked first, so `404` and `409` are given whatever was submitted.
+- `newPassword` gives the first that applies of `PASSWORD_REQUIRED`, `PASSWORD_TOO_SHORT`, `PASSWORD_TOO_LONG`, `PASSWORD_MISSING_CHARACTER_TYPES` and `PASSWORD_SAME_AS_TEMPORARY`. The comparison with the temporary password comes last, because a temporary password doesn't have to meet the rules.
+- `confirmNewPassword` gives `CONFIRM_PASSWORD_REQUIRED` or `PASSWORDS_DO_NOT_MATCH`.
+- A change stores the new hash and clears the temporary flag in one step. Of two concurrent changes, one gets `204` and the other `409`.
 
 Remember-me logins live here because identity owns credentials and `web` has no data store. `web` only holds the cookie.
 

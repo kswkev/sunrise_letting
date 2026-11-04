@@ -207,6 +207,7 @@ class PropertyManagerSeederIT {
         JsonNode body = json.readTree(response.body());
         assertEquals(stored(FIRST_EMAIL).id(), body.get("accountId").asString(), "the response should give the account's id");
         assertEquals("PROPERTY_MANAGER", body.get("role").asString(), "the response should give the Property Manager role");
+        assertTrue(body.get("temporaryPassword").asBoolean(), "the response should say the seeded password is temporary");
     }
 
     @Test

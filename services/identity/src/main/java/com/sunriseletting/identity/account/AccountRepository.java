@@ -1,5 +1,7 @@
 package com.sunriseletting.identity.account;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -56,12 +58,41 @@ public class AccountRepository {
         if (email.indexOf('\0') >= 0) {
             return Optional.empty();
         }
-        return jdbc.sql("SELECT id, password_hash, role FROM accounts WHERE email = :email")
+        return jdbc.sql("SELECT id, password_hash, role, password_temporary FROM accounts WHERE email = :email")
                 .param("email", email)
-                .query((row, rowNumber) -> new AccountCredentials(
-                        row.getObject("id", UUID.class),
-                        row.getString("password_hash"),
-                        Role.valueOf(row.getString("role"))))
+                .query(AccountRepository::credentials)
                 .optional();
+    }
+
+    public Optional<AccountCredentials> findCredentialsById(UUID id) {
+        return jdbc.sql("SELECT id, password_hash, role, password_temporary FROM accounts WHERE id = :id")
+                .param("id", id)
+                .query(AccountRepository::credentials)
+                .optional();
+    }
+
+    /**
+     * Stores the new hash and marks the password as no longer temporary, as one atomic step that only applies while the
+     * password is still temporary, so of two concurrent changes only one can succeed.
+     *
+     * @return true if the password was replaced, false if the account has no temporary password
+     */
+    public boolean replaceTemporaryPassword(UUID id, String passwordHash) {
+        int updated = jdbc.sql("""
+                        UPDATE accounts SET password_hash = :passwordHash, password_temporary = false
+                        WHERE id = :id AND password_temporary
+                        """)
+                .param("passwordHash", passwordHash)
+                .param("id", id)
+                .update();
+        return updated == 1;
+    }
+
+    private static AccountCredentials credentials(ResultSet row, int rowNumber) throws SQLException {
+        return new AccountCredentials(
+                row.getObject("id", UUID.class),
+                row.getString("password_hash"),
+                Role.valueOf(row.getString("role")),
+                row.getBoolean("password_temporary"));
     }
 }

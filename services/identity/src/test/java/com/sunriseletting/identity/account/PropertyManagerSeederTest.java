@@ -44,7 +44,7 @@ class PropertyManagerSeederTest {
     }
 
     private static AccountCredentials existing(Role role) {
-        return new AccountCredentials(UUID.randomUUID(), "existing-hash", role);
+        return new AccountCredentials(UUID.randomUUID(), "existing-hash", role, false);
     }
 
     @Test

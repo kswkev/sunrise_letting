@@ -43,7 +43,7 @@ public class AuthenticationService {
         boolean passwordMatches = passwordEncoder.matches(request.password(), hash);
 
         return account.filter(found -> passwordMatches)
-                .<AuthenticationResult>map(found -> new AuthenticationResult.Authenticated(found.id(), found.role()))
+                .<AuthenticationResult>map(found -> new AuthenticationResult.Authenticated(found.id(), found.role(), found.passwordTemporary()))
                 .orElseGet(AuthenticationResult.InvalidCredentials::new);
     }
 
