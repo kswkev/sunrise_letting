@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -111,6 +112,21 @@ class SignInServiceTest {
         assertEquals(manager, context.getAuthentication().getPrincipal(), "the session should remember that the password is temporary");
         assertEquals(List.of("ROLE_PROPERTY_MANAGER"), context.getAuthentication().getAuthorities().stream().map(GrantedAuthority::getAuthority).toList(),
                 "the only authority should be the Property Manager role");
+    }
+
+    @Test
+    void clearsWhatAnEarlierRememberedLoginLeftInTheSession() {
+        MockHttpSession existing = new MockHttpSession();
+        existing.setAttribute(RememberMeLogin.SESSION_ATTRIBUTE, Boolean.TRUE);
+        existing.setAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE, "2030-01-01T00:00:00Z");
+        request.setSession(existing);
+
+        service.signIn(VISITOR, request, response);
+
+        assertNull(request.getSession(false).getAttribute(RememberMeLogin.SESSION_ATTRIBUTE),
+                "a new sign-in must not keep the earlier login's skipped time-out warning");
+        assertNull(request.getSession(false).getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE),
+                "a new sign-in must not keep the earlier login's expiry");
     }
 
     @Test

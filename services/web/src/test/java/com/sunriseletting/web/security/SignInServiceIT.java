@@ -65,6 +65,19 @@ class SignInServiceIT {
             return "ok";
         }
 
+        @GetMapping("/fixture/remembered-session")
+        String rememberedSession(HttpSession session) {
+            session.setAttribute(RememberMeLogin.SESSION_ATTRIBUTE, Boolean.TRUE);
+            session.setAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE, "2099-01-01T00:00:00Z");
+            return "ok";
+        }
+
+        @GetMapping("/fixture/remembered-attributes")
+        String rememberedAttributes(HttpSession session) {
+            return session.getAttribute(RememberMeLogin.SESSION_ATTRIBUTE) + "|" + session.getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE)
+                    + "|" + session.getMaxInactiveInterval();
+        }
+
         @GetMapping("/fixture/sign-in")
         String signIn(HttpServletRequest request, HttpServletResponse response) {
             signInService.signIn(new SessionPrincipal("account-1", AccountRole.VISITOR, false), request, response);
@@ -179,6 +192,15 @@ class SignInServiceIT {
 
         assertEquals(200, response.statusCode(), "the session should be readable from Redis");
         assertEquals("account-1|VISITOR|yes", response.body(), "the next request should see the same principal");
+    }
+
+    @Test
+    void whatAnEarlierRememberedLoginLeftIsGoneWhenTheSessionIsReadBackFromRedis() throws Exception {
+        String oldCookie = cookie(get(port, "/fixture/remembered-session", null));
+        String cookie = cookie(get(port, "/fixture/sign-in", oldCookie));
+
+        assertEquals("null|null|1800", get(port, "/fixture/remembered-attributes", cookie).body(),
+                "the next request should see an ordinary session, not the earlier login's flag, expiry or long life");
     }
 
     @Test

@@ -30,11 +30,14 @@ public class SignInService {
     /**
      * Puts the principal in the session under a new session id (session fixation protection), and
      * sets the session's own idle time-out, which Redis keeps with it for whichever replica is next.
+     * An earlier remembered login's long life and skipped warning end here; a login remembered by this sign-in sets them again afterwards.
      */
     public void signIn(SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
         request.getSession(true);
         request.changeSessionId();
         request.getSession(false).setMaxInactiveInterval((int) idleTimeout(principal.role()).toSeconds());
+        request.getSession(false).removeAttribute(RememberMeLogin.SESSION_ATTRIBUTE);
+        request.getSession(false).removeAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE);
 
         storeInSession(principal, request, response);
 
