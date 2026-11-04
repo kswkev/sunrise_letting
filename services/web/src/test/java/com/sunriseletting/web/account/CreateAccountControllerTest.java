@@ -13,6 +13,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.sunriseletting.web.identity.CreateVisitorRequest;
 import com.sunriseletting.web.identity.CreateVisitorResult;
@@ -28,6 +29,7 @@ import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -42,6 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MockMvcTester.MockMvcRequestBuilder;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
+import org.springframework.validation.BindingResult;
 
 @WebMvcTest(CreateAccountController.class)
 @Import({ SecurityConfiguration.class, IdentityErrorMessages.class, CreateAccountExpiredFormResponder.class })
@@ -449,6 +452,26 @@ class CreateAccountControllerTest {
 
         assertServerError(result);
         verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
+    }
+
+    @ParameterizedTest
+    @MethodSource("everySubmitOutcome")
+    void passwordsAreNotInTheModel(CreateVisitorResult outcome) {
+        when(identityClient.createVisitor(any())).thenReturn(outcome);
+
+        MvcTestResult result = submit(validForm()).with(csrf()).exchange();
+
+        assertThat(result.getMvcResult().getModelAndView().getModel().values())
+                .as("no form in the model, or held by a BindingResult there, should have a password")
+                .map(value -> value instanceof BindingResult binding ? binding.getTarget() : value)
+                .filteredOn(CreateAccountForm.class::isInstance).map(CreateAccountForm.class::cast)
+                .allMatch(form -> form.password().isEmpty() && form.confirmPassword().isEmpty());
+        verify(identityClient, description("identity should be asked to create the account")).createVisitor(VALID_REQUEST);
+    }
+
+    private static Stream<CreateVisitorResult> everySubmitOutcome() {
+        return Stream.of(CREATED, new CreateVisitorResult.ValidationFailed(Map.of("email", "EMAIL_INVALID")), CreateVisitorResult.notCreated(),
+                CreateVisitorResult.unavailable());
     }
 
     private void assertServerError(MvcTestResult result) {

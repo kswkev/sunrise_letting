@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,7 +28,10 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-/** The Create an account page. A form whose CSRF token has expired is handled by {@link CreateAccountExpiredFormResponder}. */
+/**
+ * The Create an account page. A form whose CSRF token has expired is handled by {@link CreateAccountExpiredFormResponder}.
+ * The submitted form is read from the request, not bound as a model attribute, so its passwords can't reach the view.
+ */
 @Controller
 @RequestMapping("/create-account")
 public class CreateAccountController {
@@ -57,12 +59,13 @@ public class CreateAccountController {
     }
 
     @PostMapping
-    public ModelAndView submit(@ModelAttribute("submitted") CreateAccountForm form, @RequestParam(required = false) String returnTo,
+    public ModelAndView submit(@RequestParam(required = false) String returnTo,
             @AuthenticationPrincipal SessionPrincipal principal, RedirectAttributes redirectAttributes,
             HttpServletRequest request, HttpServletResponse response, Locale locale) {
         if (principal != null) {
             return alreadySignedIn(principal);
         }
+        CreateAccountForm form = CreateAccountForm.from(request);
         CreateVisitorResult result = identityClient.createVisitor(form.toRequest());
         if (result instanceof CreateVisitorResult.Created created) {
             if (!AccountRole.VISITOR.name().equals(created.role())) {
