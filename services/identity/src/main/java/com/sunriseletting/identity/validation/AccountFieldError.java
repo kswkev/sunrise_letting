@@ -1,7 +1,7 @@
 package com.sunriseletting.identity.validation;
 
 /**
- * Stable error codes for the account fields. The web service maps these to the page copy.
+ * Stable error codes for the account fields. The web module maps these to the page copy.
  */
 public enum AccountFieldError {
     TITLE_REQUIRED,

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Owns accounts and credentials for Sunrise Letting. It exposes JSON APIs only and never renders HTML; the `web` service calls it inside the cluster.
+Owns accounts and credentials for Sunrise Letting. It exposes JSON APIs only and never renders HTML; the `web` module calls it inside the cluster.
 
 Its data store is PostgreSQL, with the schema managed by Flyway migrations in `src/main/resources/db/migration`. No other service reads that data store directly.
 
