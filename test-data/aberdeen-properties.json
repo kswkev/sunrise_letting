@@ -1,0 +1,455 @@
+{
+  "note": "Made-up test data. Not real listings: areas are real Aberdeen districts, but streets, house numbers and descriptions are invented, and postcodes use inward letters Royal Mail never issues (C, I, K, M, O, V), so they can't match a real address. A studio has 0 bedrooms. rentPcm is whole pounds per calendar month.",
+  "properties": [
+    {
+      "id": "ABD-001",
+      "address": { "line1": "First Floor Right, 14 Carnlea Place", "area": "West End", "city": "Aberdeen", "postcode": "AB10 1CK" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 825,
+      "description": "Granite-built flat in a smart West End street, with high ceilings and a bay-windowed lounge. Close to the business district."
+    },
+    {
+      "id": "ABD-002",
+      "address": { "line1": "Ground Floor Left, 27 Carnlea Place", "area": "West End", "city": "Aberdeen", "postcode": "AB10 1CK" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 650,
+      "description": "Main-door one-bedroom flat with a modern shower room and a shared rear garden. Gas central heating."
+    },
+    {
+      "id": "ABD-003",
+      "address": { "line1": "8 Queensbrae Terrace", "area": "West End", "city": "Aberdeen", "postcode": "AB15 4MO" },
+      "propertyType": "Terraced house",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "rentPcm": 1950,
+      "description": "Elegant granite terraced house over three floors, with a formal drawing room and a large walled garden to the rear."
+    },
+    {
+      "id": "ABD-004",
+      "address": { "line1": "Top Floor, 19 Queensbrae Terrace", "area": "West End", "city": "Aberdeen", "postcode": "AB15 4MO" },
+      "propertyType": "Apartment",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1250,
+      "description": "Spacious attic-level apartment in a converted townhouse, with coombed ceilings, dormer windows and residents' parking."
+    },
+    {
+      "id": "ABD-005",
+      "address": { "line1": "2nd Floor, 36 Whinhill Row", "area": "Rosemount", "city": "Aberdeen", "postcode": "AB25 2IV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 695,
+      "description": "Traditional tenement flat near independent shops and the theatre. Dining kitchen, press cupboards and a shared back green."
+    },
+    {
+      "id": "ABD-006",
+      "address": { "line1": "1st Floor, 12 Whinhill Row", "area": "Rosemount", "city": "Aberdeen", "postcode": "AB25 2IV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 550,
+      "description": "Well-presented one-bedroom flat a short walk from Union Street. Double glazed, with a bright lounge. Unfurnished."
+    },
+    {
+      "id": "ABD-007",
+      "address": { "line1": "Flat 5, 3 Skenelaw Court", "area": "Rosemount", "city": "Aberdeen", "postcode": "AB25 1KM" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 450,
+      "description": "Neat studio with a fitted kitchenette and a shower room, close to the hospital. Bills not included."
+    },
+    {
+      "id": "ABD-008",
+      "address": { "line1": "2nd Floor, 22 Kingsmarch Street", "area": "Old Aberdeen", "city": "Aberdeen", "postcode": "AB24 1OV" },
+      "propertyType": "Flat",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1325,
+      "description": "Large four-bedroom HMO flat a few minutes from the university's campus. Two shower rooms and a generous dining kitchen."
+    },
+    {
+      "id": "ABD-009",
+      "address": { "line1": "5 Chanonry Wynd", "area": "Old Aberdeen", "city": "Aberdeen", "postcode": "AB24 1MC" },
+      "propertyType": "Cottage",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 875,
+      "description": "Charming stone cottage on a cobbled lane near the cathedral, with a wood-burning stove and a small walled garden."
+    },
+    {
+      "id": "ABD-010",
+      "address": { "line1": "Flat 2, 41 Tullosbrae Road", "area": "Torry", "city": "Aberdeen", "postcode": "AB11 9CV" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 495,
+      "description": "Affordable flat a short walk over the bridge to the city centre, with harbour views from the lounge. On-street parking."
+    },
+    {
+      "id": "ABD-011",
+      "address": { "line1": "Flat 7, 41 Tullosbrae Road", "area": "Torry", "city": "Aberdeen", "postcode": "AB11 9CV" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 395,
+      "description": "Tidy top-floor flat, ideal for a single professional. Electric heating. Stairs only, with no lift."
+    },
+    {
+      "id": "ABD-012",
+      "address": { "line1": "11 Pocra Square", "area": "Footdee", "city": "Aberdeen", "postcode": "AB11 5IK" },
+      "propertyType": "Cottage",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 925,
+      "description": "Characterful fishing cottage in a quiet square by the harbour mouth, a moment from the beach. Shared drying green."
+    },
+    {
+      "id": "ABD-013",
+      "address": { "line1": "Flat 6, 2 Seagate Quay", "area": "Footdee", "city": "Aberdeen", "postcode": "AB11 5OM" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 950,
+      "description": "New-build apartment with sea views, a balcony and allocated parking. Main bedroom has an en suite."
+    },
+    {
+      "id": "ABD-014",
+      "address": { "line1": "1st Floor, 30 Marybrae Walk", "area": "Ferryhill", "city": "Aberdeen", "postcode": "AB11 6KC" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 775,
+      "description": "Attractive flat near Duthie Park, with original cornicing and a recently fitted kitchen. Pets considered."
+    },
+    {
+      "id": "ABD-015",
+      "address": { "line1": "16 Marybrae Gardens", "area": "Ferryhill", "city": "Aberdeen", "postcode": "AB11 6KC" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1175,
+      "description": "Period terraced house with a sunny rear garden and an open-plan kitchen. Convenient for the railway station."
+    },
+    {
+      "id": "ABD-016",
+      "address": { "line1": "24 Larchwood Avenue", "area": "Mannofield", "city": "Aberdeen", "postcode": "AB15 7VM" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1095,
+      "description": "Granite semi-detached home with a driveway and a large rear garden. Near well-regarded schools and the cricket ground."
+    },
+    {
+      "id": "ABD-017",
+      "address": { "line1": "9 Larchwood Grove", "area": "Mannofield", "city": "Aberdeen", "postcode": "AB15 7VM" },
+      "propertyType": "Bungalow",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1195,
+      "description": "Single-level bungalow on a quiet cul-de-sac, with a garage and level access from the street. Mature gardens front and back."
+    },
+    {
+      "id": "ABD-018",
+      "address": { "line1": "6 Deeside Hollow", "area": "Cults", "city": "Aberdeen", "postcode": "AB15 9CO" },
+      "propertyType": "Detached house",
+      "bedrooms": 5,
+      "bathrooms": 4,
+      "rentPcm": 2650,
+      "description": "Substantial detached villa in landscaped grounds, with a double garage and three reception rooms. Popular with relocating families."
+    },
+    {
+      "id": "ABD-019",
+      "address": { "line1": "Annexe, 28 Deeside Hollow", "area": "Cults", "city": "Aberdeen", "postcode": "AB15 9CO" },
+      "propertyType": "Annexe",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 675,
+      "description": "Self-contained garden annexe with its own entrance and a small patio. All bills included except broadband."
+    },
+    {
+      "id": "ABD-020",
+      "address": { "line1": "44 Balgownie Rise", "area": "Bridge of Don", "city": "Aberdeen", "postcode": "AB23 8IM" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 950,
+      "description": "Modern semi-detached home on a family-friendly estate, with a garage and an enclosed garden. Handy for the northern business parks."
+    },
+    {
+      "id": "ABD-021",
+      "address": { "line1": "Flat 3, 19 Balgownie Court", "area": "Bridge of Don", "city": "Aberdeen", "postcode": "AB23 8IM" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 625,
+      "description": "First-floor flat in a low-rise block with allocated parking and a secure door entry system."
+    },
+    {
+      "id": "ABD-022",
+      "address": { "line1": "13 Wellheads Drive", "area": "Dyce", "city": "Aberdeen", "postcode": "AB21 7OK" },
+      "propertyType": "Detached house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1395,
+      "description": "Detached family home close to the airport and energy-sector offices. Integral garage, conservatory and a south-facing garden."
+    },
+    {
+      "id": "ABD-023",
+      "address": { "line1": "Flat 8, 5 Pitmeddie Court", "area": "Dyce", "city": "Aberdeen", "postcode": "AB21 7KV" },
+      "propertyType": "Apartment",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 595,
+      "description": "Furnished apartment suited to shift workers, with a short walk to the train station and the bus to the airport."
+    },
+    {
+      "id": "ABD-024",
+      "address": { "line1": "2nd Floor, 58 Donview Street", "area": "Woodside", "city": "Aberdeen", "postcode": "AB24 2MK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 525,
+      "description": "Good-sized flat on a main bus route into town, with a separate kitchen and a recently replaced boiler."
+    },
+    {
+      "id": "ABD-025",
+      "address": { "line1": "Flat 12, 7 Linksfield Court", "area": "Seaton", "city": "Aberdeen", "postcode": "AB24 1VI" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 550,
+      "description": "Upper-floor flat with views of the sea and the links, and a lift to all floors. Close to the beach esplanade."
+    },
+    {
+      "id": "ABD-026",
+      "address": { "line1": "31 Redmoss Way", "area": "Kincorth", "city": "Aberdeen", "postcode": "AB12 5CI" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 750,
+      "description": "End-terraced house with a low-maintenance garden and a shed. Fitted kitchen with appliances and a family bathroom upstairs."
+    },
+    {
+      "id": "ABD-027",
+      "address": { "line1": "2 Culter Mill Steading", "area": "Peterculter", "city": "Aberdeen", "postcode": "AB14 0OI" },
+      "propertyType": "Barn conversion",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1350,
+      "description": "Converted farm steading on the edge of the city, with exposed beams, an open-plan living space and shared courtyard parking."
+    },
+    {
+      "id": "ABD-028",
+      "address": { "line1": "10 Binghill Rise", "area": "Milltimber", "city": "Aberdeen", "postcode": "AB13 0KI" },
+      "propertyType": "Detached house",
+      "bedrooms": 5,
+      "bathrooms": 3,
+      "rentPcm": 2350,
+      "description": "Executive detached home backing onto woodland, with a double garage and a main bedroom suite with a dressing room."
+    },
+    {
+      "id": "ABD-029",
+      "address": { "line1": "Flat 4, 15 Riverbrae Gardens", "area": "Garthdee", "city": "Aberdeen", "postcode": "AB10 7MV" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 795,
+      "description": "Purpose-built apartment near the university campus and the river path. Balcony and one allocated parking space."
+    },
+    {
+      "id": "ABD-030",
+      "address": { "line1": "Flat 15, 15 Riverbrae Gardens", "area": "Garthdee", "city": "Aberdeen", "postcode": "AB10 7MV" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 525,
+      "description": "Self-contained student-friendly studio with a desk area. Available from September for a fixed term."
+    },
+    {
+      "id": "ABD-031",
+      "address": { "line1": "18 Countesslaw Road", "area": "Hazlehead", "city": "Aberdeen", "postcode": "AB15 8VC" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1425,
+      "description": "Extended family home a short walk from the park and woods. Garden room, converted loft and a driveway for two cars."
+    },
+    {
+      "id": "ABD-032",
+      "address": { "line1": "52 Oldmeldrum Brae", "area": "Bucksburn", "city": "Aberdeen", "postcode": "AB21 9KO" },
+      "propertyType": "Terraced house",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 695,
+      "description": "Mid-terraced house with gardens to the front and rear. Good road links to the bypass and the airport."
+    },
+    {
+      "id": "ABD-033",
+      "address": { "line1": "7 Fernielea Crescent", "area": "Kingswells", "city": "Aberdeen", "postcode": "AB15 8CM" },
+      "propertyType": "Townhouse",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "rentPcm": 1150,
+      "description": "Contemporary three-storey townhouse with a roof terrace and a garage. Every bedroom has access to its own bathroom."
+    },
+    {
+      "id": "ABD-034",
+      "address": { "line1": "Flat 1, 26 St Machar Vennel", "area": "Tillydrone", "city": "Aberdeen", "postcode": "AB24 2OM" },
+      "propertyType": "Maisonette",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 575,
+      "description": "Lower maisonette with a private entrance and its own small garden. Close to the river walk. No pets, please."
+    },
+    {
+      "id": "ABD-035",
+      "address": { "line1": "4 Stoneyhaugh Mews", "area": "Stoneywood", "city": "Aberdeen", "postcode": "AB21 9IC" },
+      "propertyType": "Mews house",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 925,
+      "description": "Mews-style house in a riverside development, with an integral garage and an upstairs living room. Main bedroom has an en suite."
+    },
+    {
+      "id": "ABD-036",
+      "address": { "line1": "Main Door, 33 Crownhall Street", "area": "City Centre", "city": "Aberdeen", "postcode": "AB11 6MI" },
+      "propertyType": "Duplex",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1095,
+      "description": "Main-door duplex over the ground and basement levels, with a family kitchen opening onto a private courtyard."
+    },
+    {
+      "id": "ABD-037",
+      "address": { "line1": "Flat 9, 17 Crownhall Street", "area": "City Centre", "city": "Aberdeen", "postcode": "AB11 6MI" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 825,
+      "description": "Stylish apartment in a converted granite office building, with tall windows and a lift to all floors. Two double bedrooms, one with an en suite."
+    },
+    {
+      "id": "ABD-038",
+      "address": { "line1": "Flat 3, 4 Schoolhill Lane", "area": "City Centre", "city": "Aberdeen", "postcode": "AB10 1KV" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 475,
+      "description": "Compact studio with a sleeping alcove and exposed granite, a moment from the art gallery. Water and heating included."
+    },
+    {
+      "id": "ABD-039",
+      "address": { "line1": "Penthouse, 1 Harbourview Heights", "area": "City Centre", "city": "Aberdeen", "postcode": "AB11 5VO" },
+      "propertyType": "Penthouse",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "rentPcm": 2995,
+      "description": "Exceptional penthouse with a wraparound terrace and views over the harbour to the North Sea. Four bedrooms, three bathrooms and two secure parking spaces."
+    },
+    {
+      "id": "ABD-040",
+      "address": { "line1": "Bedsit Flat, 2 Causewayend Close", "area": "Woodside", "city": "Aberdeen", "postcode": "AB24 2CK" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 325,
+      "description": "Small studio."
+    },
+    {
+      "id": "ABD-041",
+      "address": { "line1": "4th Floor, 9 O'Neill's Close", "area": "Torry", "city": "Aberdeen", "postcode": "AB11 9OC" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 460,
+      "description": "Fourth-floor flat with \"harbour glimpses\" from the kitchen window. Rent includes water & factor's fees; council tax band A."
+    },
+    {
+      "id": "ABD-042",
+      "address": { "line1": "15 Gordon-Farquhar Court", "area": "Mannofield", "city": "Aberdeen", "postcode": "AB15 7IK" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1040,
+      "description": "Deposit: £1,200. Minimum term 12 months. Rooms sized 3.0m x 4.2m & larger. Heating costs < £95/month on average, and broadband speeds > 500Mbps."
+    },
+    {
+      "id": "ABD-043",
+      "address": { "line1": "Flat 1, 6 Àite na Dìge Wynd", "area": "Rosemount", "city": "Aberdeen", "postcode": "AB25 1VK" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 720,
+      "description": "Café, bakery and deli on the doorstep. Renovated flat with a Crittall-style kitchen screen and a façade restored in 2021."
+    },
+    {
+      "id": "ABD-044",
+      "address": { "line1": "Flat 7, 88 The Old Road from Grandholm Mill to St Nicholas's Walk and Upper Devanha Gardens North", "area": "Ferryhill", "city": "Aberdeen", "postcode": "AB11 7CO" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 680,
+      "description": "A flat with an unusually long address, useful for checking that cards and list rows wrap neatly."
+    },
+    {
+      "id": "ABD-045",
+      "address": { "line1": "11 Rubislaw Hope Square", "area": "West End", "city": "Aberdeen", "postcode": "AB15 5OK" },
+      "propertyType": "Townhouse",
+      "bedrooms": 6,
+      "bathrooms": 4,
+      "rentPcm": 2800,
+      "description": "Handsome six-bedroom granite townhouse set over four floors, with a library, a games room and a mature garden with a summerhouse.\n\nLong-term lets preferred. References and a guarantor may be required."
+    },
+    {
+      "id": "ABD-046",
+      "address": { "line1": "1st Floor, 20 Kittybrae Street", "area": "Woodside", "city": "Aberdeen", "postcode": "AB24 3MO" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 500,
+      "description": "Rent sits exactly on a round number, which makes this flat useful for checking inclusive price filters. Bright lounge and a separate kitchen."
+    },
+    {
+      "id": "ABD-047",
+      "address": { "line1": "2nd Floor, 20 Kittybrae Street", "area": "Woodside", "city": "Aberdeen", "postcode": "AB24 3MO" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 500,
+      "description": "Second-floor flat at the same rent as its neighbour downstairs, with a modern shower room and a south-facing lounge."
+    },
+    {
+      "id": "ABD-048",
+      "address": { "line1": "Flat 3, 77 Corbiemuir Terrace", "area": "Seaton", "city": "Aberdeen", "postcode": "AB24 1KI" },
+      "propertyType": "Maisonette",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 675,
+      "description": "Upper maisonette with its own stair, a sunny balcony and a garage in a nearby block. Close to local schools."
+    },
+    {
+      "id": "ABD-049",
+      "address": { "line1": "12 Loirston Row", "area": "Kincorth", "city": "Aberdeen", "postcode": "AB12 5IO" },
+      "propertyType": "Colony house",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 695,
+      "description": "Upper colony-style house with an external stair and a pretty front garden. Living room with a stove and a modern bathroom."
+    },
+    {
+      "id": "ABD-050",
+      "address": { "line1": "1st Floor, 34 Ashvale Crescent", "area": "West End", "city": "Aberdeen", "postcode": "AB10 6CM" },
+      "propertyType": "Apartment",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1275,
+      "description": "This generous three-bedroom apartment occupies the first floor of a handsome granite building on a quiet crescent, a few minutes' walk from the shops and restaurants of the West End and a short bus ride from the business parks, and it has been completely refurbished by its current owners to a very high standard. The shared entrance leads up a broad stone stair to a wide, bright hallway, where a run of fitted cupboards provides plenty of storage for coats, cases and golf clubs. At the front of the building, the living room stretches across the full width of the flat, with three tall sash windows, working shutters, restored cornicing and a marble fireplace with a gas stove. The dining kitchen sits to the rear and has been fitted with handmade timber units, stone worktops, an electric range cooker, a dishwasher, a washer-dryer and a large fridge-freezer, with room for a table that seats six. The main bedroom is a large double with a wall of built-in wardrobes and an en suite shower room with underfloor heating. The second bedroom is another good double, also with fitted wardrobes, and the third is a comfortable single that would suit a home office equally well. A family bathroom with a freestanding bath and a separate walk-in shower completes the accommodation. Outside, tenants share a well-kept rear garden with a drying area and a bike store, and there is one allocated parking space. The flat is let unfurnished, with gas central heating and double glazing to the rear. Sorry, no smokers. Available now for a minimum term of twelve months, subject to references and a deposit equal to five weeks' rent."
+    }
+  ]
+}

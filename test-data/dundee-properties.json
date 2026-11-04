@@ -1,0 +1,455 @@
+{
+  "note": "Made-up test data. Not real listings: areas are real Dundee districts, but streets, house numbers and descriptions are invented, and postcodes use inward letters Royal Mail never issues (C, I, K, M, O, V), so they can't match a real address. A studio has 0 bedrooms. rentPcm is whole pounds per calendar month.",
+  "properties": [
+    {
+      "id": "DUN-001",
+      "address": { "line1": "2/1, 14 Balgarrow Street", "area": "West End", "city": "Dundee", "postcode": "DD1 4CK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1050,
+      "description": "Traditional stone-built flat close to the university, with a large lounge and a dining kitchen. HMO licence in place for three sharers."
+    },
+    {
+      "id": "DUN-002",
+      "address": { "line1": "1/2, 31 Balgarrow Street", "area": "West End", "city": "Dundee", "postcode": "DD1 4CK" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 625,
+      "description": "Neat one-bedroom flat in a popular student and professional street. Gas central heating and a modern shower room."
+    },
+    {
+      "id": "DUN-003",
+      "address": { "line1": "G/1, 7 Tayforth Terrace", "area": "West End", "city": "Dundee", "postcode": "DD1 5IM" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 775,
+      "description": "Ground-floor flat with its own front door and a small patio. Close to the shops and cafes along the main road."
+    },
+    {
+      "id": "DUN-004",
+      "address": { "line1": "3/1, 45 Carsegowan Road", "area": "Perth Road", "city": "Dundee", "postcode": "DD2 1OV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 795,
+      "description": "Top-floor flat with views across the Tay to Fife. High ceilings, a bay window and plenty of storage."
+    },
+    {
+      "id": "DUN-005",
+      "address": { "line1": "1/1, 9 Carsegowan Road", "area": "Perth Road", "city": "Dundee", "postcode": "DD2 1OV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1395,
+      "description": "Large four-bedroom HMO flat within walking distance of the university and art college. Two shower rooms and a generous kitchen."
+    },
+    {
+      "id": "DUN-006",
+      "address": { "line1": "8 Strathmartin Mews", "area": "Perth Road", "city": "Dundee", "postcode": "DD2 2KM" },
+      "propertyType": "Mews house",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 950,
+      "description": "Converted mews house on a private lane, with an integral garage and an upstairs living room. Main bedroom has an en suite."
+    },
+    {
+      "id": "DUN-007",
+      "address": { "line1": "Flat 12, 3 Dockhaven Court", "area": "City Quay", "city": "Dundee", "postcode": "DD1 3MC" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 925,
+      "description": "Waterside apartment with a balcony overlooking the marina. Allocated parking and secure entry. Available furnished or unfurnished."
+    },
+    {
+      "id": "DUN-008",
+      "address": { "line1": "Flat 3, 3 Dockhaven Court", "area": "City Quay", "city": "Dundee", "postcode": "DD1 3MC" },
+      "propertyType": "Apartment",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 700,
+      "description": "Modern one-bedroom apartment a short walk from the railway station and the waterfront galleries. Lift to all floors."
+    },
+    {
+      "id": "DUN-009",
+      "address": { "line1": "Flat 5, 19 Seabraes Wynd", "area": "City Centre", "city": "Dundee", "postcode": "DD1 1VI" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 525,
+      "description": "Central studio with a fitted kitchenette and a sleeping alcove. Close to shops and bus routes. Bills not included."
+    },
+    {
+      "id": "DUN-010",
+      "address": { "line1": "2/2, 26 Wellgate Vennel", "area": "City Centre", "city": "Dundee", "postcode": "DD1 2OK" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 725,
+      "description": "Second-floor flat above retail units in the heart of the city. Recently redecorated with new carpets throughout."
+    },
+    {
+      "id": "DUN-011",
+      "address": { "line1": "Flat 8, 14 Lindsayhope Close", "area": "City Centre", "city": "Dundee", "postcode": "DD1 2CV" },
+      "propertyType": "Apartment",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 695,
+      "description": "Former mill conversion with exposed beams and large arched windows. Shared courtyard and secure bike storage."
+    },
+    {
+      "id": "DUN-012",
+      "address": { "line1": "24 Brooksea Road", "area": "Broughty Ferry", "city": "Dundee", "postcode": "DD5 1KO" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1250,
+      "description": "Victorian terraced house two streets from the beach and the castle. Sunny rear courtyard and an open-plan kitchen."
+    },
+    {
+      "id": "DUN-013",
+      "address": { "line1": "6 Claypotts Drive", "area": "Broughty Ferry", "city": "Dundee", "postcode": "DD5 2VM" },
+      "propertyType": "Detached house",
+      "bedrooms": 5,
+      "bathrooms": 3,
+      "rentPcm": 2400,
+      "description": "Substantial detached villa in generous grounds, with sea views from the upper floor, a double garage and three reception rooms."
+    },
+    {
+      "id": "DUN-014",
+      "address": { "line1": "Flat 2, 11 Fishermore Quay", "area": "Broughty Ferry", "city": "Dundee", "postcode": "DD5 2IK" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 995,
+      "description": "Sea-facing apartment with a bay window over the esplanade. Bike store and shared rear garden. Short walk to the train station."
+    },
+    {
+      "id": "DUN-015",
+      "address": { "line1": "3 Fishermore Lane", "area": "Broughty Ferry", "city": "Dundee", "postcode": "DD5 2IK" },
+      "propertyType": "Cottage",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 950,
+      "description": "Charming fisherman's cottage with a wood-burning stove and a small walled garden. Low ceilings upstairs add to its character."
+    },
+    {
+      "id": "DUN-016",
+      "address": { "line1": "1/1, 52 Kirkfauld Street", "area": "Lochee", "city": "Dundee", "postcode": "DD2 3CO" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 595,
+      "description": "First-floor flat near the local high street and bus routes into town. Double glazed, with a separate kitchen. Unfurnished."
+    },
+    {
+      "id": "DUN-017",
+      "address": { "line1": "G/2, 18 Kirkfauld Street", "area": "Lochee", "city": "Dundee", "postcode": "DD2 3CO" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 495,
+      "description": "Tidy ground-floor flat, ideal for a single professional or couple. Electric heating and on-street parking."
+    },
+    {
+      "id": "DUN-018",
+      "address": { "line1": "3/2, 40 Maryfauld Road", "area": "Stobswell", "city": "Dundee", "postcode": "DD4 6MI" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 575,
+      "description": "Top-floor tenement flat near Baxter Park, with a large dining kitchen. Stairs only, with no lift."
+    },
+    {
+      "id": "DUN-019",
+      "address": { "line1": "1/2, 7 Maryfauld Road", "area": "Stobswell", "city": "Dundee", "postcode": "DD4 6MI" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 695,
+      "description": "Spacious three-bedroom flat with a wide hallway and period details. Shared back green and a recently replaced boiler."
+    },
+    {
+      "id": "DUN-020",
+      "address": { "line1": "2/1, 66 Tannadel Street", "area": "Hilltown", "city": "Dundee", "postcode": "DD3 7OC" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 475,
+      "description": "Affordable flat with city views from the lounge. A short walk downhill to the centre. Gas central heating."
+    },
+    {
+      "id": "DUN-021",
+      "address": { "line1": "12 Kinnordy Way", "area": "Hilltown", "city": "Dundee", "postcode": "DD3 7VK" },
+      "propertyType": "Maisonette",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 595,
+      "description": "Lower maisonette with a private entrance and a small front garden. Close to local amenities."
+    },
+    {
+      "id": "DUN-022",
+      "address": { "line1": "29 Ardlerhope Avenue", "area": "Downfield", "city": "Dundee", "postcode": "DD3 9KI" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 875,
+      "description": "Semi-detached family home with a driveway and a large rear garden. Near the golf club and good local schools."
+    },
+    {
+      "id": "DUN-023",
+      "address": { "line1": "4 Ardlerhope Grove", "area": "Downfield", "city": "Dundee", "postcode": "DD3 9KI" },
+      "propertyType": "Bungalow",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 825,
+      "description": "Single-level bungalow on a quiet cul-de-sac, with a garage and level access from the street. Mature gardens front and back."
+    },
+    {
+      "id": "DUN-024",
+      "address": { "line1": "38 Pitkerrow Road", "area": "Menzieshill", "city": "Dundee", "postcode": "DD2 4CM" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 725,
+      "description": "End-terraced house with a low-maintenance garden and a shed. Convenient for Ninewells Hospital and the bypass."
+    },
+    {
+      "id": "DUN-025",
+      "address": { "line1": "Flat 6, 21 Pitkerrow Court", "area": "Menzieshill", "city": "Dundee", "postcode": "DD2 4CM" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 625,
+      "description": "Second-floor flat in a modern low-rise block with a shared garden and residents' parking."
+    },
+    {
+      "id": "DUN-026",
+      "address": { "line1": "Flat 1, 10 Riverwynd Gardens", "area": "Ninewells", "city": "Dundee", "postcode": "DD2 1VO" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 875,
+      "description": "Purpose-built apartment a few minutes from the hospital, popular with medical staff. Available on flexible terms, with parking."
+    },
+    {
+      "id": "DUN-027",
+      "address": { "line1": "15 Kingoodie View", "area": "Invergowrie", "city": "Dundee", "postcode": "DD2 5MK" },
+      "propertyType": "Detached house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1650,
+      "description": "Modern detached home with views over the Tay, an integral garage and a south-facing garden. Main bedroom has an en suite."
+    },
+    {
+      "id": "DUN-028",
+      "address": { "line1": "2 Mylnefield Steading", "area": "Invergowrie", "city": "Dundee", "postcode": "DD2 5OI" },
+      "propertyType": "Barn conversion",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1450,
+      "description": "Converted farm steading on the edge of the city, with exposed beams, an open-plan living space and shared courtyard parking."
+    },
+    {
+      "id": "DUN-029",
+      "address": { "line1": "33 Craigowan Terrace", "area": "Douglas", "city": "Dundee", "postcode": "DD4 8IC" },
+      "propertyType": "Terraced house",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 625,
+      "description": "Mid-terraced house with gardens to the front and rear. Fitted kitchen with appliances and a family bathroom."
+    },
+    {
+      "id": "DUN-030",
+      "address": { "line1": "Flat 4, 2 Craigowan Court", "area": "Douglas", "city": "Dundee", "postcode": "DD4 8IC" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 495,
+      "description": "First-floor flat with a secure door entry system and a shared drying area. Good bus links to the city centre."
+    },
+    {
+      "id": "DUN-031",
+      "address": { "line1": "17 Barryden Drive", "area": "Monifieth", "city": "Dundee", "postcode": "DD5 4KV" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1275,
+      "description": "Extended family home a short walk from the links and the beach. Garden room, converted loft and a driveway for two cars."
+    },
+    {
+      "id": "DUN-032",
+      "address": { "line1": "Annexe, 44 Barryden Drive", "area": "Monifieth", "city": "Dundee", "postcode": "DD5 4KV" },
+      "propertyType": "Annexe",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 650,
+      "description": "Self-contained garden annexe with its own entrance and a small patio. All bills included except broadband."
+    },
+    {
+      "id": "DUN-033",
+      "address": { "line1": "9 Duntrune Row", "area": "Broughty Ferry", "city": "Dundee", "postcode": "DD5 3CI" },
+      "propertyType": "Townhouse",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "rentPcm": 1395,
+      "description": "Contemporary three-storey townhouse with a roof terrace and a garage. Every bedroom has access to its own bathroom."
+    },
+    {
+      "id": "DUN-034",
+      "address": { "line1": "Flat 2, 25 Hawkmuir Gardens", "area": "West End", "city": "Dundee", "postcode": "DD1 5IM" },
+      "propertyType": "Duplex",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1125,
+      "description": "Main-door duplex in a converted Victorian villa, with a private garden and a large family kitchen on the lower level."
+    },
+    {
+      "id": "DUN-035",
+      "address": { "line1": "11 Hawkmuir Crescent", "area": "West End", "city": "Dundee", "postcode": "DD1 5KC" },
+      "propertyType": "Terraced house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1495,
+      "description": "Elegant mid-terraced family home over three floors, with a drawing room, a dining room and a walled rear garden."
+    },
+    {
+      "id": "DUN-036",
+      "address": { "line1": "Flat 3, 8 Scouringbank Close", "area": "Lochee", "city": "Dundee", "postcode": "DD2 3VI" },
+      "propertyType": "Maisonette",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 695,
+      "description": "Upper maisonette with its own stair, a sunny balcony and a garage in a nearby block. No pets, please."
+    },
+    {
+      "id": "DUN-037",
+      "address": { "line1": "2/2, 5 Blackscroft Vennel", "area": "Stobswell", "city": "Dundee", "postcode": "DD4 7OM" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 450,
+      "description": "Self-contained studio with a desk area, a kitchen unit and a shower room. Available from September for a fixed term."
+    },
+    {
+      "id": "DUN-038",
+      "address": { "line1": "Flat 14, 7 Lawhead Court", "area": "Perth Road", "city": "Dundee", "postcode": "DD2 2KM" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 595,
+      "description": "Student-friendly studio in a purpose-built block, with a common room and a laundry on site."
+    },
+    {
+      "id": "DUN-039",
+      "address": { "line1": "Penthouse, 1 Dockhaven Heights", "area": "City Quay", "city": "Dundee", "postcode": "DD1 3CC" },
+      "propertyType": "Penthouse",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "rentPcm": 2750,
+      "description": "Exceptional penthouse with a wraparound terrace and panoramic views of the Tay bridges. Four bedrooms, three bathrooms and two secure parking spaces."
+    },
+    {
+      "id": "DUN-040",
+      "address": { "line1": "Bedsit Flat, 2 Dudhope Close", "area": "Hilltown", "city": "Dundee", "postcode": "DD3 6MC" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 375,
+      "description": "Small studio."
+    },
+    {
+      "id": "DUN-041",
+      "address": { "line1": "4/2, 9 O'Donnell's Close", "area": "City Centre", "city": "Dundee", "postcode": "DD1 2MV" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 610,
+      "description": "Fourth-floor flat with \"river glimpses\" from the kitchen window. Rent includes water & factor's fees; council tax band A."
+    },
+    {
+      "id": "DUN-042",
+      "address": { "line1": "15 Ogilvie-Baxter Court", "area": "Downfield", "city": "Dundee", "postcode": "DD3 8OV" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 860,
+      "description": "Deposit: £990. Minimum term 12 months. Rooms sized 3.0m x 4.0m & larger. Heating costs < £80/month on average, and broadband speeds > 300Mbps."
+    },
+    {
+      "id": "DUN-043",
+      "address": { "line1": "Flat 1, 6 Àird an Tatha Wynd", "area": "West End", "city": "Dundee", "postcode": "DD1 4VK" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 820,
+      "description": "Café, bakery and deli on the doorstep. Renovated flat with a Crittall-style kitchen screen and a façade restored in 2022."
+    },
+    {
+      "id": "DUN-044",
+      "address": { "line1": "Flat 7, 88 The Old Road from Balgowan Mill to St Salvador's Walk and Upper Constitution Gardens East", "area": "Stobswell", "city": "Dundee", "postcode": "DD4 6KO" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 610,
+      "description": "A flat with an unusually long address, useful for checking that cards and list rows wrap neatly."
+    },
+    {
+      "id": "DUN-045",
+      "address": { "line1": "11 Fintryhope Square", "area": "Broughty Ferry", "city": "Dundee", "postcode": "DD5 1MO" },
+      "propertyType": "Townhouse",
+      "bedrooms": 6,
+      "bathrooms": 4,
+      "rentPcm": 2600,
+      "description": "Handsome six-bedroom townhouse set over four floors, with a library, a games room and a mature garden with a summerhouse.\n\nLong-term lets preferred. References and a guarantor may be required."
+    },
+    {
+      "id": "DUN-046",
+      "address": { "line1": "1/1, 20 Kelvanmuir Street", "area": "Lochee", "city": "Dundee", "postcode": "DD2 3KC" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 500,
+      "description": "Rent sits exactly on a round number, which makes this flat useful for checking inclusive price filters. Bright lounge and a separate kitchen."
+    },
+    {
+      "id": "DUN-047",
+      "address": { "line1": "2/1, 20 Kelvanmuir Street", "area": "Lochee", "city": "Dundee", "postcode": "DD2 3KC" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 500,
+      "description": "Second-floor flat at the same rent as its neighbour downstairs, with a modern shower room and a south-facing lounge."
+    },
+    {
+      "id": "DUN-048",
+      "address": { "line1": "21 Baldragon Walk", "area": "Downfield", "city": "Dundee", "postcode": "DD3 9CK" },
+      "propertyType": "Colony house",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 695,
+      "description": "Upper colony-style house with an external stair and a pretty front garden. Living room with a stove and a modern bathroom."
+    },
+    {
+      "id": "DUN-049",
+      "address": { "line1": "Flat 9, 12 Dockhaven Wharf", "area": "City Quay", "city": "Dundee", "postcode": "DD1 3OK" },
+      "propertyType": "Apartment",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 1195,
+      "description": "Large corner apartment with windows on two sides and a long balcony over the dock. Two parking spaces and a storage cage."
+    },
+    {
+      "id": "DUN-050",
+      "address": { "line1": "34 Rosemill Terrace", "area": "West End", "city": "Dundee", "postcode": "DD1 5OC" },
+      "propertyType": "Terraced house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 1575,
+      "description": "This attractive four-bedroom terraced house stands on a quiet street high above the river, within easy walking distance of the university, the hospital bus routes and the shops of the West End, and it has been carefully modernised by its owners without losing its Victorian character. The front door opens into a tiled vestibule and a broad hallway with a useful understair cupboard for coats, cases and bicycles. At the front of the house, the sitting room has a large bay window with views over the Tay to the Fife hills, together with deep skirtings, restored cornicing and a cast-iron fireplace with a gas stove. The dining kitchen runs across the back of the house, fitted with painted timber units, stone worktops, an electric range cooker, a dishwasher and a large fridge-freezer, and glazed doors lead out to the garden. A utility room and a downstairs cloakroom are close by. Upstairs, the main bedroom is a large double with fitted wardrobes and an en suite shower room, and the second and third bedrooms are both good doubles. The fourth bedroom is a comfortable single that would suit a home office equally well. A family bathroom with a freestanding bath and a separate shower completes the upper floor. The enclosed rear garden has a paved terrace, a lawn and a timber shed, and there is on-street parking outside. The house is let unfurnished, with gas central heating and double glazing throughout. Sorry, no smokers. Available now for a minimum term of twelve months, subject to references and a deposit equal to five weeks' rent."
+    }
+  ]
+}

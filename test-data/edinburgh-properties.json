@@ -1,0 +1,455 @@
+{
+  "note": "Made-up test data. Not real listings: areas are real Edinburgh districts, but streets, house numbers and descriptions are invented, and postcodes use inward letters Royal Mail never issues (C, I, K, M, O, V), so they can't match a real address. A studio has 0 bedrooms. rentPcm is whole pounds per calendar month.",
+  "properties": [
+    {
+      "id": "EDI-001",
+      "address": { "line1": "2F1, 14 Larkfoot Row", "area": "Leith", "city": "Edinburgh", "postcode": "EH6 1CK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1295,
+      "description": "Bright second-floor tenement flat with high ceilings and a bay-windowed living room. Dining kitchen to the rear, gas central heating and a shared drying green."
+    },
+    {
+      "id": "EDI-002",
+      "address": { "line1": "Flat 6, 3 Merrowdene Place", "area": "Leith", "city": "Edinburgh", "postcode": "EH6 2MV" },
+      "propertyType": "Apartment",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1095,
+      "description": "Modern one-bedroom apartment overlooking the water, with an open-plan living area and a private balcony. Secure entry and one allocated parking space."
+    },
+    {
+      "id": "EDI-003",
+      "address": { "line1": "1F2, 27 Quillan Street", "area": "Marchmont", "city": "Edinburgh", "postcode": "EH9 3OI" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1750,
+      "description": "Traditional first-floor flat a short walk from the Meadows, with original cornicing and a large box room. Popular with sharers. HMO licence in place for three."
+    },
+    {
+      "id": "EDI-004",
+      "address": { "line1": "GF1, 9 Brackenhaugh Lane", "area": "Marchmont", "city": "Edinburgh", "postcode": "EH9 4KV" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1450,
+      "description": "Ground-floor flat with its own front door and a small south-facing patio. Recently fitted kitchen and shower room. Pets considered."
+    },
+    {
+      "id": "EDI-005",
+      "address": { "line1": "3F1, 41 Pellowick Gardens", "area": "Bruntsfield", "city": "Edinburgh", "postcode": "EH10 1CM" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1395,
+      "description": "Top-floor flat with far-reaching views over the links. Sitting room with a working fireplace, separate kitchen and plenty of storage in the eaves."
+    },
+    {
+      "id": "EDI-006",
+      "address": { "line1": "12 Thistlewick Terrace", "area": "Morningside", "city": "Edinburgh", "postcode": "EH10 2IO" },
+      "propertyType": "Terraced house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 2850,
+      "description": "Elegant mid-terraced family home over three floors, with a drawing room, a dining room and a walled rear garden. Close to local shops and well-regarded schools."
+    },
+    {
+      "id": "EDI-007",
+      "address": { "line1": "5 Harrowfen Mews", "area": "Morningside", "city": "Edinburgh", "postcode": "EH10 3VK" },
+      "propertyType": "Mews house",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1950,
+      "description": "Converted mews house on a quiet cobbled lane, with an integral garage and an upstairs living room. Main bedroom has an en suite."
+    },
+    {
+      "id": "EDI-008",
+      "address": { "line1": "1F1, 8 Dunmarrow Street", "area": "Stockbridge", "city": "Edinburgh", "postcode": "EH3 1MC" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1175,
+      "description": "Characterful one-bedroom flat moments from the Water of Leith walkway. Sash windows, timber floors and a fitted kitchen with a breakfast bar."
+    },
+    {
+      "id": "EDI-009",
+      "address": { "line1": "22 Cawdrick Row", "area": "Stockbridge", "city": "Edinburgh", "postcode": "EH3 2OK" },
+      "propertyType": "Colony house",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1695,
+      "description": "Upper colony house with an external stair and a pretty front garden. Living room with a wood-burning stove and a modern bathroom."
+    },
+    {
+      "id": "EDI-010",
+      "address": { "line1": "First Floor, 16 Ardenlaw Crescent", "area": "New Town", "city": "Edinburgh", "postcode": "EH3 3KM" },
+      "propertyType": "Apartment",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 3200,
+      "description": "Grand Georgian apartment with a double-height drawing room, shutters throughout and two bathrooms. Access to private communal gardens by arrangement."
+    },
+    {
+      "id": "EDI-011",
+      "address": { "line1": "Main Door, 31 Ardenlaw Crescent", "area": "New Town", "city": "Edinburgh", "postcode": "EH3 4VC" },
+      "propertyType": "Duplex",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "rentPcm": 4500,
+      "description": "Main-door duplex over the ground and garden levels, with a family kitchen opening onto a private garden. Wine cellar, utility room and residents' parking permit."
+    },
+    {
+      "id": "EDI-012",
+      "address": { "line1": "Flat 2, 7 Wrenlaw Close", "area": "Old Town", "city": "Edinburgh", "postcode": "EH1 1CO" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 895,
+      "description": "Compact studio in the heart of the Old Town, with a sleeping alcove and exposed stonework. Bills not included."
+    },
+    {
+      "id": "EDI-013",
+      "address": { "line1": "Flat 9, 7 Wrenlaw Close", "area": "Old Town", "city": "Edinburgh", "postcode": "EH1 1CO" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1850,
+      "description": "Stylish apartment in a converted warehouse with vaulted ceilings. Two double bedrooms, both with en suites, and a lift to all floors."
+    },
+    {
+      "id": "EDI-014",
+      "address": { "line1": "2F2, 55 Tolmarsh Place", "area": "Tollcross", "city": "Edinburgh", "postcode": "EH3 5IV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1050,
+      "description": "Well-presented flat close to theatres and the university. Double bedroom to the quiet rear and a living room with a dining area."
+    },
+    {
+      "id": "EDI-015",
+      "address": { "line1": "Flat 4, 18 Ochrevale Court", "area": "Haymarket", "city": "Edinburgh", "postcode": "EH12 1KO" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1575,
+      "description": "Purpose-built apartment a few minutes from the station and tram. Underfloor heating, a balcony and a concierge service."
+    },
+    {
+      "id": "EDI-016",
+      "address": { "line1": "1F3, 62 Fennimore Road", "area": "Dalry", "city": "Edinburgh", "postcode": "EH11 1MI" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1150,
+      "description": "Good-sized flat on a bus route into town, with a separate kitchen and a recently replaced boiler. Unfurnished."
+    },
+    {
+      "id": "EDI-017",
+      "address": { "line1": "GF2, 19 Skellhaven Street", "area": "Gorgie", "city": "Edinburgh", "postcode": "EH11 2CV" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 925,
+      "description": "Tidy ground-floor flat, ideal for a single professional or couple. Electric heating and on-street parking."
+    },
+    {
+      "id": "EDI-018",
+      "address": { "line1": "3F2, 4 Skellhaven Street", "area": "Gorgie", "city": "Edinburgh", "postcode": "EH11 2CV" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1395,
+      "description": "Spacious top-floor flat with three double bedrooms and a large dining kitchen. Stairs only, with no lift."
+    },
+    {
+      "id": "EDI-019",
+      "address": { "line1": "44 Ravelstock Avenue", "area": "Corstorphine", "city": "Edinburgh", "postcode": "EH12 2VI" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1850,
+      "description": "Semi-detached family home with a driveway and a large rear garden. Extended kitchen, downstairs WC and good access to the bypass."
+    },
+    {
+      "id": "EDI-020",
+      "address": { "line1": "8 Ravelstock Grove", "area": "Corstorphine", "city": "Edinburgh", "postcode": "EH12 3CI" },
+      "propertyType": "Bungalow",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1550,
+      "description": "Single-level bungalow on a quiet cul-de-sac, with a garage and level access from the street. Mature gardens front and back."
+    },
+    {
+      "id": "EDI-021",
+      "address": { "line1": "Flat 3, 11 Saltmarrow Promenade", "area": "Portobello", "city": "Edinburgh", "postcode": "EH15 1OV" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1495,
+      "description": "Sea-facing apartment steps from the beach, with a bay window looking over the promenade. Bike store and shared rear garden."
+    },
+    {
+      "id": "EDI-022",
+      "address": { "line1": "29 Saltmarrow Street", "area": "Portobello", "city": "Edinburgh", "postcode": "EH15 2KC" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 2150,
+      "description": "Victorian terraced house two streets from the sand, with a sunny courtyard garden. Open-plan kitchen and family room."
+    },
+    {
+      "id": "EDI-023",
+      "address": { "line1": "6 Wintermuir Road", "area": "Trinity", "city": "Edinburgh", "postcode": "EH5 1VM" },
+      "propertyType": "Detached house",
+      "bedrooms": 5,
+      "bathrooms": 3,
+      "rentPcm": 4200,
+      "description": "Substantial detached villa in generous grounds, with a double garage and three reception rooms. Ideal for a large family."
+    },
+    {
+      "id": "EDI-024",
+      "address": { "line1": "Flat 12, 2 Corvanhead Quay", "area": "Granton", "city": "Edinburgh", "postcode": "EH5 2MK" },
+      "propertyType": "Apartment",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1325,
+      "description": "New-build apartment with Firth of Forth views, allocated parking and an energy-efficient heating system. Available furnished or unfurnished."
+    },
+    {
+      "id": "EDI-025",
+      "address": { "line1": "Flat 1, 2 Corvanhead Quay", "area": "Granton", "city": "Edinburgh", "postcode": "EH5 2MK" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 795,
+      "description": "Ground-floor studio with a fitted kitchenette and a wet room. Step-free access from the street."
+    },
+    {
+      "id": "EDI-026",
+      "address": { "line1": "1F1, 33 Ellerwick Place", "area": "Comely Bank", "city": "Edinburgh", "postcode": "EH4 1OM" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1350,
+      "description": "Attractive flat in a sought-after street close to the park. Double glazing, a separate kitchen and a shared back green."
+    },
+    {
+      "id": "EDI-027",
+      "address": { "line1": "17 Fiddlehope Drive", "area": "Blackhall", "city": "Edinburgh", "postcode": "EH4 2CK" },
+      "propertyType": "Semi-detached house",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 2450,
+      "description": "Extended family home with a garden room and a converted loft. Driveway for two cars and easy access to local schools."
+    },
+    {
+      "id": "EDI-028",
+      "address": { "line1": "Flat 5, 21 Oxgarth Walk", "area": "Abbeyhill", "city": "Edinburgh", "postcode": "EH7 1VO" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 985,
+      "description": "Neat one-bedroom flat in a modern block, close to Holyrood Park. Gas central heating and a secure door entry system."
+    },
+    {
+      "id": "EDI-029",
+      "address": { "line1": "2F1, 70 Tirlaw Street", "area": "Southside", "city": "Edinburgh", "postcode": "EH8 1IK" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "rentPcm": 2300,
+      "description": "Large four-bedroom HMO flat, a five-minute walk from the university's central campus. Two shower rooms and a generous dining kitchen."
+    },
+    {
+      "id": "EDI-030",
+      "address": { "line1": "GF3, 70 Tirlaw Street", "area": "Southside", "city": "Edinburgh", "postcode": "EH8 1IK" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 850,
+      "description": "Self-contained student-friendly studio with a desk area. Available from September for a fixed term."
+    },
+    {
+      "id": "EDI-031",
+      "address": { "line1": "13 Nethercairn Way", "area": "Liberton", "city": "Edinburgh", "postcode": "EH16 1MO" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "rentPcm": 1425,
+      "description": "End-terraced house with a low-maintenance garden and a shed. Fitted kitchen with appliances and a family bathroom upstairs."
+    },
+    {
+      "id": "EDI-032",
+      "address": { "line1": "Flat 8, 5 Dovemere Court", "area": "Craigmillar", "city": "Edinburgh", "postcode": "EH16 2KI" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1020,
+      "description": "Second-floor flat in a recently built development, with a lift and an allocated parking bay. Close to bus routes and the Royal Infirmary."
+    },
+    {
+      "id": "EDI-033",
+      "address": { "line1": "3 Hazelgarth Loan", "area": "Colinton", "city": "Edinburgh", "postcode": "EH13 1CM" },
+      "propertyType": "Cottage",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1500,
+      "description": "Charming stone cottage in the village, with a wood-burning stove and a walled garden. Low ceilings upstairs add to its character."
+    },
+    {
+      "id": "EDI-034",
+      "address": { "line1": "38 Hazelgarth Road", "area": "Colinton", "city": "Edinburgh", "postcode": "EH13 2OI" },
+      "propertyType": "Detached house",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "rentPcm": 3100,
+      "description": "Modern detached home backing onto woodland, with an integral garage and a south-facing garden. Main bedroom suite with a dressing room."
+    },
+    {
+      "id": "EDI-035",
+      "address": { "line1": "Flat 2, 10 Murrelaw Gardens", "area": "Murrayfield", "city": "Edinburgh", "postcode": "EH12 4VK" },
+      "propertyType": "Maisonette",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 2100,
+      "description": "Lower maisonette with its own garden and a private entrance. Walking distance to the tram, and busy on rugby weekends."
+    },
+    {
+      "id": "EDI-036",
+      "address": { "line1": "25 Orchardlaw Crescent", "area": "Duddingston", "city": "Edinburgh", "postcode": "EH15 3MV" },
+      "propertyType": "Townhouse",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "rentPcm": 2250,
+      "description": "Contemporary three-storey townhouse near the loch, with a roof terrace and a garage. Every bedroom has access to its own bathroom."
+    },
+    {
+      "id": "EDI-037",
+      "address": { "line1": "1F2, 48 Gullane Vennel", "area": "Inverleith", "city": "Edinburgh", "postcode": "EH3 6CV" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1725,
+      "description": "Smart flat beside the Botanic Garden, with a large living room and a study nook. Residents' parking is available."
+    },
+    {
+      "id": "EDI-038",
+      "address": { "line1": "Penthouse, 1 Ardenlaw Heights", "area": "New Town", "city": "Edinburgh", "postcode": "EH3 7OK" },
+      "propertyType": "Penthouse",
+      "bedrooms": 5,
+      "bathrooms": 4,
+      "rentPcm": 6500,
+      "description": "Exceptional penthouse with a wraparound terrace and views to the castle. Five bedrooms, four bathrooms, a private lift and two secure parking spaces."
+    },
+    {
+      "id": "EDI-039",
+      "address": { "line1": "Room-sized Flat, 2 Pennywhin Close", "area": "Gorgie", "city": "Edinburgh", "postcode": "EH11 3IM" },
+      "propertyType": "Studio",
+      "bedrooms": 0,
+      "bathrooms": 1,
+      "rentPcm": 595,
+      "description": "Tiny studio."
+    },
+    {
+      "id": "EDI-040",
+      "address": { "line1": "4/2, 9 O'Rourke's Close", "area": "Leith", "city": "Edinburgh", "postcode": "EH6 3KM" },
+      "propertyType": "Flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1010,
+      "description": "Fourth-floor flat with \"harbour glimpses\" from the kitchen window. Rent includes water & factor's fees; council tax band B."
+    },
+    {
+      "id": "EDI-041",
+      "address": { "line1": "15 Baird-Kinnear Court", "area": "Newington", "city": "Edinburgh", "postcode": "EH9 5VI" },
+      "propertyType": "Terraced house",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 2050,
+      "description": "Deposit: £2,365. Minimum term 12 months. Rooms sized 3.2m x 4.1m & larger. Heating costs < £90/month on average, and broadband speeds > 500Mbps."
+    },
+    {
+      "id": "EDI-042",
+      "address": { "line1": "Flat 1, 6 Sàilean Wynd", "area": "Newington", "city": "Edinburgh", "postcode": "EH9 6CO" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1380,
+      "description": "Café, bakery and deli on the doorstep. Renovated flat with a Crittall-style kitchen screen and a façade restored in 2024."
+    },
+    {
+      "id": "EDI-043",
+      "address": { "line1": "Flat 7, 88 The Long Lane to St Cuthbert's Walk and Rosemount Gardens East", "area": "Bruntsfield", "city": "Edinburgh", "postcode": "EH10 4MK" },
+      "propertyType": "Flat",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "rentPcm": 1420,
+      "description": "A flat with an unusually long address, useful for checking that cards and list rows wrap neatly."
+    },
+    {
+      "id": "EDI-044",
+      "address": { "line1": "11 Lindenhope Square", "area": "Morningside", "city": "Edinburgh", "postcode": "EH10 5KV" },
+      "propertyType": "Townhouse",
+      "bedrooms": 6,
+      "bathrooms": 4,
+      "rentPcm": 5800,
+      "description": "Handsome six-bedroom townhouse set over four floors on a private square, with a library, a cinema room and a mature garden with a summerhouse.\n\nLong-term lets preferred. References and a guarantor may be required."
+    },
+    {
+      "id": "EDI-045",
+      "address": { "line1": "1F1, 20 Kelderby Street", "area": "Abbeyhill", "city": "Edinburgh", "postcode": "EH7 2CI" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1000,
+      "description": "Rent sits exactly on a round number, which makes this flat useful for checking inclusive price filters. Single-glazed sash windows and a bright living room."
+    },
+    {
+      "id": "EDI-046",
+      "address": { "line1": "2F2, 20 Kelderby Street", "area": "Abbeyhill", "city": "Edinburgh", "postcode": "EH7 2CI" },
+      "propertyType": "Tenement flat",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1000,
+      "description": "Second-floor flat at the same rent as its neighbour downstairs, with a modern shower room and a south-facing lounge."
+    },
+    {
+      "id": "EDI-047",
+      "address": { "line1": "Annexe, 52 Wintermuir Road", "area": "Trinity", "city": "Edinburgh", "postcode": "EH5 3OM" },
+      "propertyType": "Annexe",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "rentPcm": 1125,
+      "description": "Self-contained garden annexe with its own entrance and a small patio. All bills included except broadband."
+    },
+    {
+      "id": "EDI-048",
+      "address": { "line1": "Flat 3, 77 Corbiemoor Terrace", "area": "Blackhall", "city": "Edinburgh", "postcode": "EH4 3IC" },
+      "propertyType": "Maisonette",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "rentPcm": 1625,
+      "description": "Upper maisonette with its own stair, a sunny balcony and a garage in a nearby block. No pets, please."
+    },
+    {
+      "id": "EDI-049",
+      "address": { "line1": "2 Pinderlaw Steading", "area": "Liberton", "city": "Edinburgh", "postcode": "EH16 3VC" },
+      "propertyType": "Barn conversion",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 2375,
+      "description": "Converted farm steading on the edge of the city, with exposed beams, an open-plan living space and shared courtyard parking."
+    },
+    {
+      "id": "EDI-050",
+      "address": { "line1": "Flat 10, 34 Hallowmere Place", "area": "Haymarket", "city": "Edinburgh", "postcode": "EH12 5OC" },
+      "propertyType": "Apartment",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "rentPcm": 2195,
+      "description": "This generous three-bedroom apartment occupies the top floor of a handsome sandstone building a few minutes' walk from the station, and it has been completely refurbished by its current owners to a very high standard throughout. The hallway is wide and bright, with a run of fitted cupboards that provide plenty of storage for coats, cases and bicycles. At the front of the building, the living room stretches across the full width of the flat, with three tall sash windows, working shutters, restored cornicing and a marble fireplace with a gas stove. The dining kitchen sits to the rear and has been fitted with handmade timber units, stone worktops, an electric range cooker, a dishwasher, a washer-dryer and a large fridge-freezer, with room for a table that seats eight. The main bedroom is a large double with a wall of built-in wardrobes and an en suite shower room with underfloor heating. The second bedroom is another good double, also with fitted wardrobes, and the third bedroom is a comfortable single that would suit a home office equally well. A family bathroom completes the accommodation, with a freestanding bath and a separate walk-in shower. Outside, tenants share a large, well-kept back green with a drying area and a bike store, and a residents' parking permit is available from the council. The flat is let unfurnished, and gas central heating and double glazing to the rear are included. Sorry, no smokers. Available now for a minimum term of twelve months, subject to references and a deposit equal to five weeks' rent."
+    }
+  ]
+}
