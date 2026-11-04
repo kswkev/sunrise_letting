@@ -49,7 +49,8 @@ class SignInJourneyIT {
 
         signIn(browser, false);
 
-        browser.waitUntil("the return address to load", () -> browser.currentUrl().endsWith("/properties/123"));
+        // The sign-in page's own address already ends in the return address, so only the whole address shows the browser has arrived.
+        browser.waitUntil("the return address to load", () -> browser.currentUrl().equals(browser.baseUrl() + "/properties/123"));
         browser.open("/properties");
         assertNotNull(browser.driver().manage().getCookieNamed("signed-in"), "the marker should be set");
         assertNull(browser.driver().manage().getCookieNamed("remember-me"), "the box wasn't ticked");
