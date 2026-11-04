@@ -72,7 +72,7 @@ All development is driven from GitHub issues on `kswkev/sunrise_letting`.
 
 Branching:
 - Each issue is worked on in its own feature branch, created from `develop` and named after the issue: `feature/<issue-number>-<short-kebab-title>` (e.g. `feature/4-search-properties-for-let`).
-- Every commit on a feature branch starts with the issue number: `#<issue-number> <message>` (e.g. `#4 Add property search endpoint`).
+- Every commit on a feature branch starts with the number of the issue it implements: `#<issue-number> <message>` (e.g. `#4 Add property search endpoint`). When a story is split into sub-issues, use the sub-issue's number (e.g. `#23 Add sign-in page and Visitor sign-in` on the branch for #2).
 - When the feature is complete, it is merged back into `develop` via a PR. Feature branches never target `main` directly.
 - Code is promoted `develop` → `release` → `main`:
   - `develop` is for local development.
