@@ -79,7 +79,7 @@ class RememberMeLoginTest {
     @Test
     void signingInWithTheBoxTickedSetsTheCookieWithMaxAgeFromExpiresAt() {
         Instant expiresAt = Instant.now().plus(Duration.ofDays(30));
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, expiresAt));
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
@@ -99,7 +99,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithoutTheBoxSetsNoCookieAndIssuesNothing() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
 
         MvcTestResult result = signIn().with(csrf()).exchange();
 
@@ -112,7 +112,7 @@ class RememberMeLoginTest {
 
     @Test
     void aPropertyManagerTickingTheBoxGetsNoToken() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
 
@@ -123,7 +123,7 @@ class RememberMeLoginTest {
 
     @Test
     void whenNoTokenCanBeIssuedTheVisitorIsStillSignedInWithAnOrdinarySession() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(RememberMeTokenResult.unavailable());
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
@@ -138,7 +138,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithTheBoxTickedKeepsTheSessionForTheLifeOfTheLogin() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, Instant.now().plus(Duration.ofDays(30))));
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
@@ -151,7 +151,7 @@ class RememberMeLoginTest {
 
     @Test
     void aSessionIsNeverKeptPastTheEndOfTheLogin() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, Instant.now().plus(Duration.ofMinutes(10))));
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
@@ -164,7 +164,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithoutTheBoxKeepsTheOrdinaryTimeOut() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
 
         MvcTestResult result = signIn().with(csrf()).exchange();
 
@@ -174,7 +174,7 @@ class RememberMeLoginTest {
 
     @Test
     void whenNoTokenCanBeIssuedTheSessionKeepsTheOrdinaryTimeOut() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(RememberMeTokenResult.unavailable());
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
@@ -186,11 +186,11 @@ class RememberMeLoginTest {
 
     @Test
     void aPropertyManagerTickingTheBoxKeepsTheOrdinaryTimeOut() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
 
         MvcTestResult result = signIn().param("remember-me", "on").with(csrf()).exchange();
 
-        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("Remember me is ignored for Property Managers").isEqualTo(1800);
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("Remember me is ignored for Property Managers").isEqualTo(7200);
         verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
     }
 
@@ -221,7 +221,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithoutTheBoxOverARememberedSessionGivesAnOrdinarySession() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
 
         MvcTestResult result = signIn().session(rememberedSession(Instant.now().plus(Duration.ofDays(20)))).with(csrf()).exchange();
 
@@ -235,7 +235,7 @@ class RememberMeLoginTest {
     @Test
     void signingInWithTheBoxOverARememberedSessionKeepsTheNewLogin() {
         Instant expiresAt = Instant.now().plus(Duration.ofDays(30));
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, TOKEN, expiresAt));
 
         MvcTestResult result = signIn().param("remember-me", "on").session(rememberedSession(Instant.now().plus(Duration.ofDays(20)))).with(csrf()).exchange();
@@ -260,7 +260,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithoutTheBoxClearsAnEarlierCookieAndRevokesItsSeries() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
 
         MvcTestResult result = signIn().cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
 
@@ -272,7 +272,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithoutTheBoxClearsAMalformedCookieAndRevokesNothing() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
 
         MvcTestResult result = signIn().cookie(new Cookie("remember-me", "nonsense")).with(csrf()).exchange();
 
@@ -283,7 +283,7 @@ class RememberMeLoginTest {
 
     @Test
     void signingInWithoutTheBoxAndWithoutACookieRevokesNothing() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
 
         MvcTestResult result = signIn().with(csrf()).exchange();
 
@@ -295,7 +295,7 @@ class RememberMeLoginTest {
     @Test
     void aNewLoginReplacesTheCookieAndRevokesTheOldSeries() {
         String newSeries = "D".repeat(22);
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(newSeries, NEW_TOKEN, Instant.now().plus(Duration.ofDays(30))));
 
         MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
@@ -311,7 +311,7 @@ class RememberMeLoginTest {
 
     @Test
     void aNewLoginOverAMalformedCookieRevokesNothing() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(SERIES, NEW_TOKEN, Instant.now().plus(Duration.ofDays(30))));
 
         MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", "nonsense")).with(csrf()).exchange();
@@ -324,7 +324,7 @@ class RememberMeLoginTest {
 
     @Test
     void whenNoNewTokenCanBeIssuedAnEarlierCookieIsStillClearedAndRevoked() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(RememberMeTokenResult.unavailable());
 
         MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
@@ -338,11 +338,25 @@ class RememberMeLoginTest {
 
     @Test
     void aPropertyManagerSigningInWithTheBoxClearsAnEarlierCookieAndRevokesItsSeries() {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
 
         MvcTestResult result = signIn().param("remember-me", "on").cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
 
         assertThat(setCookie(result)).as("the earlier login's cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(SERIES);
+        verify(identityClient, never().description("Remember me is ignored for Property Managers")).issueRememberMeToken(any());
+        verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
+    }
+
+    @Test
+    void aPropertyManagerSigningInWithoutTheBoxClearsAnEarlierCookieAndRevokesItsSeries() {
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-2", AccountRole.PROPERTY_MANAGER, false));
+
+        MvcTestResult result = signIn().cookie(new Cookie("remember-me", COOKIE_VALUE)).with(csrf()).exchange();
+
+        assertThat(result).as("the Property Manager should be signed in").hasStatus(HttpStatus.SEE_OTHER);
+        assertThat(setCookie(result)).as("the earlier login's cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        assertThat(result.getRequest().getSession(false).getMaxInactiveInterval()).as("the session keeps the Property Manager's time-out").isEqualTo(7200);
         verify(identityClient, description("the earlier login should be revoked")).revokeRememberMeToken(SERIES);
         verify(identityClient, never().description("Remember me is ignored for Property Managers")).issueRememberMeToken(any());
         verify(identityClient, description("identity should check the details")).authenticate("jo@example.com", SECRET);
@@ -375,7 +389,7 @@ class RememberMeLoginTest {
         assertThat(page.select(".notification-banner")).as("no message").isEmpty();
         HttpSession session = result.getRequest().getSession(false);
         SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
-        assertThat(context.getAuthentication().getPrincipal()).as("the Visitor is signed in").isEqualTo(new SessionPrincipal("account-1", AccountRole.VISITOR));
+        assertThat(context.getAuthentication().getPrincipal()).as("the Visitor is signed in").isEqualTo(new SessionPrincipal("account-1", AccountRole.VISITOR, false));
         assertThat(session.getAttribute(RememberMeLogin.SESSION_ATTRIBUTE)).as("the session is flagged").isEqualTo(true);
         assertThat(setCookie(result)).as("the cookie holds the new token").startsWith("remember-me=" + SERIES + "." + NEW_TOKEN + ";");
         assertThat(maxAge(setCookie(result))).as("the expiry is fixed, so Max-Age comes from expiresAt, not a fresh 30 days")
@@ -393,6 +407,22 @@ class RememberMeLoginTest {
         assertThat(Html.page(result).select("header a[href=/sign-in]")).as("the request is signed out").hasSize(1);
         assertThat(setCookie(result)).as("the cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
         verify(identityClient, description("identity should have been asked")).verifyRememberMeToken(SERIES, TOKEN);
+    }
+
+    @Test
+    void aCookieThatVerifiesAsAPropertyManagerSignsNobodyInAndIsRevoked() {
+        when(identityClient.verifyRememberMeToken(SERIES, TOKEN))
+                .thenReturn(new RememberMeVerifyResult.Verified("account-2", AccountRole.PROPERTY_MANAGER, NEW_TOKEN, Instant.now().plus(Duration.ofDays(10))));
+
+        MvcTestResult result = page().exchange();
+
+        assertThat(result).as("the page still loads").hasStatusOk();
+        assertThat(Html.page(result).select("header a[href=/sign-in]")).as("Property Managers must sign in every time").hasSize(1);
+        HttpSession session = result.getRequest().getSession(false);
+        assertThat(session == null || session.getAttribute(RememberMeLogin.EXPIRES_AT_ATTRIBUTE) == null).as("there's no long interval to keep").isTrue();
+        assertThat(setCookie(result)).as("the cookie is cleared").startsWith("remember-me=;").contains("Max-Age=0");
+        verify(identityClient, description("identity should have been asked")).verifyRememberMeToken(SERIES, TOKEN);
+        verify(identityClient, description("the login should end")).revokeRememberMeToken(SERIES);
     }
 
     @ParameterizedTest
@@ -556,7 +586,7 @@ class RememberMeLoginTest {
     }
 
     private Authentication visitor() {
-        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 }

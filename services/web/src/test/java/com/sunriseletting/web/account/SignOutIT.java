@@ -50,7 +50,7 @@ class SignOutIT {
 
     @BeforeEach
     void signIn() throws Exception {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         browser = new CookieJarClient(port);
         HttpResponse<String> form = browser.get("/sign-in");
         HttpResponse<String> signedIn = browser.post("/sign-in",

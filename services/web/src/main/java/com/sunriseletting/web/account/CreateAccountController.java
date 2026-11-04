@@ -76,7 +76,7 @@ public class CreateAccountController {
                 log.warn("Identity created a Visitor account with an unexpected role: {}", created.role());
                 return unavailable(form, returnTo);
             }
-            signInService.signIn(created.accountId(), AccountRole.VISITOR, request, response);
+            signInService.signIn(new SessionPrincipal(created.accountId(), AccountRole.VISITOR, false), request, response);
             rememberMeLogin.forget(request, response);
             return redirectAfterSignUp(returnTo, redirectAttributes);
         }

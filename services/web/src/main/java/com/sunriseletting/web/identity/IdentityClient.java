@@ -15,6 +15,9 @@ public interface IdentityClient {
     /** Checks an email and password. Both go to identity exactly as typed. */
     AuthenticationResult authenticate(String email, String password);
 
+    /** Replaces an account's temporary password. Both values go to identity exactly as typed, and identity applies the rules. */
+    ChangePasswordResult changePassword(String accountId, String newPassword, String confirmNewPassword);
+
     /** Asks identity for a remember-me token for an account. */
     RememberMeTokenResult issueRememberMeToken(String accountId);
 

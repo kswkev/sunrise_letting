@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<!--/* Site header (design-system.md 3.1). section is the current nav item: 'properties', 'sign-in',
-       'create-account', or '' when the page isn't one of them. signedInUser comes from SignedInUserFilter.
-       The signed-out items have no returnTo on the links. The Property Manager items come with #3. */-->
+<!--/* Site header (design-system.md 3.1). section is the current nav item: 'properties', 'manage', 'sign-in',
+       'create-account', or '' when the page isn't one of them. Every /manage page passes 'manage', which also
+       shows the band (4.19). signedInUser comes from SignedInUserFilter. The signed-out items have no returnTo
+       on the links. */-->
 <header class="site-header" th:fragment="header(section)">
     <div class="container site-header__inner">
         <a class="site-header__name" href="/">Sunrise <span class="site-header__accent">Letting</span></a>
         <nav aria-label="Main">
             <ul class="site-nav">
                 <li><a href="/properties" th:attr="aria-current=${section == 'properties'} ? 'page'">Properties to let</a></li>
+                <li th:if="${signedInUser != null and signedInUser.role.name() == 'PROPERTY_MANAGER'}"><a href="/manage" th:attr="aria-current=${section == 'manage'} ? 'page'">Property Manager area</a></li>
                 <th:block th:if="${signedInUser == null}">
                     <li><a href="/sign-in" th:attr="aria-current=${section == 'sign-in'} ? 'page'">Sign in</a></li>
                     <li><a href="/create-account" th:attr="aria-current=${section == 'create-account'} ? 'page'">Create account</a></li>
@@ -20,7 +22,7 @@
             </ul>
         </nav>
     </div>
-    <!--/* The Property Manager band (design-system.md 4.19) goes here, inside the header, when #3 builds it. */-->
+    <div class="area-band" th:if="${section == 'manage'}"><p class="area-band__text">Property Manager area</p></div>
 </header>
 </body>
 </html>

@@ -9,12 +9,14 @@ import com.sunriseletting.web.security.AccountRole;
 import com.sunriseletting.web.security.SecurityConfiguration;
 import com.sunriseletting.web.security.SessionPrincipal;
 import com.sunriseletting.web.testsupport.Html;
+import com.sunriseletting.web.testsupport.SignedInUsers;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -76,6 +78,29 @@ class PropertiesControllerTest {
     }
 
     @Test
+    void propertyManagerHeaderHasTheThreeItemsAndNoBand() {
+        MvcTestResult result = mvc.get().uri("/properties").with(authentication(SignedInUsers.propertyManager(false))).exchange();
+
+        assertThat(result).as("the page should load").hasStatusOk();
+        Document page = Html.page(result);
+        assertThat(page.select("header nav li").eachText()).as("the Property Manager's items, in order")
+                .containsExactly("Properties to let", "Property Manager area", "Sign out");
+        assertThat(page.select("header nav [aria-current=page]").eachText()).as("only Properties to let should be current").containsExactly("Properties to let");
+        assertThat(page.select("a[href=/sign-in], a[href=/create-account]")).as("those links aren't rendered at all").isEmpty();
+        assertThat(page.select(".area-band")).as("the band is for /manage pages only").isEmpty();
+    }
+
+    @Test
+    void propertyManagerSessionHasTheTwoHourDialog() {
+        MockHttpSession session = new MockHttpSession();
+        session.setMaxInactiveInterval(7200);
+
+        MvcTestResult result = mvc.get().uri("/properties").session(session).with(authentication(SignedInUsers.propertyManager(false))).exchange();
+
+        assertThat(Html.page(result).select("#timeout-dialog").attr("data-timeout-seconds")).as("public pages have the dialog too").isEqualTo("7200");
+    }
+
+    @Test
     void flashShowsTheSuccessBannerAboveTheHeading() {
         MvcTestResult result = mvc.get().uri("/properties").flashAttr(PropertiesController.ACCOUNT_CREATED, true).exchange();
 
@@ -99,7 +124,7 @@ class PropertiesControllerTest {
     }
 
     private Authentication visitor() {
-        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 }

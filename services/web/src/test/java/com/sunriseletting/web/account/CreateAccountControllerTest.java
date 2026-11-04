@@ -214,6 +214,39 @@ class CreateAccountControllerTest {
         assertIdentityNotCalled("a signed-in Visitor with no token shouldn't create an account");
     }
 
+    @Test
+    void getWhenSignedInAsAPropertyManagerWithATemporaryPasswordRedirectsToChangeIt() {
+        MvcTestResult result = mvc.get().uri("/create-account").with(authentication(manager(true))).exchange();
+
+        assertThat(result).as("a signed-in Property Manager should be redirected").hasStatus(HttpStatus.FOUND);
+        assertThat(result).as("a temporary password has to be changed first").hasRedirectedUrl("/manage/change-password");
+    }
+
+    @Test
+    void getWhenSignedInAsAPropertyManagerWithAPermanentPasswordRedirectsToTheManagerArea() {
+        MvcTestResult result = mvc.get().uri("/create-account?returnTo=/properties/1").with(authentication(manager(false))).exchange();
+
+        assertThat(result).as("a signed-in Property Manager should be redirected").hasStatus(HttpStatus.FOUND);
+        assertThat(result).as("any return address should be ignored").hasRedirectedUrl("/manage");
+        assertThat(Html.body(result)).as("no form should be shown").doesNotContain("create-account-form");
+    }
+
+    @Test
+    void postWhenSignedInAsAPropertyManagerRedirectsAndCreatesNothing() {
+        MvcTestResult result = submit(validForm()).with(authentication(manager(false))).with(csrf()).exchange();
+
+        assertThat(result).as("a signed-in Property Manager goes to their area").hasRedirectedUrl("/manage");
+        verify(identityClient, never().description("nothing should be created")).createVisitor(any());
+    }
+
+    @Test
+    void postWithoutACsrfTokenWhenSignedInAsAPropertyManagerStillRedirects() {
+        MvcTestResult result = submit(validForm()).with(authentication(manager(true))).exchange();
+
+        assertThat(result).as("a temporary password has to be changed first").hasRedirectedUrl("/manage/change-password");
+        verify(identityClient, never().description("nothing should be created")).createVisitor(any());
+    }
+
     // POST: created
 
     @Test
@@ -604,8 +637,13 @@ class CreateAccountControllerTest {
         return Html.page(result);
     }
 
+    private Authentication manager(boolean temporaryPassword) {
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, temporaryPassword), null,
+                List.of(new SimpleGrantedAuthority("ROLE_PROPERTY_MANAGER")));
+    }
+
     private Authentication visitor() {
-        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR), null,
+        return UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", AccountRole.VISITOR, false), null,
                 List.of(new SimpleGrantedAuthority("ROLE_VISITOR")));
     }
 
@@ -621,7 +659,7 @@ class CreateAccountControllerTest {
         SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
         assertThat(context).as("the session should be signed in").isNotNull();
         assertThat(context.getAuthentication().getPrincipal()).as("the principal should hold the account and the role identity returned")
-                .isEqualTo(new SessionPrincipal("8f14e45f-ceea-467f-a8b2-1d2f6a7b9c10", AccountRole.VISITOR));
+                .isEqualTo(new SessionPrincipal("8f14e45f-ceea-467f-a8b2-1d2f6a7b9c10", AccountRole.VISITOR, false));
         assertThat(context.getAuthentication().getAuthorities()).as("the Visitor role should be the only role")
                 .extracting(Object::toString).containsExactly("ROLE_VISITOR");
     }

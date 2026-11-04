@@ -61,7 +61,7 @@ public class SignInController {
             @AuthenticationPrincipal SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
         SignInPage.Values values = new SignInPage.Values("", false, returnTo, timedOut);
         if (principal != null) {
-            String destination = values.isTimedOut() ? SignInDestinations.forVisitor(returnTo) : SignInDestinations.whenAlreadySignedIn(principal);
+            String destination = values.isTimedOut() ? SignInDestinations.afterSignIn(principal, returnTo) : SignInDestinations.whenAlreadySignedIn(principal);
             return new ModelAndView(redirect(destination, HttpStatus.FOUND));
         }
         if (values.isTimedOut()) {
@@ -81,13 +81,14 @@ public class SignInController {
         SignInPage.Values values = new SignInPage.Values(email, rememberMe != null, returnTo, timedOut);
         AuthenticationResult result = identityClient.authenticate(email, password);
         if (result instanceof AuthenticationResult.SignedIn signedIn) {
-            signInService.signIn(signedIn.accountId(), signedIn.role(), request, response);
+            SessionPrincipal account = new SessionPrincipal(signedIn.accountId(), signedIn.role(), signedIn.temporaryPassword());
+            signInService.signIn(account, request, response);
             if (values.rememberMe()) {
-                rememberMeLogin.remember(new SessionPrincipal(signedIn.accountId(), signedIn.role()), request, response);
+                rememberMeLogin.remember(account, request, response);
             } else {
                 rememberMeLogin.forget(request, response);
             }
-            return new ModelAndView(redirect(SignInDestinations.forVisitor(returnTo), HttpStatus.SEE_OTHER));
+            return new ModelAndView(redirect(SignInDestinations.afterSignIn(account, returnTo), HttpStatus.SEE_OTHER));
         }
         if (result instanceof AuthenticationResult.FieldErrors failed) {
             return messages(failed, locale)

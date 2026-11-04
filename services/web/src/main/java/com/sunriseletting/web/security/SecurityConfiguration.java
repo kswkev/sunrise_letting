@@ -8,18 +8,20 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
  * CSRF protection on every POST, with the token kept in the session; the Property Manager area for
- * Property Managers only, and every other current page public; and no default login page, logout endpoint
- * or HTTP Basic, because web has its own account pages.
+ * Property Managers only, who must replace a temporary password before using it, and every other current page
+ * public; and no default login page, logout endpoint or HTTP Basic, because web has its own account pages.
  */
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
@@ -33,6 +35,7 @@ public class SecurityConfiguration {
             SignedInMarker signedInMarker, @Qualifier("thymeleafViewResolver") ViewResolver viewResolver) {
         rememberMeLogin.ifAvailable(login -> http.addFilterBefore(new RememberMeFilter(login), AnonymousAuthenticationFilter.class));
         SignInEntryPoint signInEntryPoint = new SignInEntryPoint(signedInMarker);
+        RequestMatcher managerArea = PathPatternRequestMatcher.withDefaults().matcher(MANAGE);
         return http
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(MANAGE).hasAuthority(AccountRole.PROPERTY_MANAGER.authority())
@@ -41,9 +44,10 @@ public class SecurityConfiguration {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(signInEntryPoint)
                         .accessDeniedHandler(new ExpiredFormAccessDeniedHandler(expiredFormResponders.orderedStream().toList(),
-                                signInEntryPoint, signedInMarker, PathPatternRequestMatcher.withDefaults().matcher(MANAGE), viewResolver)))
+                                signInEntryPoint, signedInMarker, managerArea, viewResolver)))
                 .addFilterBefore(new RememberMeSessionFilter(), AnonymousAuthenticationFilter.class)
                 .addFilterBefore(new SignedInUserFilter(), AnonymousAuthenticationFilter.class)
+                .addFilterAfter(new TemporaryPasswordFilter(managerArea), AuthorizationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)

@@ -53,6 +53,17 @@ class RememberMeSessionFilterTest {
     }
 
     @Test
+    void aPropertyManagersSessionKeepsItsInterval() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setMaxInactiveInterval(7200);
+        request.setSession(session);
+
+        filter.doFilter(request, new MockHttpServletResponse(), chain);
+
+        assertThat(session.getMaxInactiveInterval()).as("a Property Manager has no login to cap the session to").isEqualTo(7200);
+    }
+
+    @Test
     void noSessionIsCreated() throws Exception {
         filter.doFilter(request, new MockHttpServletResponse(), chain);
 

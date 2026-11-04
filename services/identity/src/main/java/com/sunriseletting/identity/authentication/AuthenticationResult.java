@@ -9,7 +9,7 @@ import com.sunriseletting.identity.validation.AccountFieldError;
 
 public sealed interface AuthenticationResult {
 
-    record Authenticated(UUID accountId, Role role) implements AuthenticationResult {
+    record Authenticated(UUID accountId, Role role, boolean temporaryPassword) implements AuthenticationResult {
     }
 
     record Invalid(Map<AccountField, AccountFieldError> errors) implements AuthenticationResult {

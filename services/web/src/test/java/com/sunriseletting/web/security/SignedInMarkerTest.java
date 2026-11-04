@@ -20,7 +20,7 @@ class SignedInMarkerTest {
 
     @Test
     void signingInSetsAConstantSessionCookieThatIdentifiesNoOne() {
-        marker.onSignIn(new SessionPrincipal("account-1", AccountRole.VISITOR), request, response);
+        marker.onSignIn(new SessionPrincipal("account-1", AccountRole.VISITOR, false), request, response);
 
         String setCookie = response.getHeader("Set-Cookie");
         assertTrue(setCookie != null && setCookie.startsWith("signed-in=1;"), "the value is a constant");

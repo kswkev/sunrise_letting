@@ -95,7 +95,7 @@ class RememberMeIT {
 
     @Test
     void afterClosingTheBrowserTheVisitorIsSignedBackInAndTheFlagSurvivesRedis() throws Exception {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(series, TOKEN, Instant.now().plus(Duration.ofDays(30))));
         when(identityClient.verifyRememberMeToken(series, TOKEN)).thenReturn(verified());
         HttpResponse<String> form = browser.get("/sign-in");
@@ -289,7 +289,7 @@ class RememberMeIT {
     }
 
     private void signInRemembered(Instant expiresAt) throws Exception {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(series, TOKEN, expiresAt));
         HttpResponse<String> form = browser.get("/sign-in");
         HttpResponse<String> signedIn = browser.post("/sign-in", Map.of("_csrf", CookieJarClient.csrfToken(form), "email", "jo@example.com", "password", SECRET, "remember-me", "on"));
@@ -299,7 +299,7 @@ class RememberMeIT {
     }
 
     private void signInWithoutTheBox() throws Exception {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         HttpResponse<String> form = browser.get("/sign-in");
         HttpResponse<String> signedIn = browser.post("/sign-in", Map.of("_csrf", CookieJarClient.csrfToken(form), "email", "jo@example.com", "password", SECRET));
         assertEquals(303, signedIn.statusCode(), "the Visitor should be signed in");

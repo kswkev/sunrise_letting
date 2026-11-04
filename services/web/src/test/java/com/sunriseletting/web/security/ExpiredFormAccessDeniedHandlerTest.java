@@ -173,7 +173,7 @@ class ExpiredFormAccessDeniedHandlerTest {
     }
 
     private void signInAs(AccountRole role) {
-        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", role), null,
+        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(new SessionPrincipal("account-1", role, false), null,
                 List.of(new SimpleGrantedAuthority(role.authority()))));
     }
 }

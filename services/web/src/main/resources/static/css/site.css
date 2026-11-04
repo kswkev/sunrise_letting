@@ -212,6 +212,20 @@ main:focus {
     cursor: pointer;
 }
 
+/* Property Manager area band (4.19): full width, with its text in line with the container. */
+.area-band {
+    background: var(--colour-primary);
+}
+
+.area-band__text {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: var(--space-2) var(--gutter);
+    color: var(--colour-link-on-dark);
+    font-size: var(--text-body);
+    font-weight: bold;
+}
+
 /* Footer (3.1) */
 .site-footer {
     background: var(--colour-dark);

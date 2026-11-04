@@ -2,6 +2,7 @@ package com.sunriseletting.identity.authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.net.URI;
@@ -108,7 +109,8 @@ class AuthenticationApiIT {
         JsonNode body = json.readTree(response.body());
         assertEquals(accountId.toString(), body.get("accountId").asString(), "the response should give the account's id");
         assertEquals("VISITOR", body.get("role").asString(), "the response should give the Visitor role");
-        assertEquals(2, body.size(), "the response should only have the id and the role");
+        assertFalse(body.get("temporaryPassword").asBoolean(), "a Visitor's password is not temporary");
+        assertEquals(3, body.size(), "the response should only have the id, the role and the flag");
     }
 
     @Test

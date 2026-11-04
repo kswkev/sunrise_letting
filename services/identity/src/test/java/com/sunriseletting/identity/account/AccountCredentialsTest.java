@@ -10,7 +10,7 @@ class AccountCredentialsTest {
 
     @Test
     void toStringHidesThePasswordHash() {
-        String text = new AccountCredentials(UUID.randomUUID(), "the-stored-hash", Role.VISITOR).toString();
+        String text = new AccountCredentials(UUID.randomUUID(), "the-stored-hash", Role.VISITOR, false).toString();
 
         assertThat(text).as("the password hash should not appear").doesNotContain("the-stored-hash");
     }

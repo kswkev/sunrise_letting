@@ -43,13 +43,14 @@ class SignInJourneyIT {
 
     @Test
     void signingInWithoutRememberMeShowsTheClosedDialogAndSigningOutGoesBackToSignedOut(Browser browser) {
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         browser.open("/sign-in?returnTo=/properties/123");
         assertTrue(browser.find(".password-field__toggle").isDisplayed(), "the password script should run on this page");
 
         signIn(browser, false);
 
-        browser.waitUntil("the return address to load", () -> browser.currentUrl().endsWith("/properties/123"));
+        // The sign-in page's own address already ends in the return address, so only the whole address shows the browser has arrived.
+        browser.waitUntil("the return address to load", () -> browser.currentUrl().equals(browser.baseUrl() + "/properties/123"));
         browser.open("/properties");
         assertNotNull(browser.driver().manage().getCookieNamed("signed-in"), "the marker should be set");
         assertNull(browser.driver().manage().getCookieNamed("remember-me"), "the box wasn't ticked");
@@ -70,7 +71,7 @@ class SignInJourneyIT {
         String series = UUID.randomUUID().toString().replace("-", "").substring(0, 22);
         String token = "T".repeat(43);
         Instant expiresAt = Instant.now().plus(Duration.ofDays(30));
-        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR));
+        when(identityClient.authenticate("jo@example.com", SECRET)).thenReturn(new AuthenticationResult.SignedIn("account-1", AccountRole.VISITOR, false));
         when(identityClient.issueRememberMeToken("account-1")).thenReturn(new RememberMeTokenResult.Issued(series, token, expiresAt));
         when(identityClient.verifyRememberMeToken(series, token)).thenReturn(
                 new RememberMeVerifyResult.Verified("account-1", AccountRole.VISITOR, "N".repeat(43), expiresAt));

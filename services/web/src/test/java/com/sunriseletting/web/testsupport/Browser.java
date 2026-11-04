@@ -5,6 +5,7 @@ import java.util.function.BooleanSupplier;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -44,7 +45,10 @@ public class Browser {
         return driver.findElement(By.cssSelector(cssSelector));
     }
 
-    /** Waits for a condition, failing with the description if it never becomes true. */
+    /**
+     * Waits for a condition, failing with the description if it never becomes true. An element going stale
+     * while the condition reads it, because HTMX swapped it out, counts as not true yet.
+     */
     public void waitUntil(String description, BooleanSupplier condition) {
         waitUntil(description, DEFAULT_WAIT, condition);
     }
@@ -52,6 +56,7 @@ public class Browser {
     public void waitUntil(String description, Duration timeout, BooleanSupplier condition) {
         new WebDriverWait(driver, timeout)
                 .withMessage("Waiting for: " + description)
+                .ignoring(StaleElementReferenceException.class)
                 .until((WebDriver ignored) -> condition.getAsBoolean());
     }
 

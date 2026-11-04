@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * What a stored account needs for checking a password.
  */
-public record AccountCredentials(UUID id, String passwordHash, Role role) {
+public record AccountCredentials(UUID id, String passwordHash, Role role, boolean passwordTemporary) {
 
     /** Hides the hash, so it can never reach a log. */
     @Override

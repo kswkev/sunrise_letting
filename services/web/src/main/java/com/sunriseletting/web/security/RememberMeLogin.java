@@ -76,7 +76,10 @@ public class RememberMeLogin implements SignOutListener {
         return cookies.read(request, COOKIE) != null;
     }
 
-    /** On a request with no signed-in session: swaps the cookie for a signed-in session, if it is good and no other request is doing so. */
+    /**
+     * On a request with no signed-in session: swaps the cookie for a signed-in session, if it is good and no other request is doing so.
+     * Only a Visitor's: identity issues no logins to anyone else, and a Property Manager must never get a remembered session.
+     */
     void exchange(HttpServletRequest request, HttpServletResponse response) {
         Matcher value = parse(request);
         if (value == null) {
@@ -89,7 +92,12 @@ public class RememberMeLogin implements SignOutListener {
         }
         RememberMeVerifyResult result = identityClient.verifyRememberMeToken(series, value.group(2));
         if (result instanceof RememberMeVerifyResult.Verified verified) {
-            signInService.signIn(verified.accountId(), verified.role(), request, response);
+            if (verified.role() != AccountRole.VISITOR) {
+                identityClient.revokeRememberMeToken(series);
+                cookies.clear(response, COOKIE);
+                return;
+            }
+            signInService.signIn(new SessionPrincipal(verified.accountId(), verified.role(), false), request, response);
             keepSession(request, verified.expiresAt());
             writeCookie(response, series, verified.token(), verified.expiresAt());
             return;

@@ -13,7 +13,7 @@ class NewAccountTest {
         UUID id = UUID.randomUUID();
 
         String text = new NewAccount(id, "jo@example.com", "Other", "Reverend", "Joanna", "Smithson", "+447700900123",
-                "$2a$10$hash-of-the-password", Role.VISITOR).toString();
+                "$2a$10$hash-of-the-password", Role.VISITOR, true).toString();
 
         assertThat(text).as("the id should not appear").doesNotContain(id.toString());
         assertThat(text).as("the email should not appear").doesNotContain("jo@example.com");

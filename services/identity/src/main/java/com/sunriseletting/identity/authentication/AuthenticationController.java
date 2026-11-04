@@ -26,7 +26,7 @@ public class AuthenticationController {
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
         AuthenticationResult result = service.authenticate(request);
         if (result instanceof AuthenticationResult.Authenticated authenticated) {
-            return ResponseEntity.ok(new Authenticated(authenticated.accountId(), authenticated.role()));
+            return ResponseEntity.ok(new Authenticated(authenticated.accountId(), authenticated.role(), authenticated.temporaryPassword()));
         }
         if (result instanceof AuthenticationResult.Invalid invalid) {
             Map<String, AccountFieldError> errors = new LinkedHashMap<>();
@@ -36,7 +36,7 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new NotAuthenticated("INVALID_CREDENTIALS"));
     }
 
-    record Authenticated(UUID accountId, Role role) {
+    record Authenticated(UUID accountId, Role role, boolean temporaryPassword) {
     }
 
     record FieldErrors(Map<String, AccountFieldError> errors) {
