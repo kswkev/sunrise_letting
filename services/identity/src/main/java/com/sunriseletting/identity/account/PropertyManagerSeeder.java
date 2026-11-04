@@ -17,7 +17,7 @@ import com.sunriseletting.identity.validation.EmailAddress;
 /**
  * Creates the configured Property Manager accounts on start-up. An account that already exists is never changed, so
  * starting again creates no duplicates and doesn't undo a changed password. A bad entry doesn't stop the service: it is
- * logged and the rest are still seeded. Temporary passwords are never logged.
+ * logged by its position and the rest are still seeded. Emails and temporary passwords are never logged.
  */
 @Component
 @EnableConfigurationProperties(PropertyManagerSeedProperties.class)
@@ -70,7 +70,7 @@ public class PropertyManagerSeeder implements ApplicationRunner {
 
         repository.findCredentialsByEmail(email)
                 .filter(existing -> existing.role() == Role.VISITOR)
-                .ifPresent(existing -> log.error("Property Manager account not created: {} already belongs to a Visitor account", email));
+                .ifPresent(existing -> log.error("Property Manager account not created: entry {} has an email already used by a Visitor account, so it was not changed", position));
         return false;
     }
 }

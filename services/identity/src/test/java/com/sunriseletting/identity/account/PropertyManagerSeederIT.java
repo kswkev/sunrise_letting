@@ -196,7 +196,14 @@ class PropertyManagerSeederIT {
         assertFalse(visitor.passwordTemporary(), "the Visitor should not get a temporary password");
         assertEquals("Jo", visitor.firstName(), "the Visitor should keep their details");
         assertEquals("PROPERTY_MANAGER", stored(SECOND_EMAIL).role(), "the next configured account should still be created");
-        assertThat(output.getAll()).as("the clash should be logged with the email").contains(FIRST_EMAIL + " already belongs to a Visitor");
+        // Only the seeder's own lines: this class turns JDBC up to TRACE, which shows bound values, the email among them.
+        List<String> clashes = output.getAll().lines().filter(line -> line.contains("Property Manager account not created")).toList();
+        assertThat(clashes).as("the clash should be logged for each entry with that email, giving its position").hasSize(2);
+        assertThat(clashes.get(0)).as("the first entry should be reported by its position")
+                .contains("entry 0 has an email already used by a Visitor account, so it was not changed");
+        assertThat(clashes.get(1)).as("the repeated entry should be reported by its position")
+                .contains("entry 2 has an email already used by a Visitor account, so it was not changed");
+        assertThat(clashes).as("the email is personal data and should not be logged").noneMatch(line -> line.toLowerCase().contains(FIRST_EMAIL));
     }
 
     @Test

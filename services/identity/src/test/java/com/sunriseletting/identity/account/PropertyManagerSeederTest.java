@@ -86,22 +86,24 @@ class PropertyManagerSeederTest {
     }
 
     @Test
-    void emailUsedByAVisitorLogsAnErrorNamingTheEmailAndTheNextAccountIsStillCreated(CapturedOutput output) {
+    void emailUsedByAVisitorLogsAnErrorGivingThePositionNotTheEmailAndTheNextAccountIsStillCreated(CapturedOutput output) {
         when(passwordEncoder.encode(PASSWORD)).thenReturn("the-hash");
         when(passwordEncoder.encode("second-Secret")).thenReturn("second-hash");
-        when(repository.insertIfEmailIsNew(any())).thenReturn(false, true);
+        when(repository.insertIfEmailIsNew(any())).thenReturn(true, false, true);
         when(repository.findCredentialsByEmail(EMAIL)).thenReturn(Optional.of(existing(Role.VISITOR)));
 
-        seeder(new SeededAccount(EMAIL, PASSWORD), new SeededAccount("lee@example.com", "second-Secret")).seed();
+        seeder(new SeededAccount("kim@example.com", "second-Secret"), new SeededAccount(EMAIL, PASSWORD),
+                new SeededAccount("lee@example.com", "second-Secret")).seed();
 
-        verify(passwordEncoder, description("the first password should be hashed")).encode(PASSWORD);
-        verify(passwordEncoder, description("the second password should be hashed")).encode("second-Secret");
-        verify(repository, times(2).description("seeding should carry on to the next account")).insertIfEmailIsNew(any());
+        verify(passwordEncoder, description("the clashing entry's password should be hashed")).encode(PASSWORD);
+        verify(passwordEncoder, times(2).description("the other passwords should be hashed")).encode("second-Secret");
+        verify(repository, times(3).description("seeding should carry on to the next account")).insertIfEmailIsNew(any());
         verify(repository, description("the existing account's role should be checked")).findCredentialsByEmail(EMAIL);
-        assertThat(output.getOut()).as("the clash should be an error naming the email")
+        assertThat(output.getOut()).as("the clash should be an error giving the entry's position")
                 .contains("ERROR")
-                .contains(EMAIL + " already belongs to a Visitor");
-        assertThat(output.getOut()).as("the counts should be logged").contains("1 created, 1 skipped");
+                .contains("entry 1 has an email already used by a Visitor account, so it was not changed");
+        assertThat(output.getAll()).as("the email is personal data and should not be logged").doesNotContain(EMAIL);
+        assertThat(output.getOut()).as("the counts should be logged").contains("2 created, 1 skipped");
     }
 
     @Test

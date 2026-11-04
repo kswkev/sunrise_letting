@@ -105,7 +105,7 @@ On each start, the service goes through the configured accounts:
 
 - If no account has the email (trimmed and lower-cased), it creates one with the Property Manager role only and the password marked as temporary. The password is stored only as a hash, made by the same encoder as every other password, so it signs in through `POST /api/authentications`.
 - If the email belongs to a Property Manager, it leaves that account unchanged, so a restart creates no duplicates and doesn't undo a changed password. Removing an entry doesn't remove the account.
-- If the email belongs to a Visitor, it leaves that account unchanged, logs an error naming the email and carries on, because one account can't hold both roles. That person needs a different email for their Property Manager account.
+- If the email belongs to a Visitor, it leaves that account unchanged, logs an error giving the entry's number but not the email, and carries on, because one account can't hold both roles. That person needs a different email for their Property Manager account.
 - If an entry has no email or no password, it logs an error giving the entry's number and carries on.
 
-Finally it logs how many accounts were created and skipped. Temporary passwords are never logged.
+Finally it logs how many accounts were created and skipped. Emails and temporary passwords are never logged.
