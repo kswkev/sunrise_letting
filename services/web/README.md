@@ -35,7 +35,7 @@ You need JDK 17 and Docker. Maven comes with the wrapper at the repo root.
 
 Pages that call identity, such as Create account and Sign in, need the identity service running on its local address, <http://localhost:8081> (see its README). Pages that don't call it work without it. To point at a different address, set `identity.base-url`, or the environment variable `IDENTITY_BASEURL`.
 
-Property Managers sign in on the same page. To have an account locally, seed one in identity (see its README). Signing in with a permanent password goes to the Property Manager area at `/manage`. With a temporary password it goes to `/manage/change-password`, which answers 404 until that page is built, and every other `/manage` page redirects there.
+Property Managers sign in on the same page. To have an account locally, seed one in identity (see its README). Signing in with a permanent password goes to the Property Manager area at `/manage`. With a temporary password it goes to `/manage/change-password`, and every other `/manage` page redirects there until the password is changed.
 
 The session, remember-me and signed-in marker cookies are `Secure`. Browsers accept that on `http://localhost`, but not on other plain HTTP addresses.
 

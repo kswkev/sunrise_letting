@@ -36,6 +36,20 @@ class ManageControllerTest {
     }
 
     @Test
+    void homeShowsTheSuccessBannerBeforeTheHeadingWhenThePasswordWasJustChanged() {
+        MvcTestResult result = mvc.get().uri("/manage").with(authentication(SignedInUsers.propertyManager(false)))
+                .flashAttr(ManageController.PASSWORD_CHANGED, true).exchange();
+
+        assertThat(result).as("the page should load").hasStatusOk();
+        Document page = Html.page(result);
+        Element banner = page.selectFirst("main > .notification-banner--success[role=status][tabindex=-1][autofocus]");
+        assertThat(banner).as("the success banner, focused and announced, should be in main").isNotNull();
+        assertThat(banner.select(".notification-banner__heading").text()).as("the agreed heading").isEqualTo("Your password has been changed");
+        assertThat(page.select("main > *").first()).as("the banner is at the top of main").isEqualTo(banner);
+        assertThat(banner.nextElementSibling().tagName()).as("the page's heading comes straight after it").isEqualTo("h1");
+    }
+
+    @Test
     void homeHasTheBandInsideTheHeaderAfterTheNav() {
         Document page = managerHome();
 

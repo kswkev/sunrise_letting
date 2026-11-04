@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,9 @@ class HttpIdentityClientTest {
 
     private static final String SECRET = "Sup3r-Secret-Pa55!";
 
-    private static final CreateVisitorRequest REQUEST = new CreateVisitorRequest("Other", "Prof", "Jo", "Bloggs",
+    private static final String PASSWORD_PATH = "/api/accounts/account-2/password";
+
+    private static final CreateVisitorRequest REQUEST =new CreateVisitorRequest("Other", "Prof", "Jo", "Bloggs",
             "jo@example.com", "07700 900982", SECRET, SECRET);
 
     private MockRestServiceServer server;
@@ -451,6 +454,130 @@ class HttpIdentityClientTest {
         server.expect(requestTo(BASE_URL + "/api/remember-me-tokens/s1")).andRespond(withException(new IOException("Connection refused")));
 
         assertDoesNotThrow(() -> client.revokeRememberMeToken("s1"), "signing out carries on whatever happens to the connection");
+    }
+
+    @Test
+    void changePasswordSendsBothValuesAsTypedAndReturnsChangedOn204() {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("{\"newPassword\":\" %s \",\"confirmNewPassword\":\"other\"}".formatted(SECRET), JsonCompareMode.STRICT))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        ChangePasswordResult result = client.changePassword("account-2", " " + SECRET + " ", "other");
+
+        assertEquals(ChangePasswordResult.changed(), result, "a 204 means the password was changed");
+        server.verify();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "newPassword, PASSWORD_REQUIRED",
+            "newPassword, PASSWORD_TOO_SHORT",
+            "newPassword, PASSWORD_TOO_LONG",
+            "newPassword, PASSWORD_MISSING_CHARACTER_TYPES",
+            "newPassword, PASSWORD_SAME_AS_TEMPORARY",
+            "confirmNewPassword, CONFIRM_PASSWORD_REQUIRED",
+            "confirmNewPassword, PASSWORDS_DO_NOT_MATCH" })
+    void changePasswordReturnsEachFieldCodeOn400(String field, String code) {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"errors\":{\"%s\":\"%s\"}}".formatted(field, code)));
+
+        assertEquals(new ChangePasswordResult.FieldErrors(Map.of(field, code)), client.changePassword("account-2", "a", "b"), "a 400 should give the field's code");
+    }
+
+    @Test
+    void changePasswordReturnsBothFieldsWhenBothFail() {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"errors\":{\"newPassword\":\"PASSWORD_REQUIRED\",\"confirmNewPassword\":\"CONFIRM_PASSWORD_REQUIRED\"}}"));
+
+        assertEquals(new ChangePasswordResult.FieldErrors(Map.of("newPassword", "PASSWORD_REQUIRED", "confirmNewPassword", "CONFIRM_PASSWORD_REQUIRED")),
+                client.changePassword("account-2", "", ""), "both fields can fail at once");
+    }
+
+    /** The page only has copy and a place to show these codes on these fields. Anything else would be a page with nothing to correct. */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"status\":400}",
+            "{\"errors\":null}",
+            "{\"errors\":{}}",
+            "{\"errors\":{\"newPassword\":\"NEW_RULE\"}}",
+            "{\"errors\":{\"newPassword\":null}}",
+            "{\"errors\":{\"newPassword\":\"PASSWORDS_DO_NOT_MATCH\"}}",
+            "{\"errors\":{\"confirmNewPassword\":\"PASSWORD_REQUIRED\"}}",
+            "{\"errors\":{\"password\":\"PASSWORD_REQUIRED\"}}",
+            "{\"errors\":{\"newPassword\":\"PASSWORD_REQUIRED\",\"confirmNewPassword\":\"NEW_RULE\"}}",
+            "not json" })
+    void changePasswordIsUnavailableOnA400OutsideTheContract(String body) {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(body));
+
+        assertEquals(ChangePasswordResult.unavailable(), client.changePassword("account-2", "a", "b"), "this 400 doesn't say which field to correct");
+    }
+
+    @Test
+    void changePasswordSaysThereIsNoTemporaryPasswordOn409() {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH))
+                .andRespond(withStatus(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"NO_TEMPORARY_PASSWORD\"}"));
+
+        assertEquals(ChangePasswordResult.noTemporaryPassword(), client.changePassword("account-2", "a", "b"), "the account's password is already permanent");
+    }
+
+    /** This answer lifts the change-password rule from the session, so only identity's exact code may do that. */
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"error\":\"OTHER\"}", "{}", "not json" })
+    void changePasswordIsUnavailableOnA409OutsideTheContract(String body) {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH))
+                .andRespond(withStatus(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON).body(body));
+
+        assertEquals(ChangePasswordResult.unavailable(), client.changePassword("account-2", "a", "b"), "any other 409 says nothing about the password");
+    }
+
+    @Test
+    void changePasswordIsUnavailableOn404() {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"ACCOUNT_NOT_FOUND\"}"));
+
+        assertEquals(ChangePasswordResult.unavailable(), client.changePassword("account-2", "a", "b"), "nothing lets the person fix a missing account, and nothing removes accounts today");
+    }
+
+    @Test
+    void changePasswordIsUnavailableOn500() {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH)).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        assertEquals(ChangePasswordResult.unavailable(), client.changePassword("account-2", "a", "b"), "a 500 is the server-error state");
+    }
+
+    @Test
+    void changePasswordIsUnavailableOnAnyOtherStatus() {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH)).andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        assertEquals(ChangePasswordResult.unavailable(), client.changePassword("account-2", "a", "b"), "only a 204 means changed");
+    }
+
+    @Test
+    void changePasswordIsUnavailableOnAConnectionError() {
+        server.expect(requestTo(BASE_URL + PASSWORD_PATH)).andRespond(withException(new IOException("Connection refused")));
+
+        assertEquals(ChangePasswordResult.unavailable(), client.changePassword("account-2", "a", "b"), "a connection error is the server-error state");
+    }
+
+    @Test
+    void passwordsAreNotLoggedWhenChangingThem(CapturedOutput output) {
+        Logger httpConverters = (Logger) LoggerFactory.getLogger("org.springframework.http");
+        Level previous = httpConverters.getLevel();
+        httpConverters.setLevel(Level.TRACE);
+        try {
+            server.expect(requestTo(BASE_URL + PASSWORD_PATH)).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body("failed"));
+
+            client.changePassword("account-2", SECRET, SECRET + "2");
+
+            assertFalse(output.getAll().contains(SECRET), "the passwords should never be logged, even with every logger turned up");
+        } finally {
+            httpConverters.setLevel(previous);
+        }
     }
 
     @Test

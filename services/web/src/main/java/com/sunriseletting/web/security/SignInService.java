@@ -36,13 +36,27 @@ public class SignInService {
         request.changeSessionId();
         request.getSession(false).setMaxInactiveInterval((int) idleTimeout(principal.role()).toSeconds());
 
+        storeInSession(principal, request, response);
+
+        listeners.forEach(listener -> listener.onSignIn(principal, request, response));
+    }
+
+    /**
+     * Records in the session that a Property Manager no longer has a temporary password. The principal is immutable, so it is
+     * replaced. This isn't a new sign-in: the session id and idle time-out stay as they are, and the listeners don't run.
+     */
+    public SessionPrincipal passwordIsPermanent(SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
+        SessionPrincipal permanent = new SessionPrincipal(principal.accountId(), principal.role(), false);
+        storeInSession(permanent, request, response);
+        return permanent;
+    }
+
+    private void storeInSession(SessionPrincipal principal, HttpServletRequest request, HttpServletResponse response) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal, null,
                 List.of(new SimpleGrantedAuthority(principal.role().authority()))));
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
-
-        listeners.forEach(listener -> listener.onSignIn(principal, request, response));
     }
 
     private static Duration idleTimeout(AccountRole role) {

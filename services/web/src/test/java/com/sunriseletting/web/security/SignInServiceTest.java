@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.description;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
@@ -26,6 +28,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 class SignInServiceTest {
 
     private static final SessionPrincipal VISITOR = new SessionPrincipal("account-1", AccountRole.VISITOR, false);
+
+    private static final SessionPrincipal TEMPORARY_MANAGER = new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, true);
 
     private final MockHttpServletRequest request = new MockHttpServletRequest();
 
@@ -115,6 +119,37 @@ class SignInServiceTest {
 
         verify(listener, description("the sign-in hook should hear about the sign-in"))
                 .onSignIn(VISITOR, request, response);
+    }
+
+    @Test
+    void aPermanentPasswordReplacesTheStoredPrincipalAndKeepsTheAuthority() {
+        service.signIn(TEMPORARY_MANAGER, request, response);
+
+        service.passwordIsPermanent(TEMPORARY_MANAGER, request, response);
+
+        SecurityContext context = (SecurityContext) request.getSession(false)
+                .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+        assertEquals(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, false), context.getAuthentication().getPrincipal(),
+                "the session should no longer count the password as temporary");
+        assertTrue(context.getAuthentication().isAuthenticated(), "the session should stay authenticated");
+        assertEquals(List.of("ROLE_PROPERTY_MANAGER"), context.getAuthentication().getAuthorities().stream().map(GrantedAuthority::getAuthority).toList(),
+                "the only authority should still be the Property Manager role");
+        assertEquals(new SessionPrincipal("account-2", AccountRole.PROPERTY_MANAGER, false), SecurityContextHolder.getContext().getAuthentication().getPrincipal(),
+                "the rest of this request should see the new principal");
+    }
+
+    @Test
+    void aPermanentPasswordIsNotANewSignIn() {
+        service.signIn(TEMPORARY_MANAGER, request, response);
+        String sessionId = request.getSession(false).getId();
+        request.getSession(false).setMaxInactiveInterval(1234);
+
+        service.passwordIsPermanent(TEMPORARY_MANAGER, request, response);
+
+        assertEquals(sessionId, request.getSession(false).getId(), "the session id should stay as it is");
+        assertEquals(1234, request.getSession(false).getMaxInactiveInterval(), "the session's idle time-out should stay as it is");
+        verify(listener, times(1).description("the sign-in hooks should only have heard about the sign-in"))
+                .onSignIn(any(), any(), any());
     }
 
     @Test

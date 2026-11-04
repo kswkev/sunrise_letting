@@ -5,6 +5,7 @@
 </head>
 <body>
 <main>
+    <th:block th:if="${passwordChanged}"><div th:replace="~{fragments/notification-banner :: success(heading='Your password has been changed')}"></div></th:block>
     <h1>Property Manager area</h1>
 </main>
 </body>

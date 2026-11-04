@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ManageController {
 
+    /** The flash attribute that makes the page show the "Your password has been changed" banner, once. */
+    static final String PASSWORD_CHANGED = "passwordChanged";
+
     @GetMapping("/manage")
     public String home() {
         return "manage/home";

@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.sunriseletting.web.TestcontainersConfiguration;
 import com.sunriseletting.web.identity.AuthenticationResult;
+import com.sunriseletting.web.identity.ChangePasswordResult;
 import com.sunriseletting.web.identity.IdentityClient;
 import com.sunriseletting.web.security.AccountRole;
 import com.sunriseletting.web.testsupport.CookieJarClient;
@@ -37,6 +38,8 @@ class PropertyManagerAreaIT {
     private static final String EMAIL = "pm@example.com";
 
     private static final String SECRET = "Sup3r-Secret-Pa55!";
+
+    private static final String NEW_SECRET = "N3w-Secret-Pa55!";
 
     @LocalServerPort
     private int port;
@@ -79,9 +82,52 @@ class PropertyManagerAreaIT {
         assertEquals(302, home.statusCode(), "the home page should redirect");
         assertEquals("/manage/change-password", location(home), "to the change-password page");
         assertEquals(302, browser.get("/manage/other").statusCode(), "so should any other page");
-        assertEquals(404, browser.get("/manage/change-password").statusCode(), "no redirect loop: the page comes with #34, so it is a 404 until then");
+        assertEquals(200, browser.get("/manage/change-password").statusCode(), "no redirect loop: the page itself opens");
         assertEquals(200, browser.get("/properties").statusCode(), "public pages open as normal");
         verifySignedIn();
+    }
+
+    @Test
+    void aRealChangeUpdatesTheSessionInRedisAndShowsTheBannerOnce() throws Exception {
+        when(identityClient.changePassword("account-2", NEW_SECRET, NEW_SECRET)).thenReturn(ChangePasswordResult.changed());
+        signIn(true, "/manage/change-password");
+        String sessionBeforeTheChange = browser.cookie("SESSION");
+        HttpResponse<String> form = browser.get("/manage/change-password");
+
+        HttpResponse<String> changed = browser.post("/manage/change-password",
+                Map.of("_csrf", CookieJarClient.csrfToken(form), "newPassword", NEW_SECRET, "confirmNewPassword", NEW_SECRET));
+
+        assertEquals(303, changed.statusCode(), "the change should succeed");
+        assertEquals("/manage", location(changed), "the area home comes next");
+        assertEquals(sessionBeforeTheChange, browser.cookie("SESSION"), "this isn't a new sign-in, so the session stays the same");
+        HttpResponse<String> first = browser.get("/manage");
+        assertEquals(200, first.statusCode(), "the stored session should no longer count the password as temporary");
+        assertEquals("Your password has been changed", Jsoup.parse(first.body()).select(".notification-banner--success").text(), "the banner on the first visit");
+        assertEquals("7200", Jsoup.parse(first.body()).select("#timeout-dialog").attr("data-timeout-seconds"), "the session keeps its two hours");
+        HttpResponse<String> second = browser.get("/manage");
+        assertEquals(200, second.statusCode(), "the home page opens on a reload");
+        assertEquals(0, Jsoup.parse(second.body()).select(".notification-banner").size(), "no banner on a reload");
+        assertEquals(302, browser.get("/manage/change-password").statusCode(), "the page is closed once the password is permanent");
+        verifySignedIn();
+        verify(identityClient, description("identity should have changed the password")).changePassword("account-2", NEW_SECRET, NEW_SECRET);
+    }
+
+    @Test
+    void aSecondBrowsersOutOfDateSessionIsCorrectedRatherThanStuck() throws Exception {
+        when(identityClient.changePassword("account-2", NEW_SECRET, NEW_SECRET)).thenReturn(ChangePasswordResult.noTemporaryPassword());
+        signIn(true, "/manage/change-password");
+        HttpResponse<String> form = browser.get("/manage/change-password");
+
+        HttpResponse<String> answer = browser.post("/manage/change-password",
+                Map.of("_csrf", CookieJarClient.csrfToken(form), "newPassword", NEW_SECRET, "confirmNewPassword", NEW_SECRET));
+
+        assertEquals(303, answer.statusCode(), "the page should let them go");
+        assertEquals("/manage", location(answer), "to the area home");
+        HttpResponse<String> home = browser.get("/manage");
+        assertEquals(200, home.statusCode(), "the stored session should no longer count the password as temporary");
+        assertEquals(0, Jsoup.parse(home.body()).select(".notification-banner").size(), "this browser changed nothing, so no banner");
+        verifySignedIn();
+        verify(identityClient, description("identity should have been asked")).changePassword("account-2", NEW_SECRET, NEW_SECRET);
     }
 
     @Test

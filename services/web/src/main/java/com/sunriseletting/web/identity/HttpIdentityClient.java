@@ -25,6 +25,12 @@ class HttpIdentityClient implements IdentityClient {
 
     private static final Set<String> SIGN_IN_FIELD_CODES = Set.of("EMAIL_REQUIRED", "PASSWORD_REQUIRED");
 
+    private static final Map<String, Set<String>> CHANGE_PASSWORD_FIELD_CODES = Map.of(
+            "newPassword", Set.of("PASSWORD_REQUIRED", "PASSWORD_TOO_SHORT", "PASSWORD_TOO_LONG", "PASSWORD_MISSING_CHARACTER_TYPES", "PASSWORD_SAME_AS_TEMPORARY"),
+            "confirmNewPassword", Set.of("CONFIRM_PASSWORD_REQUIRED", "PASSWORDS_DO_NOT_MATCH"));
+
+    private static final String NO_TEMPORARY_PASSWORD = "NO_TEMPORARY_PASSWORD";
+
     private final RestClient restClient;
 
     HttpIdentityClient(RestClient restClient) {
@@ -126,6 +132,40 @@ class HttpIdentityClient implements IdentityClient {
     }
 
     @Override
+    public ChangePasswordResult changePassword(String accountId, String newPassword, String confirmNewPassword) {
+        try {
+            return restClient.post()
+                    .uri("/api/accounts/{accountId}/password", accountId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new ChangePasswordBody(newPassword, confirmNewPassword))
+                    .exchange((request, response) -> {
+                        int status = response.getStatusCode().value();
+                        if (status == HttpStatus.NO_CONTENT.value()) {
+                            return ChangePasswordResult.changed();
+                        }
+                        if (status == HttpStatus.BAD_REQUEST.value()) {
+                            ValidationFailedAnswer answer = response.bodyTo(ValidationFailedAnswer.class);
+                            if (answer == null || answer.errors() == null || answer.errors().isEmpty()
+                                    || !areChangePasswordFieldCodes(answer.errors())) {
+                                return unexpectedStatus(status, ChangePasswordResult.unavailable());
+                            }
+                            return new ChangePasswordResult.FieldErrors(answer.errors());
+                        }
+                        if (status == HttpStatus.CONFLICT.value()) {
+                            ConflictAnswer answer = response.bodyTo(ConflictAnswer.class);
+                            if (answer != null && NO_TEMPORARY_PASSWORD.equals(answer.error())) {
+                                return ChangePasswordResult.noTemporaryPassword();
+                            }
+                        }
+                        return unexpectedStatus(status, ChangePasswordResult.unavailable());
+                    });
+        } catch (RestClientException | HttpMessageConversionException e) {
+            log.warn("Identity change password failed: {}", e.getClass().getSimpleName());
+            return ChangePasswordResult.unavailable();
+        }
+    }
+
+    @Override
     public RememberMeTokenResult issueRememberMeToken(String accountId) {
         try {
             return restClient.post()
@@ -201,6 +241,11 @@ class HttpIdentityClient implements IdentityClient {
         return new AuthenticationResult.SignedIn(answer.accountId(), AccountRole.valueOf(answer.role()), answer.temporaryPassword());
     }
 
+    private static boolean areChangePasswordFieldCodes(Map<String, String> errors) {
+        return errors.entrySet().stream().allMatch(error -> error.getValue() != null
+                && CHANGE_PASSWORD_FIELD_CODES.getOrDefault(error.getKey(), Set.of()).contains(error.getValue()));
+    }
+
     private static boolean isKnownRole(String role) {
         return Arrays.stream(AccountRole.values()).anyMatch(known -> known.name().equals(role));
     }
@@ -225,6 +270,17 @@ class HttpIdentityClient implements IdentityClient {
         public String toString() {
             return "AuthenticationBody[redacted]";
         }
+    }
+
+    private record ChangePasswordBody(String newPassword, String confirmNewPassword) {
+
+        @Override
+        public String toString() {
+            return "ChangePasswordBody[redacted]";
+        }
+    }
+
+    private record ConflictAnswer(String error) {
     }
 
     private record IssueTokenBody(String accountId) {

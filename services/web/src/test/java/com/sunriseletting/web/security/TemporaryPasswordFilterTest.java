@@ -47,8 +47,8 @@ class TemporaryPasswordFilterTest {
         MvcTestResult get = mvc.get().uri("/manage/change-password").with(authentication(SignedInUsers.propertyManager(true))).exchange();
         MvcTestResult post = mvc.post().uri("/manage/change-password").with(csrf()).with(authentication(SignedInUsers.propertyManager(true))).exchange();
 
-        assertThat(get).as("no redirect loop: the page comes with #34, so it is a 404 until then").hasStatus(HttpStatus.NOT_FOUND);
-        assertThat(post).as("nor for its form: a 404 until #34").hasStatus(HttpStatus.NOT_FOUND);
+        assertThat(get).as("no redirect loop: a 404 only because this test doesn't load the page's controller").hasStatus(HttpStatus.NOT_FOUND);
+        assertThat(post).as("nor for its form: a 404 for the same reason").hasStatus(HttpStatus.NOT_FOUND);
     }
 
     @ParameterizedTest
